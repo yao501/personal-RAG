@@ -1,0 +1,35 @@
+{
+  "name": "personal-knowledge-rag",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first desktop RAG app for macOS personal knowledge bases.",
+  "main": "dist-electron/main/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "electron:dev": "electron-vite dev",
+    "electron:build": "electron-vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "mammoth": "^1.8.0",
+    "pdf-parse": "^1.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.14",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^35.1.2",
+    "electron-vite": "^3.0.0",
+    "typescript": "^5.8.3",
+    "vite": "^5.4.14",
+    "vitest": "^3.1.1"
+  }
+}
+
