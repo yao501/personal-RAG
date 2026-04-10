@@ -124,6 +124,19 @@ export class AppStore {
     this.ensureColumn("chunks", "paragraphEnd", "INTEGER");
     this.ensureColumn("chunks", "locatorLabel", "TEXT");
     this.ensureColumn("chunks", "embedding", "TEXT");
+
+    this.db.pragma("user_version = 1");
+  }
+
+  getDatabasePragmas(): { user_version: number; journal_mode: string; page_size: number } {
+    const userVersion = this.db.prepare("PRAGMA user_version").get() as { user_version: number };
+    const journalMode = this.db.prepare("PRAGMA journal_mode").get() as { journal_mode: string };
+    const pageSize = this.db.prepare("PRAGMA page_size").get() as { page_size: number };
+    return {
+      user_version: userVersion.user_version,
+      journal_mode: journalMode.journal_mode,
+      page_size: pageSize.page_size
+    };
   }
 
   private ensureColumn(tableName: "documents" | "chunks", columnName: string, definition: string): void {

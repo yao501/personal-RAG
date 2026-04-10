@@ -246,6 +246,8 @@ export function App() {
   const [detailSortMode, setDetailSortMode] = useState<DetailSortMode>("structure");
   const [detailQuestionMatches, setDetailQuestionMatches] = useState<DocumentQuestionMatch[]>([]);
   const [isDetailQuestionLoading, setIsDetailQuestionLoading] = useState(false);
+  const [supportBundleAnonymize, setSupportBundleAnonymize] = useState(true);
+  const [supportBundleFeedback, setSupportBundleFeedback] = useState("");
 
   const filteredDocuments = useMemo(() => {
     const keyword = libraryQuery.trim().toLowerCase();
@@ -828,6 +830,28 @@ export function App() {
       const message = error instanceof Error ? error.message : "未知复制错误";
       setErrorMessage(message);
       setStatus("复制诊断信息失败");
+    }
+  }
+
+  async function handleExportSupportBundle(): Promise<void> {
+    try {
+      setSupportBundleFeedback("");
+      setErrorMessage("");
+      const api = getDesktopApi();
+      const result = await api.exportSupportBundle({ anonymize: supportBundleAnonymize });
+      if (result.canceled) {
+        setSupportBundleFeedback("已取消导出。");
+        setStatus("已取消支持包导出");
+        return;
+      }
+      setSupportBundleFeedback(`已保存：${result.path}`);
+      setStatus("支持包已导出");
+    } catch (error) {
+      const info = extractRendererErrorInfo(error);
+      const message = info ? formatRendererError(info) : (error instanceof Error ? error.message : "未知导出错误");
+      setSupportBundleFeedback(message);
+      setErrorMessage(message);
+      setStatus("支持包导出失败");
     }
   }
 
@@ -1812,6 +1836,24 @@ export function App() {
               <button type="button" className="secondary" onClick={() => void handleCopyDiagnostics()}>
                 复制诊断信息
               </button>
+              <div className="settings-note">
+                <label className="support-bundle-option">
+                  <input
+                    type="checkbox"
+                    checked={supportBundleAnonymize}
+                    onChange={(event) => setSupportBundleAnonymize(event.target.checked)}
+                  />
+                  导出支持包时匿名化路径与提问预览（推荐给企业外发）
+                </label>
+              </div>
+              <button type="button" className="secondary" onClick={() => void handleExportSupportBundle()}>
+                导出支持包（ZIP）…
+              </button>
+              {supportBundleFeedback && (
+                <div className={`settings-note ${supportBundleFeedback.startsWith("已保存") ? "" : "error-text"}`}>
+                  {supportBundleFeedback}
+                </div>
+              )}
             </div>
             <div className="panel-header" style={{ marginTop: 24 }}>
               <div>

@@ -104,6 +104,10 @@ npm run audit:security
 
 This currently wraps `npm audit --audit-level=high`.
 
+## Support bundle export
+
+The `support:export-bundle` IPC route writes a local ZIP of JSON diagnostics (see `docs/SUPPORT_RUNBOOK.md`). It is designed to **exclude** raw document text, chunk bodies, embeddings, and full query payloads by default. Users may enable anonymized path and preview redaction in Settings before export.
+
 ## Remaining Work
 
 This baseline is an important first step, not the final security state.

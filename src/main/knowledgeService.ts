@@ -33,6 +33,7 @@ import { buildEvalCaseDrafts } from "../lib/eval/queryLogDrafts";
 import { buildLibraryHealthReport } from "../lib/health/libraryHealth";
 import { buildDocumentOpenTarget, shouldUseExternalDocumentOpenTarget } from "./documentOpen";
 import { createImportError, normalizeImportError, toImportIssueDetail } from "./importErrors";
+import { recordTaskProgressSnapshot } from "./diagnosticsBuffer";
 
 function deriveDocumentTitle(fileName: string, content: string): string {
   const markdownHeading = content.match(/^\s*#\s+(.+?)\s*$/m)?.[1]?.trim();
@@ -176,10 +177,12 @@ export class KnowledgeService {
     emitProgress: ((progress: LibraryTaskProgress) => void) | undefined,
     input: Omit<LibraryTaskProgress, "done"> & { phase: LibraryTaskPhase }
   ): void {
-    emitProgress?.({
+    const progress: LibraryTaskProgress = {
       ...input,
       done: input.phase === "completed" || (input.phase === "failed" && input.current >= input.total)
-    });
+    };
+    emitProgress?.(progress);
+    recordTaskProgressSnapshot(progress);
   }
 
   private createTaskId(kind: LibraryTaskKind): string {

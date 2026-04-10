@@ -55,10 +55,10 @@ Implemented:
 - targeted repair flow for only the documents that need reindexing
 - local diagnostics in `Settings` for app version, data directory, and database path
 - reindex support
+- **Support bundle export** from `Settings`：导出 ZIP（JSON + 说明文本），默认不包含原文与 chunk 正文；可选匿名化路径与提问预览（详见 `docs/SUPPORT_RUNBOOK.md`）
 
 Still next:
 
-- support bundle export (exclude raw document content by default)
 - stronger evaluation/regression gate for retrieval changes
 - release repeatability + signing/notarization for macOS distribution
 - deeper import/reindex error codes + UI refinement as diagnostics surface grows
@@ -92,8 +92,10 @@ Key extension points:
 Suggested:
 
 1. Install Node.js 22+
-2. Run `npm install`
+2. Run `npm install`（`postinstall` 会针对当前 **Electron** 自带的 Node 版本执行 `electron-rebuild`，以编译 `better-sqlite3` 等原生模块）
 3. Run `npm run electron:dev`
+
+若启动时提示 `better-sqlite3` 的 `NODE_MODULE_VERSION` 不匹配，多半是原生模块未按 Electron 重编：在项目根目录执行 `npm run rebuild:native` 后再启动。升级 **Electron** 或 **Node** 版本后也建议重新执行一次 `npm install` 或 `npm run rebuild:native`。
 
 ## How to use
 

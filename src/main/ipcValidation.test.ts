@@ -5,7 +5,8 @@ import {
   expectFeedbackStatus,
   expectOptionalPositiveInt,
   expectSettingsPatch,
-  expectStringArray
+  expectStringArray,
+  expectSupportBundleExportOptions
 } from "./ipcValidation";
 
 describe("ipcValidation", () => {
@@ -26,5 +27,11 @@ describe("ipcValidation", () => {
       libraryPath: null
     });
     expect(expectFeedbackStatus("promoted")).toBe("promoted");
+  });
+
+  it("parses support bundle export options", () => {
+    expect(expectSupportBundleExportOptions([])).toEqual([false]);
+    expect(expectSupportBundleExportOptions([{}])).toEqual([false]);
+    expect(expectSupportBundleExportOptions([{ anonymize: true }])).toEqual([true]);
   });
 });

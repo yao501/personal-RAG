@@ -138,3 +138,21 @@ export function expectBoundedInt(value: unknown, fieldName: string, min: number,
 
   return value;
 }
+
+export function expectSupportBundleExportOptions(args: unknown[]): [boolean] {
+  if (args.length === 0) {
+    return [false];
+  }
+
+  const value = args[0];
+  if (typeof value !== "object" || value === null) {
+    fail("support bundle options must be an object.");
+  }
+
+  const record = value as Record<string, unknown>;
+  if ("anonymize" in record && typeof record.anonymize !== "boolean") {
+    fail("anonymize must be a boolean.");
+  }
+
+  return [Boolean(record.anonymize)];
+}

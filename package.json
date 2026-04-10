@@ -6,6 +6,8 @@
   "main": "dist-electron/main/main.js",
   "type": "module",
   "scripts": {
+    "postinstall": "electron-rebuild",
+    "rebuild:native": "electron-rebuild",
     "dev": "vite",
     "build": "tsc -b && electron-vite build",
     "electron:dev": "electron-vite dev",
@@ -21,13 +23,14 @@
     "@huggingface/transformers": "^3.8.1",
     "@lancedb/lancedb": "^0.27.2",
     "apache-arrow": "^18.1.0",
-    "better-sqlite3": "^11.8.1",
+    "better-sqlite3": "^12.8.0",
     "mammoth": "^1.8.0",
     "pdf-parse": "^1.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.0.3",
     "@types/node": "^22.13.14",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",

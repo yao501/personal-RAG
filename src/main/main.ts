@@ -13,10 +13,13 @@ import {
   expectOptionalStringArray,
   expectSettingsPatch,
   expectString,
-  expectStringArray
+  expectStringArray,
+  expectSupportBundleExportOptions
 } from "./ipcValidation";
 import { isAllowedAppNavigation } from "./security";
 import { IpcForbiddenError, toRendererErrorInfo } from "./ipcErrors";
+import { recordIpcFailure } from "./diagnosticsBuffer";
+import { exportSupportBundleZip } from "./supportBundle";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rendererUrl = process.env.ELECTRON_RENDERER_URL;
@@ -46,7 +49,9 @@ function registerIpc<Args extends unknown[], Result>(
     } catch (error) {
       // Preserve a renderer-consumable structured error object.
       // Note: we avoid throwing here because Electron invoke() will otherwise drop structured fields.
-      return { ok: false, error: toRendererErrorInfo(channel, error) } satisfies IpcResult<Result>;
+      const info = toRendererErrorInfo(channel, error);
+      recordIpcFailure(channel, info);
+      return { ok: false, error: info } satisfies IpcResult<Result>;
     }
   });
 }
@@ -201,6 +206,38 @@ function registerIpcHandlers(): void {
   );
   registerIpc("query-logs:eval-drafts", (args) => [expectOptionalPositiveInt(args[0], "limit")] as const, (_event, limit) =>
     knowledgeService.getEvalCandidateDrafts(limit)
+  );
+
+  registerIpc(
+    "support:export-bundle",
+    expectSupportBundleExportOptions,
+    async (event, anonymize) => {
+      const win = BrowserWindow.fromWebContents(event.sender) ?? mainWindow;
+      const saveOptions = {
+        title: "导出支持包",
+        defaultPath: `personal-knowledge-rag-support-${new Date().toISOString().replace(/[:.]/g, "-")}.zip`,
+        filters: [{ name: "ZIP", extensions: ["zip"] }]
+      } satisfies Electron.SaveDialogOptions;
+      const result = win
+        ? await dialog.showSaveDialog(win, saveOptions)
+        : await dialog.showSaveDialog(saveOptions);
+
+      if (result.canceled || !result.filePath) {
+        return { canceled: true as const };
+      }
+
+      const snapshot = await knowledgeService.getSnapshot();
+      const health = await knowledgeService.getLibraryHealth();
+      await exportSupportBundleZip({
+        store,
+        snapshot,
+        health,
+        anonymize,
+        outputZipPath: result.filePath
+      });
+
+      return { canceled: false as const, path: result.filePath };
+    }
   );
 }
 

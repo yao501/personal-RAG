@@ -283,6 +283,8 @@ export interface AppSnapshot {
   appInfo: AppInfo;
 }
 
+export type SupportBundleExportResult = { canceled: true } | { canceled: false; path: string };
+
 export interface DesktopApi {
   getSnapshot(): Promise<AppSnapshot>;
   importFiles(filePaths?: string[]): Promise<ImportResult>;
@@ -307,4 +309,5 @@ export interface DesktopApi {
   removeDocuments(documentIds: string[]): Promise<AppSnapshot>;
   openDocumentAtLocation(filePath: string, pageNumber?: number | null): Promise<void>;
   onLibraryTaskProgress(listener: (progress: LibraryTaskProgress) => void): () => void;
+  exportSupportBundle(options?: { anonymize?: boolean }): Promise<SupportBundleExportResult>;
 }

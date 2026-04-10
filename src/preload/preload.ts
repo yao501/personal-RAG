@@ -1,5 +1,13 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { AppSettings, DesktopApi, IpcResult, LibraryTaskProgress, QueryLogFeedbackStatus, RendererErrorInfo } from "../lib/shared/types";
+import type {
+  AppSettings,
+  DesktopApi,
+  IpcResult,
+  LibraryTaskProgress,
+  QueryLogFeedbackStatus,
+  RendererErrorInfo,
+  SupportBundleExportResult
+} from "../lib/shared/types";
 
 function isIpcResult<T>(value: unknown): value is IpcResult<T> {
   return typeof value === "object" && value !== null && "ok" in value;
@@ -47,6 +55,8 @@ const api: DesktopApi = {
   getLibraryHealth: () => invokeDesktop("library:health"),
   reindexDocuments: (documentIds: string[]) => invokeDesktop("library:reindex-documents", documentIds),
   removeDocuments: (documentIds: string[]) => invokeDesktop("library:remove-documents", documentIds),
+  exportSupportBundle: (options?: { anonymize?: boolean }) =>
+    invokeDesktop<SupportBundleExportResult>("support:export-bundle", options ?? {}),
   onLibraryTaskProgress: (listener: (progress: LibraryTaskProgress) => void) => {
     const wrapped = (_event: Electron.IpcRendererEvent, progress: LibraryTaskProgress) => listener(progress);
     ipcRenderer.on("library:task-progress", wrapped);
