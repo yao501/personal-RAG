@@ -1,9 +1,16 @@
 # Sprint 5.3 归档摘要（短）
 
-- **状态**：**Sprint 5.3 已正式关闭**（阶段收口文档：`docs/evals/sprint-5.3-closeout.md`）。
-- **关闭依据**：真实 PDF 抽样 **5/6 pass**（≥4 pass）；**Q1** 主命中从误分册修复为 **手册1「软件使用步骤」**；**Q8** 从 fail → pass；**Q9 / Q11** 无谨慎壳退化（详见 `sprint-5.3c-realpdf-summary-001.md` / `sprint-5.3c-overall-summary-001.md`）。
-- **Q6**：真实 PDF 仍为 **partial**（控制器侧 vs 工程总控侧表述与命中），已列为 **follow-up**（`docs/evals/sprint-5.3-q6-followup.md`），**不阻塞** 5.3 收尾。
-- **是否立即开 5.3d**：**不必**。Q6 可按优先级 **后置** 做小修补遗；若未来做窄范围复测，仅针对 Q6 或同类 2～3 问法即可。
+**Sprint 5.3 已正式关闭。**
+
+**关闭依据（与 `docs/evals/sprint-5.3-closeout.md` 一致）：**
+
+1. **5.3a**：合成评测 `run-002` **12/12 pass**（相对 `run-001` 7/5/0，`sprint-5.3-summary-002.md`）。
+2. **5.3b**：**Paraphrase 18/18**；**Ablation A/B/C** 完成且表明 **Q1 仍偏 retrieval/ranking**；真实 PDF **3/6** 完成**差距定位**（`sprint-5.3b-overall-summary-001.md`）。
+3. **5.3c**：真实 PDF 抽样 **5/6 pass**（≥4 pass），**Q1/Q8** 改善，**Q9/Q11** 无谨慎壳退化（`sprint-5.3c-realpdf-summary-001.md` / `sprint-5.3c-overall-summary-001.md`）。
+
+**Q6**：真实 PDF **partial**，已转 **follow-up**（`docs/evals/sprint-5.3-q6-followup.md`），**不阻塞** 5.3 关闭。
+
+**下一阶段主线**：见 `docs/PRODUCT_RAG_ROADMAP_V1.md`（真实回归小步扩展 + retrieval/ranking 治理 + 发布级交付收口）。
 
 ---
-生成说明：与 `docs/evals/sprint-5.3-closeout.md` 同步，用于 `evals/results/` 下快速检索。
+与 `docs/evals/sprint-5.3-closeout.md` 同步；用于 `evals/results/` 快速检索。
