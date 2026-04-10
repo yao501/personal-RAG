@@ -225,7 +225,7 @@ Acceptance:
 
 ### P1.1 Retrieval quality improvements
 
-Status (Sprint 5 partial): **eval–desktop retrieval shape aligned** (`runRetrievalLikeDesktop`, shared `selectCandidateChunksFromVectors`), **lexical query expansion** tweaks for overlap/chunk wording, **procedural evidence caution** in `answerQuestion`, **`PKRAG_RETRIEVAL_DEBUG`** logs in main. Full in-app retrieval debug panel remains **P1.2**.
+Status (Sprint 5 + 5.1): **eval–desktop retrieval shape aligned**, **tuned cautious-procedural thresholds**, **benchmark intent groups + failure buckets** in reports, **`PKRAG_RETRIEVAL_DEBUG` schema v1** (tokens + flags). Full in-app retrieval debug panel remains **P1.2**.
 
 Keep the current route:
 

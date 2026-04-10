@@ -222,6 +222,35 @@ describe("answerQuestion", () => {
     expect(answer.citations).toHaveLength(3);
   });
 
+  it("allows a borderline single hit when score, quality, and rerank jointly support it (Sprint 5.1)", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-1",
+        fileName: "guide.md",
+        documentTitle: "使用指南",
+        chunkId: "border",
+        snippet: "只有背景说明，没有编号步骤。",
+        score: 2.45,
+        chunkIndex: 0,
+        sectionTitle: "背景",
+        sectionPath: "使用指南 > 背景",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        importedAt: "2026-04-01T00:00:00.000Z",
+        text: "只有背景说明，没有编号步骤。",
+        lexicalScore: 0.9,
+        semanticScore: 0.55,
+        freshnessScore: 0.3,
+        rerankScore: 1.0,
+        qualityScore: 0.2,
+        fullText: "只有背景说明，没有编号步骤。"
+      }
+    ];
+
+    const answer = answerQuestion("怎么完成导入？", results);
+
+    expect(answer.directAnswer).not.toContain("概述性内容");
+  });
+
   it("prefers an explicit overview caveat for weak procedural hits without actionable cues", () => {
     const results: SearchResult[] = [
       {

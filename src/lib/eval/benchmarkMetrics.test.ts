@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  categorizeFailureReasons,
   computeRetrievalMetrics,
   detectRefusal,
   evaluateBenchmarkCase,
@@ -34,6 +35,14 @@ function makeSearchResult(overrides: Partial<SearchResult>): SearchResult {
 }
 
 describe("benchmarkMetrics", () => {
+  it("categorizes failure reasons into coarse buckets", () => {
+    expect(categorizeFailureReasons(["Expected document not found in top-k retrieval."])).toBe("retrieval");
+    expect(categorizeFailureReasons(["Missing expected facts: x"])).toBe("facts");
+    expect(categorizeFailureReasons(["Unexpected refusal-style answer for a non-mustRefuse case."])).toBe(
+      "unexpected_refusal"
+    );
+  });
+
   it("computes recall when expected docs match fileName", () => {
     const benchmarkCase: BenchmarkCaseV1 = {
       id: "c1",

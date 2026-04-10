@@ -26,6 +26,8 @@ export interface BenchmarkCaseV1 {
   expectedFacts?: string[];
   expectedCitations?: BenchmarkExpectedCitationsV1;
   mustRefuse: boolean;
+  /** Optional label to group near-equivalent phrasings for reports (e.g. `import-procedure`). */
+  intentGroup?: string;
   notes?: string;
 }
 

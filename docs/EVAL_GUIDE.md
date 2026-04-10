@@ -32,6 +32,7 @@ Each **case**:
 | `expectedFacts` | no | Substrings that should appear in the **combined** answer text (case-insensitive). |
 | `expectedCitations` | no | Substrings matched against citation snippets / evidence (case-insensitive). |
 | `mustRefuse` | yes | If `true`, the run expects a refusal-style answer (template match), not a grounded synthesis. |
+| `intentGroup` | no | Optional label to group **near-equivalent** phrasings in the Markdown report (e.g. `import-procedure`). Does not change pass/fail logic. |
 | `notes` | no | Free text for humans; not scored. |
 
 ### Documents
@@ -79,8 +80,24 @@ Generated reports are gitignored by default (`reports/rag-eval/*.md`).
 - **Groundedness proxy** (when `mustRefuse` is false): answer is non-empty and has at least one citation when the pipeline returned hits (weak signal).
 - **Expected facts**: each listed substring appears in combined answer text.
 - **Citation hit rate**: share of `expectedCitations` substrings found in citation text.
+- **Cautious procedural** (informational): whether `directAnswer` contains the cautious template marker (`概述性内容` in `cautiousMarkers.ts`). Shown per case in the report; not a failure by itself.
+
+### Report extras (Sprint 5.1)
+
+- **Failure buckets**: counts of failed cases by coarse category (`retrieval`, `facts`, `citation`, `refusal`, `unexpected_refusal`, `other`).
+- **Intent groups**: pass rate per `intentGroup` (same-intent phrasing comparison).
 
 Pass/fail for a case is a conjunction of the checks that apply to that case (see report per row).
+
+### Cautious procedural gate (tunable heuristics)
+
+For procedural-style questions (`detectQueryIntent.wantsSteps`), the app may emit a **cautious** overview answer instead of a confident how-to when evidence is thin. The single-hit **skip-cautious** rule (Sprint 5.1) replaces a flat `score ≥ 2.5` test with:
+
+- `top.score ≥ 2.78` → strong enough; or
+- `top.score ≥ 2.38` and `qualityScore ≥ 0.12` and `rerankScore ≥ 0.98` → strong enough; or
+- `top.score ≥ 2.35` and `qualityScore ≥ 0.28` → strong enough.
+
+If none of those hold and the chunk text still lacks step-like markers, the cautious template is used. For two retrieved chunks, if the second score is **below** `0.58 × top.score`, the cautious path is preferred (Sprint 5.1 tightened from `0.62` to reduce unnecessary cautious answers when the runner-up is moderately strong).
 
 ## Known limitations
 
@@ -96,7 +113,19 @@ When running the Electron app from a terminal, set:
 export PKRAG_RETRIEVAL_DEBUG=1
 ```
 
-Each `askQuestion` logs one JSON line (stderr) with vector shortlist size, candidate count, top retrieval rows (scores), and citation chunk ids used in the answer. This is **not** a polished UI; it is for local debugging only.
+Each `askQuestion` logs **one JSON object per line** (stderr). Payload `schemaVersion` is **1** (see `RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION`). Fields include:
+
+- `effectiveQueryTokens` / `expandedTokens` / `intent` (primary + `wantsSteps`) — aligned with `searchChunks` tokenization
+- `vectorShortlistCount`, `candidateChunkCount`, `searchTopK`
+- `topResults` — top `searchTopK` rows with scores
+- `answerCitationChunkIds`
+- `answerFlags.refusal` / `answerFlags.cautiousProcedural`
+
+This is **not** a polished UI; it is for local debugging only.
+
+### Baseline comparability
+
+Benchmark **case counts** and ids change over time (e.g. Sprint 5.1 added wording groups). Compare **before/after** deltas using the **same** `benchmarks/benchmark.v1.json` revision on the same machine; do not treat historical “N/ N passed” from a smaller file as a strict regression target.
 
 ## Suggested next steps
 

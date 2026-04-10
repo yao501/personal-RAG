@@ -5,7 +5,12 @@ import { parseDocument } from "../modules/parse/parseDocument";
 import { answerQuestion } from "../modules/answer/answerQuestion";
 import { DEFAULT_RETRIEVAL_LIMIT, runRetrievalLikeDesktop } from "../modules/retrieve/retrievalPipeline";
 import type { ChunkRecord, DocumentRecord, ParsedDocumentContent, SupportedFileType } from "../shared/types";
-import { evaluateBenchmarkCase, summarizeBenchmarkResults, type BenchmarkCaseEvalResult } from "./benchmarkMetrics";
+import {
+  evaluateBenchmarkCase,
+  summarizeBenchmarkResults,
+  summarizeFailureBuckets,
+  type BenchmarkCaseEvalResult
+} from "./benchmarkMetrics";
 import { isBenchmarkFileV1, type BenchmarkFileV1 } from "./benchmarkSchema";
 
 export function loadBenchmarkJsonFile(absPath: string): BenchmarkFileV1 {
@@ -118,17 +123,48 @@ export function renderBenchmarkMarkdownReport(options: {
   lines.push(`| Mean recall@k (expected docs) | ${summary.meanRecallAtK.toFixed(3)} |`);
   lines.push(`| Doc hit rate (non-empty expectedDocs) | ${summary.docHitRate.toFixed(3)} |`);
   lines.push(`| mustRefuse correct | ${summary.mustRefuseCorrect}/${summary.mustRefuseCases} |`);
+  lines.push(`| Cautious procedural answers | ${options.caseResults.filter((r) => r.answerMetrics.cautiousProcedural).length} |`);
+  lines.push("");
+
+  const buckets = summarizeFailureBuckets(options.caseResults);
+  const bucketLines = Object.entries(buckets)
+    .filter(([, count]) => count > 0)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join("; ");
+  lines.push("## Failure buckets (failed cases only)");
+  lines.push("");
+  lines.push(bucketLines.length > 0 ? bucketLines : "_No failures._");
+  lines.push("");
+
+  const groupMap = new Map<string, BenchmarkCaseEvalResult[]>();
+  for (const row of options.caseResults) {
+    const key = row.case.intentGroup ?? `— (${row.case.id})`;
+    const list = groupMap.get(key) ?? [];
+    list.push(row);
+    groupMap.set(key, list);
+  }
+  lines.push("## Intent groups (same-intent phrasing)");
+  lines.push("");
+  lines.push(`| Group | Pass rate | Case ids |`);
+  lines.push(`| --- | --- | --- |`);
+  for (const [group, rows] of [...groupMap.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    const passed = rows.filter((item) => item.passed).length;
+    const ids = rows.map((item) => item.case.id).join(", ");
+    lines.push(`| ${group.replace(/\|/g, "\\|")} | ${passed}/${rows.length} | ${ids.replace(/\|/g, "\\|")} |`);
+  }
   lines.push("");
 
   lines.push("## Per-case results");
   lines.push("");
-  lines.push(`| Case | Pass | recall@k | docHit | refusal | Notes |`);
-  lines.push(`| --- | --- | --- | --- | --- | --- |`);
+  lines.push(`| Case | Group | Pass | cautious | recall@k | docHit | refusal | fail bucket |`);
+  lines.push(`| --- | --- | --- | --- | --- | --- | --- | --- |`);
   for (const row of options.caseResults) {
     const refusal = row.answerMetrics.refusalDetected ? "yes" : "no";
-    const notes = row.failureReasons.length > 0 ? row.failureReasons.join("; ") : "—";
+    const cautious = row.answerMetrics.cautiousProcedural ? "yes" : "no";
+    const group = row.case.intentGroup ?? "—";
+    const bucket = row.failureCategory ?? "—";
     lines.push(
-      `| ${row.case.id} | ${row.passed ? "yes" : "no"} | ${row.retrieval.recallAtK.toFixed(2)} | ${row.retrieval.docHit ? "yes" : "no"} | ${refusal} | ${notes.replace(/\|/g, "\\|")} |`
+      `| ${row.case.id} | ${group.replace(/\|/g, "\\|")} | ${row.passed ? "yes" : "no"} | ${cautious} | ${row.retrieval.recallAtK.toFixed(2)} | ${row.retrieval.docHit ? "yes" : "no"} | ${refusal} | ${bucket} |`
     );
   }
   lines.push("");
@@ -153,6 +189,8 @@ export function renderBenchmarkMarkdownReport(options: {
   lines.push("- Metrics are heuristic and deterministic; they are not semantic LLM-judge scores.");
   lines.push("- Refusal detection keys off empty citations plus known refusal strings in `directAnswer`.");
   lines.push("- Retrieval uses `runRetrievalLikeDesktop`: query embedding + in-memory vector shortlist + `selectCandidateChunksFromVectors` + `searchChunks`, matching the desktop pipeline (LanceDB replaced by cosine ranking on embeddings).");
+  lines.push("- `intentGroup` is for human comparison only; pass/fail rules are unchanged.");
+  lines.push("- When comparing runs across commits, use the same `benchmarks/benchmark.v1.json`; case ids added in Sprint 5.1 are not comparable to older 4–7 case baselines without re-baselining.");
   lines.push("");
 
   return lines.join("\n");

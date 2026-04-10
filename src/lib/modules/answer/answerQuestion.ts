@@ -1,4 +1,5 @@
 import type { ChatAnswer, SearchResult } from "../../shared/types";
+import { CAUTIOUS_PROCEDURAL_ANSWER_MARKER } from "./cautiousMarkers";
 import { formatReferenceTag } from "../citation/locator";
 import { extractSectionRootLabel, splitSectionPath } from "../citation/sectionRoot";
 import { detectQueryIntent } from "../retrieve/queryIntent";
@@ -106,9 +107,25 @@ function chunkHasStepLikeContent(text: string): boolean {
 }
 
 /**
+ * Single-hit procedural questions: allow confident answers when the ranker + quality signals
+ * are strong enough (Sprint 5.1 tuning — replaces a flat score ≥ 2.5 rule).
+ */
+function singleHitStrongEnoughForProcedural(top: SearchResult): boolean {
+  if (top.score >= 2.78) {
+    return true;
+  }
+  if (top.score >= 2.38 && top.qualityScore >= 0.12 && top.rerankScore >= 0.98) {
+    return true;
+  }
+  if (top.score >= 2.35 && top.qualityScore >= 0.28) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * Procedural-style questions need either multiple coherent chunks or visible step markers;
  * otherwise we answer with an explicit overview-only caveat instead of a confident how-to.
- * Strong single-hit retrieval (high score) is allowed to proceed — the ranker already preferred it.
  */
 function needsProceduralEvidenceCaution(question: string, results: SearchResult[]): boolean {
   const intent = detectQueryIntent(question);
@@ -126,14 +143,14 @@ function needsProceduralEvidenceCaution(question: string, results: SearchResult[
     if (chunkHasStepLikeContent(top.text)) {
       return false;
     }
-    if (top.score >= 2.5) {
+    if (singleHitStrongEnoughForProcedural(top)) {
       return false;
     }
     return true;
   }
 
   const second = results[1];
-  if (second.score < top.score * 0.62) {
+  if (second.score < top.score * 0.58) {
     return true;
   }
 
@@ -142,7 +159,7 @@ function needsProceduralEvidenceCaution(question: string, results: SearchResult[
 
 function buildCautiousProceduralAnswer(top: SearchResult): ChatAnswer {
   const section = top.sectionTitle ?? splitSectionPath(top.sectionPath).at(-1) ?? "相关章节";
-  const directAnswer = `当前检索到的资料仅包含概述性内容，未形成可逐步执行的完整操作说明。建议打开《${top.documentTitle}》中与「${section}」相关的段落逐条对照，或补充包含步骤说明的文档。`;
+  const directAnswer = `当前检索到的资料仅包含${CAUTIOUS_PROCEDURAL_ANSWER_MARKER}，未形成可逐步执行的完整操作说明。建议打开《${top.documentTitle}》中与「${section}」相关的段落逐条对照，或补充包含步骤说明的文档。`;
   const supporting = `${normalizeSentence(top.evidenceText ?? top.snippet)} ${formatReferenceTag(top)}`;
   const answerBody = [
     "Direct answer",

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "repo-smoke-v1",
-  "description": "In-repo fixtures: embedding-aligned retrieval, phrasing variants, procedural import path.",
+  "description": "Sprint 5.1: wording groups, procedural variants, overview vs how-to; embedding-aligned retrieval.",
   "chunkSize": 120,
   "chunkOverlap": 24,
   "retrievalTopK": 6,
@@ -25,6 +25,7 @@
   "cases": [
     {
       "id": "rag-acronym",
+      "intentGroup": "rag-acronym",
       "question": "RAG 的全称是什么？",
       "expectedDocs": ["alpha_rag_basics.md", "alpha-rag"],
       "expectedFacts": ["Retrieval-Augmented Generation"],
@@ -36,6 +37,7 @@
     },
     {
       "id": "rag-paraphrase",
+      "intentGroup": "rag-acronym",
       "question": "RAG 是什么缩写？",
       "expectedDocs": ["alpha_rag_basics.md"],
       "expectedFacts": ["Retrieval-Augmented Generation"],
@@ -44,6 +46,7 @@
     },
     {
       "id": "chunking-why",
+      "intentGroup": "chunking-motivation",
       "question": "为什么要做文档切分？",
       "expectedDocs": ["alpha_rag_basics.md"],
       "expectedFacts": ["检索精度"],
@@ -52,6 +55,7 @@
     },
     {
       "id": "overlap-mention",
+      "intentGroup": "overlap-basics",
       "question": "重叠 overlap 的作用是什么？",
       "expectedDocs": ["beta_chunking.md"],
       "expectedFacts": ["截断"],
@@ -60,6 +64,7 @@
     },
     {
       "id": "overlap-paraphrase",
+      "intentGroup": "overlap-basics",
       "question": "overlap 和「重叠」主要想解决什么问题？",
       "expectedDocs": ["beta_chunking.md"],
       "expectedFacts": ["截断"],
@@ -67,12 +72,49 @@
       "notes": "Lexical variant; should still hit beta chunking doc."
     },
     {
+      "id": "overlap-short",
+      "intentGroup": "overlap-basics",
+      "question": "overlap 用来避免什么问题？",
+      "expectedDocs": ["beta_chunking.md"],
+      "expectedFacts": ["截断"],
+      "mustRefuse": false,
+      "notes": "Short procedural-style phrasing; same topic as overlap-basics."
+    },
+    {
       "id": "import-steps",
+      "intentGroup": "import-procedure",
       "question": "如何导入文档？",
       "expectedDocs": ["gamma_import_steps.md"],
       "expectedFacts": ["侧栏", "导入"],
       "mustRefuse": false,
       "notes": "Procedural question; expects numbered steps in gamma fixture."
+    },
+    {
+      "id": "import-steps-how",
+      "intentGroup": "import-procedure",
+      "question": "怎样把文件导入资料库？",
+      "expectedDocs": ["gamma_import_steps.md"],
+      "expectedFacts": ["侧栏", "导入"],
+      "mustRefuse": false,
+      "notes": "Near-equivalent to import-steps."
+    },
+    {
+      "id": "import-steps-where",
+      "intentGroup": "import-procedure",
+      "question": "在侧栏要点击什么才能完成导入？",
+      "expectedDocs": ["gamma_import_steps.md"],
+      "expectedFacts": ["侧栏", "导入"],
+      "mustRefuse": false,
+      "notes": "Location phrasing aligned with fixture wording; same doc as other import-procedure cases."
+    },
+    {
+      "id": "gamma-overview",
+      "intentGroup": "import-overview",
+      "question": "「导入与索引」这篇主要讲了什么？",
+      "expectedDocs": ["gamma_import_steps.md"],
+      "expectedFacts": ["资料库", "本地"],
+      "mustRefuse": false,
+      "notes": "Section/overview question vs step-by-step; still grounded in gamma."
     },
     {
       "id": "must-refuse-nonsense",

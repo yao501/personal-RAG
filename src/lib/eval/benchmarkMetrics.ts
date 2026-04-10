@@ -1,4 +1,5 @@
 import type { ChatAnswer, SearchResult } from "../shared/types";
+import { isCautiousProceduralAnswer } from "../modules/answer/cautiousMarkers";
 import type { BenchmarkCaseV1 } from "./benchmarkSchema";
 
 export interface RetrievalMetrics {
@@ -15,11 +16,21 @@ export interface AnswerMetrics {
   refusalDetected: boolean;
   /** For mustRefuse cases: true if refusal matches expectation. */
   mustRefuseCorrect: boolean | null;
+  /** Cautious procedural template (see `cautiousMarkers.ts`). */
+  cautiousProcedural: boolean;
   /** Substrings from expectedFacts found in evidence/answer. */
   factsMatched: string[];
   factsMissing: string[];
   citationHit: boolean | null;
 }
+
+export type BenchFailureCategory =
+  | "retrieval"
+  | "facts"
+  | "citation"
+  | "refusal"
+  | "unexpected_refusal"
+  | "other";
 
 export interface BenchmarkCaseEvalResult {
   case: BenchmarkCaseV1;
@@ -29,6 +40,46 @@ export interface BenchmarkCaseEvalResult {
   answerMetrics: AnswerMetrics;
   passed: boolean;
   failureReasons: string[];
+  /** Set when `passed` is false; coarse bucket for triage. */
+  failureCategory: BenchFailureCategory | null;
+}
+
+export function categorizeFailureReasons(reasons: string[]): BenchFailureCategory {
+  const r = reasons.join(" ");
+  if (r.includes("Expected document not found")) {
+    return "retrieval";
+  }
+  if (r.includes("Expected refusal-style")) {
+    return "refusal";
+  }
+  if (r.includes("Missing expected facts")) {
+    return "facts";
+  }
+  if (r.includes("Citation fileName")) {
+    return "citation";
+  }
+  if (r.includes("Unexpected refusal")) {
+    return "unexpected_refusal";
+  }
+  return "other";
+}
+
+export function summarizeFailureBuckets(results: BenchmarkCaseEvalResult[]): Record<BenchFailureCategory, number> {
+  const empty: Record<BenchFailureCategory, number> = {
+    retrieval: 0,
+    facts: 0,
+    citation: 0,
+    refusal: 0,
+    unexpected_refusal: 0,
+    other: 0
+  };
+  for (const row of results) {
+    if (row.passed || !row.failureCategory) {
+      continue;
+    }
+    empty[row.failureCategory] += 1;
+  }
+  return empty;
 }
 
 function normalizeMatchToken(token: string): string {
@@ -109,6 +160,7 @@ export function computeAnswerMetrics(
 ): AnswerMetrics {
   const refusalDetected = detectRefusal(answer);
   const mustRefuseCorrect: boolean | null = benchmarkCase.mustRefuse ? refusalDetected : null;
+  const cautiousProcedural = isCautiousProceduralAnswer(answer);
 
   const facts = benchmarkCase.expectedFacts ?? [];
   const haystack = `${combinedEvidenceText(results, 5)}\n${answer.directAnswer}`.toLowerCase();
@@ -138,6 +190,7 @@ export function computeAnswerMetrics(
   return {
     refusalDetected,
     mustRefuseCorrect,
+    cautiousProcedural,
     factsMatched,
     factsMissing,
     citationHit
@@ -184,7 +237,8 @@ export function evaluateBenchmarkCase(
     retrieval,
     answerMetrics,
     passed,
-    failureReasons
+    failureReasons,
+    failureCategory: passed ? null : categorizeFailureReasons(failureReasons)
   };
 }
 
