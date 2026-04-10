@@ -9,6 +9,8 @@ const api: DesktopApi = {
   askQuestion: (sessionId: string, question: string) => ipcRenderer.invoke("chat:ask", sessionId, question),
   getDocument: (documentId: string) => ipcRenderer.invoke("document:get", documentId),
   getDocumentChunks: (documentId: string) => ipcRenderer.invoke("document:chunks", documentId),
+  getDocumentQuestionMatches: (documentId: string, question: string, limit?: number) =>
+    ipcRenderer.invoke("document:question-matches", documentId, question, limit),
   reindexLibrary: () => ipcRenderer.invoke("library:reindex"),
   deleteDocument: (documentId: string) => ipcRenderer.invoke("document:delete", documentId),
   clearLibrary: () => ipcRenderer.invoke("library:clear"),
@@ -16,6 +18,8 @@ const api: DesktopApi = {
   clearChatSessions: () => ipcRenderer.invoke("chat:clear-sessions"),
   updateSettings: (settings: Partial<AppSettings>) => ipcRenderer.invoke("settings:update", settings),
   openDocument: (filePath: string) => ipcRenderer.invoke("document:open", filePath),
+  openDocumentAtLocation: (filePath: string, pageNumber?: number | null) =>
+    ipcRenderer.invoke("document:open-at-location", filePath, pageNumber),
   getQueryLogs: (limit?: number) => ipcRenderer.invoke("query-logs:list", limit),
   updateQueryLogStatus: (logId: string, status: QueryLogFeedbackStatus, note?: string | null) =>
     ipcRenderer.invoke("query-logs:update-status", logId, status, note),

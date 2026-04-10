@@ -262,6 +262,45 @@ select {
   font-size: 0.92rem;
 }
 
+.detail-open-actions {
+  margin: 0;
+  justify-content: flex-end;
+}
+
+.detail-toolbar-actions {
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+}
+
+.detail-mode-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.active-detail-mode {
+  background: var(--accent);
+  color: white;
+}
+
+.detail-question-panel {
+  background: rgba(18, 91, 80, 0.08);
+}
+
+.detail-question-evidence {
+  margin-top: 12px;
+}
+
+.detail-question-evidence strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.detail-question-evidence p {
+  margin: 0;
+}
+
 .detail-chunk-group {
   display: grid;
   gap: 10px;
@@ -332,7 +371,7 @@ select {
 
 .library-toolbar {
   display: grid;
-  grid-template-columns: 1fr 160px;
+  grid-template-columns: 1fr auto;
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -600,5 +639,11 @@ p {
   .sidebar {
     border-right: none;
     border-bottom: 1px solid var(--line);
+  }
+
+  .detail-toolbar-actions,
+  .detail-open-actions {
+    justify-items: stretch;
+    justify-content: stretch;
   }
 }

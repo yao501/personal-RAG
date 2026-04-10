@@ -152,14 +152,49 @@ export interface AppInfo {
   databasePath: string;
 }
 
+export type AppErrorCode =
+  | "file_not_found"
+  | "permission_denied"
+  | "unsupported_file_type"
+  | "file_corrupted"
+  | "pdf_unreadable"
+  | "empty_content"
+  | "chunk_failed"
+  | "embedding_failed"
+  | "vector_index_failed"
+  | "sqlite_write_failed"
+  | "state_sync_failed"
+  | "unchanged_skipped"
+  | "unknown_import_error";
+
+export type AppErrorStage =
+  | "preflight"
+  | "parsing"
+  | "chunking"
+  | "embedding"
+  | "indexing"
+  | "storage"
+  | "sync"
+  | "unknown";
+
+export interface AppErrorInfo {
+  code: AppErrorCode;
+  stage: AppErrorStage;
+  message: string;
+  suggestion: string | null;
+  retryable: boolean;
+}
+
+export interface ImportIssueDetail extends AppErrorInfo {
+  filePath: string;
+  reason: string;
+  disposition: "skipped" | "failed";
+}
+
 export interface ImportResult {
   imported: DocumentRecord[];
   skipped: string[];
-  skippedDetails: Array<{
-    filePath: string;
-    reason: string;
-    disposition: "skipped" | "failed";
-  }>;
+  skippedDetails: ImportIssueDetail[];
 }
 
 export type LibraryTaskKind = "import" | "reindex";

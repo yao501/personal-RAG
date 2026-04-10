@@ -18,6 +18,7 @@ import type {
   DocumentRecord,
   EvalCaseDraft,
   ImportResult,
+  ImportIssueDetail,
   LibraryHealthReport,
   LibraryTaskKind,
   LibraryTaskPhase,
@@ -30,7 +31,8 @@ import { AppStore } from "./store";
 import { LanceChunkRow, LanceIndex } from "./lanceIndex";
 import { buildEvalCaseDrafts } from "../lib/eval/queryLogDrafts";
 import { buildLibraryHealthReport } from "../lib/health/libraryHealth";
-import { buildDocumentOpenTarget } from "./documentOpen";
+import { buildDocumentOpenTarget, shouldUseExternalDocumentOpenTarget } from "./documentOpen";
+import { createImportError, normalizeImportError, toImportIssueDetail } from "./importErrors";
 
 function deriveDocumentTitle(fileName: string, content: string): string {
   const markdownHeading = content.match(/^\s*#\s+(.+?)\s*$/m)?.[1]?.trim();
@@ -60,6 +62,10 @@ function buildIndexConfigSignature(settings: Pick<AppSettings, "chunkSize" | "ch
 
 function hasUsableChunkState(document: DocumentRecord, chunks: ChunkRecord[]): boolean {
   return chunks.length > 0 && chunks.length === document.chunkCount && chunks.some((chunk) => Boolean(chunk.embedding));
+}
+
+function isEffectivelyEmptyContent(content: string): boolean {
+  return content.replace(/\s+/g, "").length === 0;
 }
 
 export class KnowledgeService {
@@ -292,7 +298,7 @@ export class KnowledgeService {
     const task = this.beginLibraryTask("import");
     const imported: DocumentRecord[] = [];
     const skipped: string[] = [];
-    const skippedDetails: Array<{ filePath: string; reason: string; disposition: "skipped" | "failed" }> = [];
+    const skippedDetails: ImportIssueDetail[] = [];
     const { taskId } = task;
 
     try {
@@ -328,11 +334,19 @@ export class KnowledgeService {
 
           if (canSkipUnchanged && existing) {
             skipped.push(filePath);
-            skippedDetails.push({
-              filePath,
-              reason: "文件未变化，已跳过重复导入。",
-              disposition: "skipped"
-            });
+            skippedDetails.push(
+              toImportIssueDetail(
+                filePath,
+                "skipped",
+                createImportError({
+                  code: "unchanged_skipped",
+                  stage: "preflight",
+                  message: "文件未变化，已跳过重复导入。",
+                  suggestion: "如果你已经修改过切片或检索配置，请使用重建索引。",
+                  retryable: false
+                })
+              )
+            );
             this.emitTaskProgress(emitProgress, {
               taskId,
               kind: "import",
@@ -363,6 +377,15 @@ export class KnowledgeService {
             skipped: skipped.length
           });
           const parsed = await parseDocument(filePath);
+          if (isEffectivelyEmptyContent(parsed.content)) {
+            throw createImportError({
+              code: "empty_content",
+              stage: "parsing",
+              message: `文件解析后没有可索引内容：${path.basename(filePath)}`,
+              suggestion: "请确认文件中包含可提取文本，而不是纯图片或空白内容。",
+              retryable: false
+            });
+          }
           const title = deriveDocumentTitle(path.basename(filePath), parsed.content);
 
           this.emitTaskProgress(emitProgress, {
@@ -379,6 +402,15 @@ export class KnowledgeService {
             skipped: skipped.length
           });
           const baseChunks = chunkText(documentId, parsed.content, { ...settings, documentTitle: title, pageSpans: parsed.pageSpans });
+          if (baseChunks.length === 0) {
+            throw createImportError({
+              code: "chunk_failed",
+              stage: "chunking",
+              message: `文档切分后没有生成有效片段：${path.basename(filePath)}`,
+              suggestion: "请检查文档结构是否异常，或调整 chunk 参数后重试。",
+              retryable: true
+            });
+          }
 
           this.emitTaskProgress(emitProgress, {
             taskId,
@@ -426,17 +458,14 @@ export class KnowledgeService {
             skipped: skipped.length
           });
         } catch (error) {
+          const normalizedError = normalizeImportError(error, filePath, "unknown");
           skipped.push(filePath);
-          skippedDetails.push({
-            filePath,
-            reason: error instanceof Error ? error.message : "未知导入错误",
-            disposition: "failed"
-          });
+          skippedDetails.push(toImportIssueDetail(filePath, "failed", normalizedError));
           this.emitTaskProgress(emitProgress, {
             taskId,
             kind: "import",
             phase: "failed",
-            message: `导入失败：${path.basename(filePath)}`,
+            message: `导入失败：${path.basename(filePath)} · ${normalizedError.code}`,
             current: index + 1,
             total: filePaths.length,
             currentFile: filePath,
@@ -569,6 +598,15 @@ export class KnowledgeService {
             skipped
           });
           const parsed: ParsedDocumentContent = await parseDocument(document.filePath);
+          if (isEffectivelyEmptyContent(parsed.content)) {
+            throw createImportError({
+              code: "empty_content",
+              stage: "parsing",
+              message: `文件解析后没有可索引内容：${document.fileName}`,
+              suggestion: "请确认文件中包含可提取文本，而不是纯图片或空白内容。",
+              retryable: false
+            });
+          }
           const title = document.title || deriveDocumentTitle(document.fileName, parsed.content);
 
           this.emitTaskProgress(emitProgress, {
@@ -585,6 +623,15 @@ export class KnowledgeService {
             skipped
           });
           const baseChunks = chunkText(document.id, parsed.content, { ...settings, documentTitle: title, pageSpans: parsed.pageSpans });
+          if (baseChunks.length === 0) {
+            throw createImportError({
+              code: "chunk_failed",
+              stage: "chunking",
+              message: `文档切分后没有生成有效片段：${document.fileName}`,
+              suggestion: "请检查文档结构是否异常，或调整 chunk 参数后重试。",
+              retryable: true
+            });
+          }
 
           this.emitTaskProgress(emitProgress, {
             taskId,
@@ -623,13 +670,14 @@ export class KnowledgeService {
             failed,
             skipped
           });
-        } catch {
+        } catch (error) {
+          const normalizedError = normalizeImportError(error, document.filePath, "unknown");
           failed += 1;
           this.emitTaskProgress(emitProgress, {
             taskId,
             kind: "reindex",
             phase: "failed",
-            message: `重建失败：${document.fileName}`,
+            message: `重建失败：${document.fileName} · ${normalizedError.code}`,
             current: index + 1,
             total: documents.length,
             currentFile: document.filePath,
@@ -853,9 +901,9 @@ export class KnowledgeService {
 
   async openDocumentAtLocation(filePath: string, pageNumber?: number | null): Promise<void> {
     const target = buildDocumentOpenTarget(filePath, pageNumber);
-    const openResult = target === filePath
-      ? await shell.openPath(filePath)
-      : await shell.openExternal(target);
+    const openResult = shouldUseExternalDocumentOpenTarget(target)
+      ? await shell.openExternal(target)
+      : await shell.openPath(filePath);
 
     if (openResult) {
       await shell.openPath(filePath);

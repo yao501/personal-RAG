@@ -1,15 +1,73 @@
 import path from "node:path";
-import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, type IpcMainInvokeEvent } from "electron";
 import { fileURLToPath } from "node:url";
-import type { QueryLogFeedbackStatus } from "../lib/shared/types";
+import type { AppSettings } from "../lib/shared/types";
 import { AppStore } from "./store";
 import { KnowledgeService } from "./knowledgeService";
+import {
+  IpcValidationError,
+  expectAbsolutePath,
+  expectFeedbackStatus,
+  expectNoArgs,
+  expectOptionalNullableString,
+  expectOptionalPositiveInt,
+  expectOptionalStringArray,
+  expectSettingsPatch,
+  expectString,
+  expectStringArray
+} from "./ipcValidation";
+import { isAllowedAppNavigation } from "./security";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const rendererUrl = process.env.ELECTRON_RENDERER_URL;
 
 let mainWindow: BrowserWindow | null = null;
 const store = new AppStore();
 const knowledgeService = new KnowledgeService(store);
+
+function ensureTrustedSender(event: IpcMainInvokeEvent): void {
+  const senderUrl = event.senderFrame?.url || event.sender.getURL();
+  if (!isAllowedAppNavigation(senderUrl, rendererUrl)) {
+    throw new Error(`[IPC_FORBIDDEN] Untrusted sender for ${senderUrl || "unknown-url"}.`);
+  }
+}
+
+function formatIpcError(channel: string, error: unknown): Error {
+  if (error instanceof IpcValidationError) {
+    return new Error(`[IPC_VALIDATION] ${channel}: ${error.message}`);
+  }
+
+  const message = error instanceof Error ? error.message : "Unknown IPC error";
+  return new Error(`[IPC_HANDLER] ${channel}: ${message}`);
+}
+
+function registerIpc<Args extends unknown[], Result>(
+  channel: string,
+  validateArgs: (args: unknown[]) => Args,
+  handler: (event: IpcMainInvokeEvent, ...args: Args) => Promise<Result> | Result
+): void {
+  ipcMain.handle(channel, async (event, ...args) => {
+    try {
+      ensureTrustedSender(event);
+      const validatedArgs = validateArgs(args);
+      return await handler(event, ...validatedArgs);
+    } catch (error) {
+      throw formatIpcError(channel, error);
+    }
+  });
+}
+
+function configureWindowSecurity(window: BrowserWindow): void {
+  window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  window.webContents.on("will-attach-webview", (event) => {
+    event.preventDefault();
+  });
+  window.webContents.on("will-navigate", (event, targetUrl) => {
+    if (!isAllowedAppNavigation(targetUrl, rendererUrl)) {
+      event.preventDefault();
+    }
+  });
+}
 
 async function createWindow(): Promise<void> {
   mainWindow = new BrowserWindow({
@@ -21,11 +79,13 @@ async function createWindow(): Promise<void> {
     webPreferences: {
       preload: path.join(__dirname, "../preload/preload.js"),
       contextIsolation: true,
-      nodeIntegration: false
+      sandbox: true,
+      nodeIntegration: false,
+      webSecurity: true
     }
   });
 
-  const rendererUrl = process.env.ELECTRON_RENDERER_URL;
+  configureWindowSecurity(mainWindow);
 
   if (rendererUrl) {
     await mainWindow.loadURL(rendererUrl);
@@ -34,9 +94,10 @@ async function createWindow(): Promise<void> {
   }
 }
 
-app.whenReady().then(async () => {
-  ipcMain.handle("snapshot:get", () => knowledgeService.getSnapshot());
-  ipcMain.handle("files:import", async (_event, filePaths?: string[]) => {
+function registerIpcHandlers(): void {
+  registerIpc("snapshot:get", expectNoArgs, () => knowledgeService.getSnapshot());
+
+  registerIpc("files:import", (args) => [expectOptionalStringArray(args[0], "filePaths")] as const, async (_event, filePaths) => {
     try {
       const requestedPaths = filePaths?.filter(Boolean) ?? [];
       if (requestedPaths.length > 0) {
@@ -71,41 +132,86 @@ app.whenReady().then(async () => {
     }
   });
 
-  ipcMain.handle("chat:create-session", () => knowledgeService.createChatSession());
-  ipcMain.handle("chat:turns", (_event, sessionId: string) => knowledgeService.getChatTurns(sessionId));
-  ipcMain.handle("chat:ask", (_event, sessionId: string, question: string) => knowledgeService.askQuestion(sessionId, question));
-  ipcMain.handle("chat:delete-session", (_event, sessionId: string) => knowledgeService.deleteChatSession(sessionId));
-  ipcMain.handle("chat:clear-sessions", () => knowledgeService.clearChatSessions());
-  ipcMain.handle("document:get", (_event, documentId: string) => knowledgeService.getDocument(documentId));
-  ipcMain.handle("document:chunks", (_event, documentId: string) => knowledgeService.getDocumentChunks(documentId));
-  ipcMain.handle("document:question-matches", (_event, documentId: string, question: string, limit?: number) =>
-    knowledgeService.getDocumentQuestionMatches(documentId, question, limit)
+  registerIpc("chat:create-session", expectNoArgs, () => knowledgeService.createChatSession());
+  registerIpc("chat:turns", (args) => [expectString(args[0], "sessionId")] as const, (_event, sessionId) =>
+    knowledgeService.getChatTurns(sessionId)
   );
-  ipcMain.handle("library:reindex", () =>
+  registerIpc("chat:ask", (args) => [expectString(args[0], "sessionId"), expectString(args[1], "question")] as const, (_event, sessionId, question) =>
+    knowledgeService.askQuestion(sessionId, question)
+  );
+  registerIpc("chat:delete-session", (args) => [expectString(args[0], "sessionId")] as const, (_event, sessionId) =>
+    knowledgeService.deleteChatSession(sessionId)
+  );
+  registerIpc("chat:clear-sessions", expectNoArgs, () => knowledgeService.clearChatSessions());
+
+  registerIpc("document:get", (args) => [expectString(args[0], "documentId")] as const, (_event, documentId) =>
+    knowledgeService.getDocument(documentId)
+  );
+  registerIpc("document:chunks", (args) => [expectString(args[0], "documentId")] as const, (_event, documentId) =>
+    knowledgeService.getDocumentChunks(documentId)
+  );
+  registerIpc(
+    "document:question-matches",
+    (args) => [
+      expectString(args[0], "documentId"),
+      expectString(args[1], "question"),
+      expectOptionalPositiveInt(args[2], "limit")
+    ] as const,
+    (_event, documentId, question, limit) => knowledgeService.getDocumentQuestionMatches(documentId, question, limit)
+  );
+
+  registerIpc("library:reindex", expectNoArgs, () =>
     knowledgeService.reindexLibrary((progress) => {
       mainWindow?.webContents.send("library:task-progress", progress);
     })
   );
-  ipcMain.handle("library:health", () => knowledgeService.getLibraryHealth());
-  ipcMain.handle("library:reindex-documents", (_event, documentIds: string[]) =>
+  registerIpc("library:health", expectNoArgs, () => knowledgeService.getLibraryHealth());
+  registerIpc("library:reindex-documents", (args) => [expectStringArray(args[0], "documentIds")] as const, (_event, documentIds) =>
     knowledgeService.reindexDocuments(documentIds, (progress) => {
       mainWindow?.webContents.send("library:task-progress", progress);
     })
   );
-  ipcMain.handle("library:remove-documents", (_event, documentIds: string[]) => knowledgeService.removeDocuments(documentIds));
-  ipcMain.handle("document:delete", (_event, documentId: string) => knowledgeService.deleteDocument(documentId));
-  ipcMain.handle("library:clear", () => knowledgeService.clearLibrary());
-  ipcMain.handle("settings:update", (_event, settings) => knowledgeService.updateSettings(settings));
-  ipcMain.handle("document:open", (_event, filePath: string) => knowledgeService.openDocument(filePath));
-  ipcMain.handle("document:open-at-location", (_event, filePath: string, pageNumber?: number | null) =>
-    knowledgeService.openDocumentAtLocation(filePath, pageNumber)
+  registerIpc("library:remove-documents", (args) => [expectStringArray(args[0], "documentIds")] as const, (_event, documentIds) =>
+    knowledgeService.removeDocuments(documentIds)
   );
-  ipcMain.handle("query-logs:list", (_event, limit?: number) => knowledgeService.getQueryLogs(limit));
-  ipcMain.handle("query-logs:update-status", (_event, logId: string, status: QueryLogFeedbackStatus, note?: string | null) =>
-    knowledgeService.updateQueryLogStatus(logId, status, note)
+  registerIpc("document:delete", (args) => [expectString(args[0], "documentId")] as const, (_event, documentId) =>
+    knowledgeService.deleteDocument(documentId)
   );
-  ipcMain.handle("query-logs:eval-drafts", (_event, limit?: number) => knowledgeService.getEvalCandidateDrafts(limit));
+  registerIpc("library:clear", expectNoArgs, () => knowledgeService.clearLibrary());
+  registerIpc("settings:update", (args) => [expectSettingsPatch(args[0])] as const, (_event, settings: Partial<AppSettings>) =>
+    knowledgeService.updateSettings(settings)
+  );
+  registerIpc("document:open", (args) => [expectAbsolutePath(args[0], "filePath")] as const, (_event, filePath) =>
+    knowledgeService.openDocument(filePath)
+  );
+  registerIpc(
+    "document:open-at-location",
+    (args) => [
+      expectAbsolutePath(args[0], "filePath"),
+      expectOptionalPositiveInt(args[1], "pageNumber")
+    ] as const,
+    (_event, filePath, pageNumber) => knowledgeService.openDocumentAtLocation(filePath, pageNumber)
+  );
 
+  registerIpc("query-logs:list", (args) => [expectOptionalPositiveInt(args[0], "limit")] as const, (_event, limit) =>
+    knowledgeService.getQueryLogs(limit)
+  );
+  registerIpc(
+    "query-logs:update-status",
+    (args) => [
+      expectString(args[0], "logId"),
+      expectFeedbackStatus(args[1]),
+      expectOptionalNullableString(args[2], "note")
+    ] as const,
+    (_event, logId, status, note) => knowledgeService.updateQueryLogStatus(logId, status, note ?? null)
+  );
+  registerIpc("query-logs:eval-drafts", (args) => [expectOptionalPositiveInt(args[0], "limit")] as const, (_event, limit) =>
+    knowledgeService.getEvalCandidateDrafts(limit)
+  );
+}
+
+app.whenReady().then(async () => {
+  registerIpcHandlers();
   await createWindow();
 });
 

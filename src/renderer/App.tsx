@@ -7,6 +7,8 @@ import type {
   ChatAnswer,
   Citation,
   EvalCaseDraft,
+  DocumentQuestionMatch,
+  ImportIssueDetail,
   LibraryHealthReport,
   QueryLogRecord,
   QueryLogFeedbackStatus,
@@ -21,6 +23,7 @@ import type {
 } from "../lib/shared/types";
 
 type Screen = "library" | "chat" | "detail" | "settings";
+type DetailSortMode = "structure" | "question";
 
 const EMPTY_ANSWER: ChatAnswer = {
   answer: "",
@@ -171,6 +174,16 @@ function buildCitationGroupKey(label: string | null, groupIndex: number): string
   return `${label ?? "ungrouped"}-${groupIndex}`;
 }
 
+function formatQuestionMatchScore(score: number): string {
+  const normalized = Math.max(1, Math.min(99, Math.round(score * 18)));
+  return `${normalized}/99`;
+}
+
+function formatImportIssueSummary(item: ImportIssueDetail): string {
+  const suffix = item.suggestion ? ` 建议：${item.suggestion}` : "";
+  return `[${item.code}] ${item.reason}${suffix}`;
+}
+
 export function App() {
   const [screen, setScreen] = useState<Screen>("library");
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
@@ -198,7 +211,7 @@ export function App() {
   const [status, setStatus] = useState("就绪");
   const [errorMessage, setErrorMessage] = useState("");
   const [libraryTaskProgress, setLibraryTaskProgress] = useState<LibraryTaskProgress | null>(null);
-  const [recentTaskSkippedDetails, setRecentTaskSkippedDetails] = useState<Array<{ filePath: string; reason: string; disposition: "skipped" | "failed" }>>([]);
+  const [recentTaskSkippedDetails, setRecentTaskSkippedDetails] = useState<ImportIssueDetail[]>([]);
   const [expandedCitationIds, setExpandedCitationIds] = useState<string[]>([]);
   const [expandedCitationGroupLabels, setExpandedCitationGroupLabels] = useState<string[]>([]);
   const [expandedDetailSectionLabels, setExpandedDetailSectionLabels] = useState<string[]>([]);
@@ -206,6 +219,9 @@ export function App() {
   const [libraryQuery, setLibraryQuery] = useState("");
   const [libraryTypeFilter, setLibraryTypeFilter] = useState<SupportedFileType | "all">("all");
   const [detailQuery, setDetailQuery] = useState("");
+  const [detailSortMode, setDetailSortMode] = useState<DetailSortMode>("structure");
+  const [detailQuestionMatches, setDetailQuestionMatches] = useState<DocumentQuestionMatch[]>([]);
+  const [isDetailQuestionLoading, setIsDetailQuestionLoading] = useState(false);
 
   const filteredDocuments = useMemo(() => {
     const keyword = libraryQuery.trim().toLowerCase();
@@ -222,6 +238,10 @@ export function App() {
     () => chatTurns.find((turn) => turn.id === selectedTurnId) ?? null,
     [chatTurns, selectedTurnId]
   );
+  const currentDetailQuestion = useMemo(
+    () => selectedTurn?.question?.trim() || lastAskedQuestion.trim(),
+    [lastAskedQuestion, selectedTurn]
+  );
   const libraryTaskBusy = Boolean(libraryTaskProgress && !libraryTaskProgress.done);
   const filteredChunks = useMemo(() => {
     const keyword = detailQuery.trim().toLowerCase();
@@ -237,13 +257,54 @@ export function App() {
         .includes(keyword)
       );
   }, [detailQuery, selectedChunks]);
+  const detailQuestionMatchMap = useMemo(
+    () => new Map(detailQuestionMatches.map((match) => [match.chunkId, match])),
+    [detailQuestionMatches]
+  );
+  const questionSortedChunks = useMemo(() => {
+    return filteredChunks
+      .slice()
+      .sort((left, right) => {
+        const leftMatch = detailQuestionMatchMap.get(left.id);
+        const rightMatch = detailQuestionMatchMap.get(right.id);
+
+        if (leftMatch && rightMatch) {
+          if (leftMatch.matchRank !== rightMatch.matchRank) {
+            return leftMatch.matchRank - rightMatch.matchRank;
+          }
+
+          if (rightMatch.score !== leftMatch.score) {
+            return rightMatch.score - leftMatch.score;
+          }
+        }
+
+        if (leftMatch) {
+          return -1;
+        }
+
+        if (rightMatch) {
+          return 1;
+        }
+
+        return left.chunkIndex - right.chunkIndex;
+      });
+  }, [detailQuestionMatchMap, filteredChunks]);
+  const visibleDetailChunks = detailSortMode === "question" ? questionSortedChunks : filteredChunks;
+  const topQuestionMatches = useMemo(
+    () => detailQuestionMatches.slice(0, 6),
+    [detailQuestionMatches]
+  );
   const selectedDetailChunk = useMemo(() => {
     if (highlightedChunkId) {
       return selectedChunks.find((chunk) => chunk.id === highlightedChunkId) ?? null;
     }
 
-    return filteredChunks[0] ?? selectedChunks[0] ?? null;
-  }, [filteredChunks, highlightedChunkId, selectedChunks]);
+    return visibleDetailChunks[0] ?? selectedChunks[0] ?? null;
+  }, [highlightedChunkId, selectedChunks, visibleDetailChunks]);
+  const selectedDetailQuestionMatch = useMemo(
+    () => (selectedDetailChunk ? detailQuestionMatchMap.get(selectedDetailChunk.id) ?? null : null),
+    [detailQuestionMatchMap, selectedDetailChunk]
+  );
   const selectedDetailSectionRoot = useMemo(
     () => extractSectionRootLabel(selectedDetailChunk?.sectionPath),
     [selectedDetailChunk]
@@ -269,9 +330,25 @@ export function App() {
       });
   }, [relatedSectionChunks]);
   const detailChunkGroups = useMemo(() => {
+    if (detailSortMode === "question") {
+      const matchedChunks = visibleDetailChunks.filter((chunk) => detailQuestionMatchMap.has(chunk.id));
+      const unmatchedChunks = visibleDetailChunks.filter((chunk) => !detailQuestionMatchMap.has(chunk.id));
+      const groups: Array<{ label: string | null; items: ChunkRecord[] }> = [];
+
+      if (matchedChunks.length > 0) {
+        groups.push({ label: "当前问题最相关", items: matchedChunks });
+      }
+
+      if (unmatchedChunks.length > 0) {
+        groups.push({ label: "文档中其余片段", items: unmatchedChunks });
+      }
+
+      return groups;
+    }
+
     const groups: Array<{ label: string | null; items: ChunkRecord[] }> = [];
 
-    for (const chunk of filteredChunks) {
+    for (const chunk of visibleDetailChunks) {
       const label = extractSectionRootLabel(chunk.sectionPath);
       const existing = groups.find((group) => group.label === label);
       if (existing) {
@@ -282,7 +359,7 @@ export function App() {
     }
 
     return groups;
-  }, [filteredChunks]);
+  }, [detailQuestionMatchMap, detailSortMode, visibleDetailChunks]);
   const recentFailedImports = useMemo(
     () => recentTaskSkippedDetails.filter((item) => item.disposition === "failed"),
     [recentTaskSkippedDetails]
@@ -336,6 +413,50 @@ export function App() {
     );
   }, [selectedDetailSectionRoot]);
 
+  useEffect(() => {
+    if (!selectedDocument || !currentDetailQuestion || selectedChunks.length === 0) {
+      setDetailQuestionMatches([]);
+      setIsDetailQuestionLoading(false);
+      if (detailSortMode === "question" && !currentDetailQuestion) {
+        setDetailSortMode("structure");
+      }
+      return;
+    }
+
+    let cancelled = false;
+    const api = getDesktopApi();
+
+    setIsDetailQuestionLoading(true);
+    void api
+      .getDocumentQuestionMatches(selectedDocument.id, currentDetailQuestion, Math.min(Math.max(selectedChunks.length, 6), 18))
+      .then((matches) => {
+        if (cancelled) {
+          return;
+        }
+
+        setDetailQuestionMatches(matches);
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+
+        setDetailQuestionMatches([]);
+        const message = error instanceof Error ? error.message : "未知问题相关性错误";
+        setErrorMessage(message);
+        setStatus("文档相关片段分析失败");
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsDetailQuestionLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentDetailQuestion, detailSortMode, selectedChunks.length, selectedDocument]);
+
   async function refreshSnapshot(preferredSessionId?: string | null): Promise<void> {
     try {
       const api = getDesktopApi();
@@ -379,6 +500,8 @@ export function App() {
         } else {
           setSelectedChunks([]);
           setHighlightedChunkId(null);
+          setDetailQuestionMatches([]);
+          setDetailSortMode("structure");
         }
       }
 
@@ -547,7 +670,7 @@ export function App() {
       const skippedDetails = result.skippedDetails.filter((item) => item.disposition === "skipped");
 
       if (failedDetails.length > 0) {
-        setErrorMessage(`部分文件导入失败：${failedDetails.map((item) => item.filePath).join(", ")}`);
+        setErrorMessage(`部分文件导入失败：${failedDetails.map((item) => `${item.filePath} [${item.code}]`).join(", ")}`);
       } else if (skippedDetails.length > 0) {
         setErrorMessage("");
       }
@@ -579,7 +702,7 @@ export function App() {
       const skippedDetails = result.skippedDetails.filter((item) => item.disposition === "skipped");
 
       if (failedDetails.length > 0) {
-        setErrorMessage(`仍有文件导入失败：${failedDetails.map((item) => item.filePath).join(", ")}`);
+        setErrorMessage(`仍有文件导入失败：${failedDetails.map((item) => `${item.filePath} [${item.code}]`).join(", ")}`);
       } else if (skippedDetails.length > 0) {
         setErrorMessage("");
       }
@@ -711,6 +834,8 @@ export function App() {
         setSelectedChunks([]);
         setHighlightedChunkId(null);
         setDetailQuery("");
+        setDetailQuestionMatches([]);
+        setDetailSortMode("structure");
         setScreen("library");
       }
       await loadLibraryHealth();
@@ -778,6 +903,8 @@ export function App() {
       setSelectedChunks(chunks);
       setHighlightedChunkId(null);
       setDetailQuery("");
+      setDetailQuestionMatches([]);
+      setDetailSortMode("structure");
       setExpandedDetailSectionLabels([]);
       setScreen("detail");
       setErrorMessage("");
@@ -839,6 +966,8 @@ export function App() {
         setSelectedChunks([]);
         setHighlightedChunkId(null);
         setDetailQuery("");
+        setDetailQuestionMatches([]);
+        setDetailSortMode("structure");
         setScreen("library");
       }
       setStatus("文档已删除");
@@ -875,6 +1004,8 @@ export function App() {
       setSelectedChunks([]);
       setHighlightedChunkId(null);
       setDetailQuery("");
+      setDetailQuestionMatches([]);
+      setDetailSortMode("structure");
       setCurrentSessionId(null);
       setChatTurns([]);
       setSelectedTurnId(null);
@@ -911,6 +1042,36 @@ export function App() {
     setHighlightedChunkId(chunkId);
   }
 
+  async function handleOpenDocumentAtLocation(filePath: string, pageNumber?: number | null): Promise<void> {
+    try {
+      const api = getDesktopApi();
+      await api.openDocumentAtLocation(filePath, pageNumber);
+      setErrorMessage("");
+      setStatus(pageNumber ? `已打开原文并尝试跳转到第 ${pageNumber} 页` : "已打开原文");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "未知原文打开错误";
+      setErrorMessage(message);
+      setStatus("打开原文失败");
+    }
+  }
+
+  async function handleOpenCitationOriginal(citation: Citation): Promise<void> {
+    try {
+      const api = getDesktopApi();
+      const document = await api.getDocument(citation.documentId);
+      if (!document) {
+        setStatus("引用来源文档不存在或已被删除");
+        return;
+      }
+
+      await handleOpenDocumentAtLocation(document.filePath, citation.pageStart ?? null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "未知引用原文打开错误";
+      setErrorMessage(message);
+      setStatus("打开引用原文失败");
+    }
+  }
+
   async function handleOpenCitationContext(citation: Citation): Promise<void> {
     try {
       const api = getDesktopApi();
@@ -925,6 +1086,7 @@ export function App() {
       setSelectedChunks(chunks);
       setHighlightedChunkId(citation.chunkId);
       setDetailQuery("");
+      setDetailSortMode(currentDetailQuestion ? "question" : "structure");
       setExpandedDetailSectionLabels([]);
       setScreen("detail");
       setErrorMessage("");
@@ -965,6 +1127,7 @@ export function App() {
       setSelectedChunks(chunks);
       setHighlightedChunkId(firstMatchingChunk?.id ?? null);
       setDetailQuery(sectionRootLabel ?? "");
+      setDetailSortMode(currentDetailQuestion ? "question" : "structure");
       setExpandedDetailSectionLabels(sectionRootLabel ? [sectionRootLabel] : []);
       setScreen("detail");
       setErrorMessage("");
@@ -1099,7 +1262,7 @@ export function App() {
                   </div>
                   {recentFailedImports.slice(0, 3).map((item) => (
                     <p key={`${item.filePath}-${item.reason}`} className="error-text">
-                      {item.filePath}: {item.reason}
+                      {item.filePath}: {formatImportIssueSummary(item)}
                     </p>
                   ))}
                 </>
@@ -1108,7 +1271,7 @@ export function App() {
                 <>
                   {recentSkippedImports.slice(0, 2).map((item) => (
                     <p key={`${item.filePath}-${item.reason}`} className="muted">
-                      已跳过：{item.filePath} · {item.reason}
+                      已跳过：{item.filePath} · {formatImportIssueSummary(item)}
                     </p>
                   ))}
                 </>
@@ -1343,6 +1506,9 @@ export function App() {
                           <button type="button" className="secondary" onClick={() => void handleOpenCitationContext(citation)}>
                             查看来源上下文
                           </button>
+                          <button type="button" className="secondary" onClick={() => void handleOpenCitationOriginal(citation)}>
+                            {citation.pageStart ? `打开原文到 p.${citation.pageStart}` : "打开原文"}
+                          </button>
                         </div>
                         <button
                           type="button"
@@ -1373,9 +1539,19 @@ export function App() {
                 <h3>{selectedDocument?.title ?? "文档"}</h3>
               </div>
               {selectedDocument && (
-                <button className="secondary" onClick={() => void getDesktopApi().openDocument(selectedDocument.filePath)}>
-                  打开原始文件
-                </button>
+                <div className="log-actions detail-open-actions">
+                  {selectedDetailChunk?.pageStart && (
+                    <button
+                      className="secondary"
+                      onClick={() => void handleOpenDocumentAtLocation(selectedDocument.filePath, selectedDetailChunk.pageStart ?? null)}
+                    >
+                      打开原文到 p.{selectedDetailChunk.pageStart}
+                    </button>
+                  )}
+                  <button className="secondary" onClick={() => void handleOpenDocumentAtLocation(selectedDocument.filePath)}>
+                    打开原始文件
+                  </button>
+                </div>
               )}
             </div>
             <div className="library-toolbar">
@@ -1384,8 +1560,28 @@ export function App() {
                 onChange={(event) => setDetailQuery(event.target.value)}
                 placeholder="在当前文档中搜索标题或内容..."
               />
-              <div className="settings-note">
-                {filteredChunks.length} / {selectedChunks.length} 个片段
+              <div className="detail-toolbar-actions">
+                <div className="settings-note">
+                  {visibleDetailChunks.length} / {selectedChunks.length} 个片段
+                </div>
+                {currentDetailQuestion && (
+                  <div className="detail-mode-toggle" role="tablist" aria-label="详情视图模式">
+                    <button
+                      type="button"
+                      className={detailSortMode === "structure" ? "secondary active-detail-mode" : "secondary"}
+                      onClick={() => setDetailSortMode("structure")}
+                    >
+                      结构浏览
+                    </button>
+                    <button
+                      type="button"
+                      className={detailSortMode === "question" ? "secondary active-detail-mode" : "secondary"}
+                      onClick={() => setDetailSortMode("question")}
+                    >
+                      当前问题相关
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             {selectedDetailChunk && selectedDocument && (
@@ -1398,6 +1594,12 @@ export function App() {
                   <p className="muted">
                     当前位置：{selectedDetailChunk.locatorLabel ?? `Chunk ${selectedDetailChunk.chunkIndex + 1}`}
                   </p>
+                  {selectedDetailQuestionMatch && (
+                    <div className="citation-anchor detail-question-evidence">
+                      <strong>问题相关证据 · {formatQuestionMatchScore(selectedDetailQuestionMatch.score)}</strong>
+                      <p>{selectedDetailQuestionMatch.evidenceText ?? selectedDetailQuestionMatch.snippet}</p>
+                    </div>
+                  )}
                   <p className="muted">
                     偏移：{selectedDetailChunk.startOffset} - {selectedDetailChunk.endOffset}
                   </p>
@@ -1408,9 +1610,43 @@ export function App() {
                     <p>当前章节：{selectedDetailChunk.sectionTitle ?? "通用内容"}</p>
                     <p>路径：{selectedDetailChunk.sectionPath ?? "无层级路径"}</p>
                     <p>Token 数：{selectedDetailChunk.tokenCount}</p>
+                    {selectedDetailChunk.pageStart && <p>页码：p.{selectedDetailChunk.pageStart}{selectedDetailChunk.pageEnd && selectedDetailChunk.pageEnd !== selectedDetailChunk.pageStart ? ` - p.${selectedDetailChunk.pageEnd}` : ""}</p>}
                     {selectedDetailSectionRoot && <p>父章节：{selectedDetailSectionRoot}</p>}
+                    {currentDetailQuestion && <p>当前问题：{currentDetailQuestion}</p>}
                   </div>
                 </div>
+              </div>
+            )}
+            {currentDetailQuestion && (
+              <div className="detail-section-nav detail-question-panel">
+                <div className="panel-header compact-header">
+                  <div>
+                    <p className="eyebrow">相关性视图</p>
+                    <strong>{currentDetailQuestion}</strong>
+                  </div>
+                  <span>{isDetailQuestionLoading ? "正在分析..." : `命中 ${detailQuestionMatches.length} 个高相关片段`}</span>
+                </div>
+                {detailQuestionMatches.length > 0 ? (
+                  <div className="detail-section-list">
+                    {topQuestionMatches.map((match) => (
+                      <button
+                        key={`question-match-${match.chunkId}`}
+                        type="button"
+                        className={`detail-section-item ${match.chunkId === selectedDetailChunk?.id ? "active-turn" : ""}`}
+                        onClick={() => {
+                          setDetailSortMode("question");
+                          handleSelectDetailChunk(match.chunkId);
+                        }}
+                      >
+                        <strong>{match.sectionTitle ?? match.locatorLabel ?? `Chunk ${match.chunkIndex + 1}`}</strong>
+                        <span>{match.anchorLabel ?? match.locatorLabel ?? `Chunk ${match.chunkIndex + 1}`} · 相关度 {formatQuestionMatchScore(match.score)}</span>
+                        <span>{normalizeInlineText(match.evidenceText ?? match.snippet)}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="muted">当前问题还没有命中足够强的文档片段，可以先用结构浏览继续查看原文。</p>
+                )}
               </div>
             )}
             {selectedDetailSectionRoot && relatedSectionChunks.length > 1 && (
@@ -1484,12 +1720,22 @@ export function App() {
                       >
                         <header>
                           <strong>{chunk.locatorLabel ?? `Chunk ${chunk.chunkIndex + 1}`}</strong>
-                          <span>{chunk.tokenCount} 个 tokens</span>
+                          <span>
+                            {detailQuestionMatchMap.get(chunk.id)
+                              ? `相关度 ${formatQuestionMatchScore(detailQuestionMatchMap.get(chunk.id)?.score ?? 0)}`
+                              : `${chunk.tokenCount} 个 tokens`}
+                          </span>
                         </header>
                         <div className="citation-meta">
                           <span>{chunk.sectionTitle ?? "通用内容"}</span>
                           {chunk.sectionPath && <span>{chunk.sectionPath}</span>}
+                          {chunk.pageStart && <span>p.{chunk.pageStart}</span>}
                         </div>
+                        {detailQuestionMatchMap.get(chunk.id)?.evidenceText && (
+                          <p className="citation-anchor">
+                            证据句：{detailQuestionMatchMap.get(chunk.id)?.evidenceText}
+                          </p>
+                        )}
                         <p>{chunk.text}</p>
                       </article>
                     ))}

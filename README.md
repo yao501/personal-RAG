@@ -26,7 +26,9 @@ Implemented:
 - hybrid ranking with query intent routing and sentence-level rerank
 - chat answer generation with explicit citations, tighter evidence snippets, and page/paragraph plus sentence-level anchors
 - in-app citation context drill-down from answer cards to the source chunk
+- citation cards can jump back to the original file and try a PDF page-level open when page anchors are available
 - document detail view with chunk inspection
+- document detail can switch between structure order and current-question relevance order, with evidence-sentence cues for the top matching chunks
 - document-detail keyword filtering for fast source review
 - in-app source preview with highlighted excerpt around the selected chunk
 - settings for chunk controls
@@ -91,10 +93,12 @@ Suggested:
 6. Check `Settings` to inspect the latest real query logs, mark benchmark candidates, copy auto-generated eval drafts, and mark promoted cases
 7. Watch the left sidebar status card during import or reindex to track current stage, progress, and failed files
 8. In `Chat`, click `查看来源上下文` on a citation card to jump into the source chunk inside the app
-9. Retry failed imports from the sidebar status card, and copy diagnostics from `Settings` when you need to troubleshoot delivery issues
-10. Use `重建索引` for maintenance; unchanged documents are now skipped automatically when the source file and chunk settings are unchanged
-11. Use `设置 -> 资料库健康` to inspect stale or broken library state, then clear missing-source records directly in the app
-12. In `文档详情`, click a chunk to preview its surrounding source excerpt inside the app
+9. In `Chat`, click `打开原文` on a citation card to reopen the source file; PDFs with page anchors now try to jump to the cited page
+10. In `文档详情`, switch between `结构浏览` and `当前问题相关` to inspect the document either by section order or by question relevance
+11. Retry failed imports from the sidebar status card, and copy diagnostics from `Settings` when you need to troubleshoot delivery issues
+12. Use `重建索引` for maintenance; unchanged documents are now skipped automatically when the source file and chunk settings are unchanged
+13. Use `设置 -> 资料库健康` to inspect stale or broken library state, then clear missing-source records directly in the app
+14. In `文档详情`, click a chunk to preview its surrounding source excerpt inside the app
 
 ## Tests
 
