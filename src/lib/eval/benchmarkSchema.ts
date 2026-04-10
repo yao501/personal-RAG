@@ -14,6 +14,11 @@ export interface BenchmarkExpectedCitationsV1 {
   fileNameIncludes?: string[];
 }
 
+export type BenchmarkSourceTypeV1 = "fixture" | "sanitized";
+
+/** Expected answer shape for regression tracking (optional; does not replace `mustRefuse`). */
+export type BenchmarkExpectedAnswerModeV1 = "grounded" | "cautious" | "refusal";
+
 export interface BenchmarkCaseV1 {
   id: string;
   question: string;
@@ -28,6 +33,13 @@ export interface BenchmarkCaseV1 {
   mustRefuse: boolean;
   /** Optional label to group near-equivalent phrasings for reports (e.g. `import-procedure`). */
   intentGroup?: string;
+  /** Provenance hint for humans (default: treat as in-repo fixture). */
+  sourceType?: BenchmarkSourceTypeV1;
+  /**
+   * Optional regression expectation: `grounded` = non-refusal, non-cautious synthesis;
+   * `cautious` = cautious procedural template; `refusal` = refusal template (often redundant with `mustRefuse`).
+   */
+  expectedAnswerMode?: BenchmarkExpectedAnswerModeV1;
   notes?: string;
 }
 

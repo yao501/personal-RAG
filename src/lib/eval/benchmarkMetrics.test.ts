@@ -41,6 +41,7 @@ describe("benchmarkMetrics", () => {
     expect(categorizeFailureReasons(["Unexpected refusal-style answer for a non-mustRefuse case."])).toBe(
       "unexpected_refusal"
     );
+    expect(categorizeFailureReasons(["Expected cautious procedural answer (expectedAnswerMode)."])).toBe("answer_mode");
   });
 
   it("computes recall when expected docs match fileName", () => {

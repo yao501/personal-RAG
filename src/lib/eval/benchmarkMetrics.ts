@@ -30,6 +30,7 @@ export type BenchFailureCategory =
   | "citation"
   | "refusal"
   | "unexpected_refusal"
+  | "answer_mode"
   | "other";
 
 export interface BenchmarkCaseEvalResult {
@@ -46,6 +47,9 @@ export interface BenchmarkCaseEvalResult {
 
 export function categorizeFailureReasons(reasons: string[]): BenchFailureCategory {
   const r = reasons.join(" ");
+  if (r.includes("expectedAnswerMode") || r.includes("per expectedAnswerMode")) {
+    return "answer_mode";
+  }
   if (r.includes("Expected document not found")) {
     return "retrieval";
   }
@@ -71,6 +75,7 @@ export function summarizeFailureBuckets(results: BenchmarkCaseEvalResult[]): Rec
     citation: 0,
     refusal: 0,
     unexpected_refusal: 0,
+    answer_mode: 0,
     other: 0
   };
   for (const row of results) {
@@ -223,8 +228,33 @@ export function evaluateBenchmarkCase(
         failureReasons.push("Citation fileName expectation not met.");
       }
     }
-    if (answerMetrics.refusalDetected) {
-      failureReasons.push("Unexpected refusal-style answer for a non-mustRefuse case.");
+    const mode = benchmarkCase.expectedAnswerMode;
+    if (!(mode === "grounded")) {
+      if (answerMetrics.refusalDetected) {
+        failureReasons.push("Unexpected refusal-style answer for a non-mustRefuse case.");
+      }
+    }
+  }
+
+  if (benchmarkCase.expectedAnswerMode && !benchmarkCase.mustRefuse) {
+    const mode = benchmarkCase.expectedAnswerMode;
+    if (mode === "grounded") {
+      if (answerMetrics.refusalDetected) {
+        failureReasons.push("Expected grounded synthesis (unexpected refusal per expectedAnswerMode).");
+      }
+      if (answerMetrics.cautiousProcedural) {
+        failureReasons.push("Expected grounded synthesis (unexpected cautious procedural per expectedAnswerMode).");
+      }
+    }
+    if (mode === "cautious") {
+      if (!answerMetrics.cautiousProcedural) {
+        failureReasons.push("Expected cautious procedural answer (expectedAnswerMode).");
+      }
+    }
+    if (mode === "refusal") {
+      if (!answerMetrics.refusalDetected) {
+        failureReasons.push("Expected refusal-style answer (expectedAnswerMode).");
+      }
     }
   }
 

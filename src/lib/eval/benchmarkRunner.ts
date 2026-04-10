@@ -3,6 +3,7 @@ import path from "node:path";
 import { chunkText } from "../modules/chunk/chunkText";
 import { parseDocument } from "../modules/parse/parseDocument";
 import { answerQuestion } from "../modules/answer/answerQuestion";
+import { buildRetrievalDebugPayload } from "../modules/retrieve/retrievalDebug";
 import { DEFAULT_RETRIEVAL_LIMIT, runRetrievalLikeDesktop } from "../modules/retrieve/retrievalPipeline";
 import type { ChunkRecord, DocumentRecord, ParsedDocumentContent, SupportedFileType } from "../shared/types";
 import {
@@ -86,12 +87,37 @@ export async function runBenchmarkCases(
   const hydrate = config.embeddingHydration !== false;
   const caseResults: BenchmarkCaseEvalResult[] = [];
 
+  const evalDebug = process.env.PKRAG_RETRIEVAL_DEBUG === "1";
+
   for (const benchmarkCase of config.cases) {
-    const { results: searchResults } = await runRetrievalLikeDesktop(benchmarkCase.question, documents, chunks, {
-      limit: topK,
-      hydrateEmbeddings: hydrate
-    });
+    const { results: searchResults, vectorChunkIds, candidateChunks } = await runRetrievalLikeDesktop(
+      benchmarkCase.question,
+      documents,
+      chunks,
+      {
+        limit: topK,
+        hydrateEmbeddings: hydrate
+      }
+    );
     const chatAnswer = answerQuestion(benchmarkCase.question, searchResults);
+    if (evalDebug) {
+      console.log(
+        JSON.stringify(
+          buildRetrievalDebugPayload(
+            benchmarkCase.question,
+            vectorChunkIds,
+            candidateChunks.length,
+            searchResults,
+            chatAnswer,
+            {
+              searchLimit: topK,
+              vectorRecallBackend: "memory",
+              runtime: "eval"
+            }
+          )
+        )
+      );
+    }
     caseResults.push(evaluateBenchmarkCase(benchmarkCase, searchResults, chatAnswer, topK));
   }
 
@@ -156,15 +182,17 @@ export function renderBenchmarkMarkdownReport(options: {
 
   lines.push("## Per-case results");
   lines.push("");
-  lines.push(`| Case | Group | Pass | cautious | recall@k | docHit | refusal | fail bucket |`);
-  lines.push(`| --- | --- | --- | --- | --- | --- | --- | --- |`);
+  lines.push(`| Case | src | exp.mode | Group | Pass | cautious | recall@k | docHit | refusal | fail bucket |`);
+  lines.push(`| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |`);
   for (const row of options.caseResults) {
     const refusal = row.answerMetrics.refusalDetected ? "yes" : "no";
     const cautious = row.answerMetrics.cautiousProcedural ? "yes" : "no";
     const group = row.case.intentGroup ?? "—";
     const bucket = row.failureCategory ?? "—";
+    const src = row.case.sourceType ?? "fixture";
+    const mode = row.case.expectedAnswerMode ?? "—";
     lines.push(
-      `| ${row.case.id} | ${group.replace(/\|/g, "\\|")} | ${row.passed ? "yes" : "no"} | ${cautious} | ${row.retrieval.recallAtK.toFixed(2)} | ${row.retrieval.docHit ? "yes" : "no"} | ${refusal} | ${bucket} |`
+      `| ${row.case.id} | ${src} | ${mode} | ${group.replace(/\|/g, "\\|")} | ${row.passed ? "yes" : "no"} | ${cautious} | ${row.retrieval.recallAtK.toFixed(2)} | ${row.retrieval.docHit ? "yes" : "no"} | ${refusal} | ${bucket} |`
     );
   }
   lines.push("");
@@ -190,7 +218,8 @@ export function renderBenchmarkMarkdownReport(options: {
   lines.push("- Refusal detection keys off empty citations plus known refusal strings in `directAnswer`.");
   lines.push("- Retrieval uses `runRetrievalLikeDesktop`: query embedding + in-memory vector shortlist + `selectCandidateChunksFromVectors` + `searchChunks`, matching the desktop pipeline (LanceDB replaced by cosine ranking on embeddings).");
   lines.push("- `intentGroup` is for human comparison only; pass/fail rules are unchanged.");
-  lines.push("- When comparing runs across commits, use the same `benchmarks/benchmark.v1.json`; case ids added in Sprint 5.1 are not comparable to older 4–7 case baselines without re-baselining.");
+  lines.push("- `expectedAnswerMode` adds optional checks (`grounded` / `cautious` / `refusal`); see `docs/EVAL_GUIDE.md`.");
+  lines.push("- When comparing runs across commits, use the same `benchmarks/benchmark.v1.json`; expanding case sets changes absolute pass-rate comparability.");
   lines.push("");
 
   return lines.join("\n");

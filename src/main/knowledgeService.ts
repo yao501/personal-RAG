@@ -799,7 +799,11 @@ export class KnowledgeService {
     if (process.env.PKRAG_RETRIEVAL_DEBUG === "1") {
       console.log(
         JSON.stringify(
-          buildRetrievalDebugPayload(question, vectorChunkIds, candidateChunks.length, results, answer)
+          buildRetrievalDebugPayload(question, vectorChunkIds, candidateChunks.length, results, answer, {
+            searchLimit: 6,
+            vectorRecallBackend: "lancedb",
+            runtime: "desktop"
+          })
         )
       );
     }

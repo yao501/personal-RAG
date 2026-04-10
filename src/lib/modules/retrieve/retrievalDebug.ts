@@ -3,13 +3,26 @@ import { isCautiousProceduralAnswer } from "../answer/cautiousMarkers";
 import { detectQueryIntent } from "./queryIntent";
 import { expandQueryTokens } from "./queryFeatures";
 
-/** Bump when JSON shape changes (for log parsers). */
-export const RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION = 1;
+/** Bump when JSON shape changes (for log parsers). Sprint 5.2 adds `vectorRecallBackend` + `runtime`. */
+export const RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION = 2;
+
+export type VectorRecallBackend = "lancedb" | "memory";
+export type RetrievalDebugRuntime = "desktop" | "eval";
+
+export interface RetrievalDebugBuildOptions {
+  searchLimit?: number;
+  vectorRecallBackend?: VectorRecallBackend;
+  runtime?: RetrievalDebugRuntime;
+}
 
 export interface RetrievalDebugPayload {
   schemaVersion: typeof RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION;
   kind: "pkrag.retrieval";
   question: string;
+  /** Desktop uses LanceDB ANN; eval runner uses in-memory cosine on chunk embeddings (see docs/EVAL_GUIDE.md). */
+  vectorRecallBackend: VectorRecallBackend;
+  /** Where the log line was emitted. */
+  runtime: RetrievalDebugRuntime;
   /** Same token union as `searchChunks` uses (intent + expansions). */
   effectiveQueryTokens: string[];
   /** Extra tokens from `expandQueryTokens` only (subset of effective union). */
@@ -72,13 +85,18 @@ export function buildRetrievalDebugPayload(
   candidateChunkCount: number,
   results: SearchResult[],
   answer: ChatAnswer,
-  searchLimit = 6
+  options?: RetrievalDebugBuildOptions
 ): RetrievalDebugPayload {
+  const searchLimit = options?.searchLimit ?? 6;
+  const vectorRecallBackend = options?.vectorRecallBackend ?? "lancedb";
+  const runtime = options?.runtime ?? "desktop";
   const hints = buildQueryRetrievalDebugHints(question);
   return {
     schemaVersion: RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION,
     kind: "pkrag.retrieval",
     question,
+    vectorRecallBackend,
+    runtime,
     vectorShortlistCount: vectorChunkIds.length,
     candidateChunkCount,
     searchTopK: searchLimit,
