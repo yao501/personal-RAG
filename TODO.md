@@ -225,6 +225,8 @@ Acceptance:
 
 ### P1.1 Retrieval quality improvements
 
+Status (Sprint 5 partial): **eval–desktop retrieval shape aligned** (`runRetrievalLikeDesktop`, shared `selectCandidateChunksFromVectors`), **lexical query expansion** tweaks for overlap/chunk wording, **procedural evidence caution** in `answerQuestion`, **`PKRAG_RETRIEVAL_DEBUG`** logs in main. Full in-app retrieval debug panel remains **P1.2**.
+
 Keep the current route:
 
 - enhanced hybrid RAG
@@ -235,7 +237,7 @@ Good next steps:
 
 - chunk contextualization
 - configurable lexical/vector weighting
-- stronger evidence sufficiency gate
+- further evidence sufficiency / conflict messaging (foundation started in Sprint 5)
 - stable refusal on weak evidence
 - conflict-evidence messaging
 

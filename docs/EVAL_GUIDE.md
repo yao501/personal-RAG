@@ -1,4 +1,4 @@
-# RAG evaluation and regression (Sprint 3)
+# RAG evaluation and regression
 
 This document describes the **local-first** benchmark format and how to run the evaluation runner. It is intentionally small and deterministic: metrics are heuristics, not semantic “truth” labels.
 
@@ -16,7 +16,10 @@ Benchmarks are JSON files (single object). See `benchmarks/benchmark.v1.json`.
 | `schemaVersion` | yes | Must be `1` for this format. |
 | `id` | yes | Stable id for the benchmark set. |
 | `description` | no | Human-readable summary. |
-| `library` | yes | How to build the in-memory library for eval (see below). |
+| `chunkSize` / `chunkOverlap` | no | Passed into `chunkText` when materializing fixtures. |
+| `retrievalTopK` | no | Passed to `searchChunks` (default **6**, same as desktop `KnowledgeService.askQuestion`). |
+| `embeddingHydration` | no | Default **true**: embed chunk text before vector shortlist (matches production). Set `false` for a faster lexical-only smoke (larger gap vs desktop). |
+| `documents` | yes | Fixture markdown files under `benchmarks/fixtures/` (see below). |
 | `cases` | yes | Array of cases. |
 
 Each **case**:
@@ -31,11 +34,9 @@ Each **case**:
 | `mustRefuse` | yes | If `true`, the run expects a refusal-style answer (template match), not a grounded synthesis. |
 | `notes` | no | Free text for humans; not scored. |
 
-### Library block (`library`)
+### Documents
 
-Current runner supports:
-
-- `type: "fixtureMarkdown"` — paths under `benchmarks/fixtures/` (repo-relative), ingested with the same markdown pipeline as other local docs.
+Each entry has `id`, `path` (repo-relative), optional `title` / `parserHint`. Files are parsed and chunked like normal imports.
 
 ## How to run
 
@@ -83,11 +84,21 @@ Pass/fail for a case is a conjunction of the checks that apply to that case (see
 
 ## Known limitations
 
-- **No LLM-as-judge** in this sprint; “correctness” is substring and template based.
-- **Eval environment**: the runner uses the in-process `searchChunks` + `answerQuestion` path (same code as much of the app), but **embedding / LanceDB vector paths may differ** from a fully hydrated desktop session. Treat absolute scores as smoke signals; use **before/after deltas** on the same machine for retrieval changes.
-- **Small starter set**: `benchmarks/benchmark.v1.json` is a smoke set, not production coverage.
+- **No LLM-as-judge**; “correctness” is substring and template based.
+- **Vector store**: the runner uses `runRetrievalLikeDesktop` — query embedding, **in-memory** top-24 cosine shortlist, `selectCandidateChunksFromVectors`, then `searchChunks`. The desktop app uses **LanceDB** for the same shortlist when available; numerics can still differ slightly, but the **pipeline shape** matches.
+- **Benchmark size**: `benchmarks/benchmark.v1.json` is a small smoke set.
 
-## Suggested next steps (post–Sprint 3)
+## Desktop retrieval debug (developer)
 
-- Grow the benchmark with real library exports (anonymized) and frozen expected docs.
+When running the Electron app from a terminal, set:
+
+```bash
+export PKRAG_RETRIEVAL_DEBUG=1
+```
+
+Each `askQuestion` logs one JSON line (stderr) with vector shortlist size, candidate count, top retrieval rows (scores), and citation chunk ids used in the answer. This is **not** a polished UI; it is for local debugging only.
+
+## Suggested next steps
+
+- Grow the benchmark with anonymized real-library exports.
 - Optional CI: run `npm run eval:rag` on PRs if runtime stays acceptable; keep it non-blocking until stable.

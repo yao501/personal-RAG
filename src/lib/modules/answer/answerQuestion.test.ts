@@ -222,6 +222,36 @@ describe("answerQuestion", () => {
     expect(answer.citations).toHaveLength(3);
   });
 
+  it("prefers an explicit overview caveat for weak procedural hits without actionable cues", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-1",
+        fileName: "guide.md",
+        documentTitle: "使用指南",
+        chunkId: "ov",
+        snippet: "本节只描述背景信息。",
+        score: 1.35,
+        chunkIndex: 0,
+        sectionTitle: "背景",
+        sectionPath: "使用指南 > 背景",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        importedAt: "2026-04-01T00:00:00.000Z",
+        text: "本节只描述背景信息，不包含逐步操作。",
+        lexicalScore: 0.55,
+        semanticScore: 0.42,
+        freshnessScore: 0.3,
+        rerankScore: 0.88,
+        qualityScore: 0.2,
+        fullText: "本节只描述背景信息，不包含逐步操作。"
+      }
+    ];
+
+    const answer = answerQuestion("如何完成导入？", results);
+
+    expect(answer.directAnswer).toContain("概述性");
+    expect(answer.citations.length).toBeGreaterThan(0);
+  });
+
   it("returns localized direct answers instead of English grounding boilerplate", () => {
     const results: SearchResult[] = [
       {

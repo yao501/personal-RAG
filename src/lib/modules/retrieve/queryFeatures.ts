@@ -136,6 +136,14 @@ export function expandQueryTokens(query: string, intent: QueryIntent): string[] 
     expansions.push("目标", "目的");
   }
 
+  if (/重叠|overlap/i.test(query)) {
+    expansions.push("overlap", "重叠", "截断");
+  }
+
+  if (/切分|切片|chunk(ing)?/i.test(query)) {
+    expansions.push("切分", "切片", "chunk");
+  }
+
   return expansions;
 }
 

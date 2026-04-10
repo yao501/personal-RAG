@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "id": "repo-smoke-v1",
-  "description": "Small in-repo fixtures for CI-friendly RAG eval smoke tests (no absolute user paths).",
+  "description": "In-repo fixtures: embedding-aligned retrieval, phrasing variants, procedural import path.",
   "chunkSize": 120,
   "chunkOverlap": 24,
-  "retrievalTopK": 8,
+  "retrievalTopK": 6,
   "documents": [
     {
       "id": "alpha-rag",
@@ -15,6 +15,11 @@
       "id": "beta-chunk",
       "path": "benchmarks/fixtures/beta_chunking.md",
       "title": "切片策略笔记"
+    },
+    {
+      "id": "gamma-import",
+      "path": "benchmarks/fixtures/gamma_import_steps.md",
+      "title": "导入与索引"
     }
   ],
   "cases": [
@@ -28,6 +33,14 @@
       },
       "mustRefuse": false,
       "notes": "Should retrieve alpha fixture and surface acronym in evidence or answer."
+    },
+    {
+      "id": "rag-paraphrase",
+      "question": "RAG 是什么缩写？",
+      "expectedDocs": ["alpha_rag_basics.md"],
+      "expectedFacts": ["Retrieval-Augmented Generation"],
+      "mustRefuse": false,
+      "notes": "Same intent as rag-acronym with different wording."
     },
     {
       "id": "chunking-why",
@@ -44,6 +57,22 @@
       "expectedFacts": ["截断"],
       "mustRefuse": false,
       "notes": "beta fixture discusses overlap."
+    },
+    {
+      "id": "overlap-paraphrase",
+      "question": "overlap 和「重叠」主要想解决什么问题？",
+      "expectedDocs": ["beta_chunking.md"],
+      "expectedFacts": ["截断"],
+      "mustRefuse": false,
+      "notes": "Lexical variant; should still hit beta chunking doc."
+    },
+    {
+      "id": "import-steps",
+      "question": "如何导入文档？",
+      "expectedDocs": ["gamma_import_steps.md"],
+      "expectedFacts": ["侧栏", "导入"],
+      "mustRefuse": false,
+      "notes": "Procedural question; expects numbered steps in gamma fixture."
     },
     {
       "id": "must-refuse-nonsense",

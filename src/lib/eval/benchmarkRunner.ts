@@ -2,8 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { chunkText } from "../modules/chunk/chunkText";
 import { parseDocument } from "../modules/parse/parseDocument";
-import { searchChunks } from "../modules/retrieve/searchIndex";
 import { answerQuestion } from "../modules/answer/answerQuestion";
+import { DEFAULT_RETRIEVAL_LIMIT, runRetrievalLikeDesktop } from "../modules/retrieve/retrievalPipeline";
 import type { ChunkRecord, DocumentRecord, ParsedDocumentContent, SupportedFileType } from "../shared/types";
 import { evaluateBenchmarkCase, summarizeBenchmarkResults, type BenchmarkCaseEvalResult } from "./benchmarkMetrics";
 import { isBenchmarkFileV1, type BenchmarkFileV1 } from "./benchmarkSchema";
@@ -77,16 +77,20 @@ export async function runBenchmarkCases(
   documents: DocumentRecord[],
   chunks: ChunkRecord[]
 ): Promise<BenchmarkCaseEvalResult[]> {
-  const topK = config.retrievalTopK ?? 8;
-  const results: BenchmarkCaseEvalResult[] = [];
+  const topK = config.retrievalTopK ?? DEFAULT_RETRIEVAL_LIMIT;
+  const hydrate = config.embeddingHydration !== false;
+  const caseResults: BenchmarkCaseEvalResult[] = [];
 
   for (const benchmarkCase of config.cases) {
-    const searchResults = searchChunks(benchmarkCase.question, documents, chunks, topK);
+    const { results: searchResults } = await runRetrievalLikeDesktop(benchmarkCase.question, documents, chunks, {
+      limit: topK,
+      hydrateEmbeddings: hydrate
+    });
     const chatAnswer = answerQuestion(benchmarkCase.question, searchResults);
-    results.push(evaluateBenchmarkCase(benchmarkCase, searchResults, chatAnswer, topK));
+    caseResults.push(evaluateBenchmarkCase(benchmarkCase, searchResults, chatAnswer, topK));
   }
 
-  return results;
+  return caseResults;
 }
 
 export function renderBenchmarkMarkdownReport(options: {
@@ -148,7 +152,7 @@ export function renderBenchmarkMarkdownReport(options: {
   lines.push("");
   lines.push("- Metrics are heuristic and deterministic; they are not semantic LLM-judge scores.");
   lines.push("- Refusal detection keys off empty citations plus known refusal strings in `directAnswer`.");
-  lines.push("- Retrieval uses the same `searchChunks` path as the app, without LanceDB vector recall in this script (lexical/hybrid in-memory path only).");
+  lines.push("- Retrieval uses `runRetrievalLikeDesktop`: query embedding + in-memory vector shortlist + `selectCandidateChunksFromVectors` + `searchChunks`, matching the desktop pipeline (LanceDB replaced by cosine ranking on embeddings).");
   lines.push("");
 
   return lines.join("\n");

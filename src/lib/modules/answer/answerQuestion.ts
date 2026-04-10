@@ -98,6 +98,76 @@ function chooseProceduralEvidenceResults(question: string, results: SearchResult
     .slice(0, 4);
 }
 
+function chunkHasStepLikeContent(text: string): boolean {
+  if (/\d+[.)、]\s*\S|步骤\s*\d|第[一二三四五六七八九十]+步/.test(text)) {
+    return true;
+  }
+  return /(菜单|单击|右键|勾选|选择|打开|点击|输入|对话框|禁用|启用|配置)/.test(text);
+}
+
+/**
+ * Procedural-style questions need either multiple coherent chunks or visible step markers;
+ * otherwise we answer with an explicit overview-only caveat instead of a confident how-to.
+ * Strong single-hit retrieval (high score) is allowed to proceed — the ranker already preferred it.
+ */
+function needsProceduralEvidenceCaution(question: string, results: SearchResult[]): boolean {
+  const intent = detectQueryIntent(question);
+  if (!intent.wantsSteps || results.length === 0) {
+    return false;
+  }
+
+  const procedural = chooseProceduralEvidenceResults(question, results);
+  if (procedural.length >= 2) {
+    return false;
+  }
+
+  const top = results[0];
+  if (results.length === 1) {
+    if (chunkHasStepLikeContent(top.text)) {
+      return false;
+    }
+    if (top.score >= 2.5) {
+      return false;
+    }
+    return true;
+  }
+
+  const second = results[1];
+  if (second.score < top.score * 0.62) {
+    return true;
+  }
+
+  return !chunkHasStepLikeContent(top.text) && !chunkHasStepLikeContent(second.text);
+}
+
+function buildCautiousProceduralAnswer(top: SearchResult): ChatAnswer {
+  const section = top.sectionTitle ?? splitSectionPath(top.sectionPath).at(-1) ?? "相关章节";
+  const directAnswer = `当前检索到的资料仅包含概述性内容，未形成可逐步执行的完整操作说明。建议打开《${top.documentTitle}》中与「${section}」相关的段落逐条对照，或补充包含步骤说明的文档。`;
+  const supporting = `${normalizeSentence(top.evidenceText ?? top.snippet)} ${formatReferenceTag(top)}`;
+  const answerBody = [
+    "Direct answer",
+    directAnswer,
+    "",
+    "Key supporting points",
+    `1. ${supporting}`,
+    "",
+    "Evidence note: overview-level match only; follow the cited section for any executable steps.",
+    "",
+    "Citations are listed separately below for inspection."
+  ].join("\n");
+
+  return {
+    answer: answerBody,
+    directAnswer,
+    supportingPoints: [supporting],
+    sourceDocumentCount: 1,
+    basedOnSingleDocument: true,
+    citations: [
+      (({ text: _text, lexicalScore: _lexicalScore, semanticScore: _semanticScore, freshnessScore: _freshnessScore, rerankScore: _rerankScore, qualityScore: _qualityScore, ...citation }) => citation)(top)
+    ]
+  };
+}
+
 function splitSentenceLike(text: string): string[] {
   const matches = text.match(/[^。！？.!?\n]+[。！？.!?]?/gu);
   if (!matches) {
@@ -342,6 +412,10 @@ export function answerQuestion(question: string, results: SearchResult[]): ChatA
       basedOnSingleDocument: false,
       citations: []
     };
+  }
+
+  if (needsProceduralEvidenceCaution(question, results)) {
+    return buildCautiousProceduralAnswer(results[0]);
   }
 
   const proceduralResults = chooseProceduralEvidenceResults(question, results);

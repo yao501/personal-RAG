@@ -35,8 +35,13 @@ export interface BenchmarkFileV1 {
   description?: string;
   chunkSize?: number;
   chunkOverlap?: number;
-  /** Top-k for retrieval metrics and for answer pipeline input. Default 8. */
+  /** Top-k for retrieval metrics and for answer pipeline input. Default 6 (same as desktop `searchChunks` limit). */
   retrievalTopK?: number;
+  /**
+   * When true (default), benchmark runner embeds chunk text like the desktop path so vector
+   * shortlist + hybrid scoring align with production. Set false for a faster lexical-only smoke.
+   */
+  embeddingHydration?: boolean;
   documents: BenchmarkDocumentRefV1[];
   cases: BenchmarkCaseV1[];
 }

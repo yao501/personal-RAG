@@ -130,6 +130,8 @@ npm run eval:rag
 
 Writes a timestamped Markdown report under `reports/rag-eval/`. Benchmark format, metrics, and limitations: [docs/EVAL_GUIDE.md](docs/EVAL_GUIDE.md).
 
+Sprint 5 alignment: the default benchmark path hydrates embeddings and runs the same **query embedding → top-24 vector shortlist → lexical merge → `searchChunks`** shape as the desktop app (LanceDB is replaced by in-memory cosine ranking in the script). For ad-hoc retrieval inspection in development, run Electron with **`PKRAG_RETRIEVAL_DEBUG=1`** to log structured retrieval rows and citation ids to the terminal. Procedural questions with only weak single-hit evidence use a **cautious, overview-style** direct answer instead of an overconfident how-to (see `answerQuestion`).
+
 Included tests cover:
 
 - chunk overlap behavior

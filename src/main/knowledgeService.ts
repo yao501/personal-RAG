@@ -6,7 +6,8 @@ import { createStableId } from "../lib/modules/core/id";
 import { embedTexts, getEmbeddingStatus } from "../lib/modules/embed/localEmbedder";
 import { answerQuestion } from "../lib/modules/answer/answerQuestion";
 import { parseDocument } from "../lib/modules/parse/parseDocument";
-import { tokenize } from "../lib/modules/retrieve/tokenize";
+import { buildRetrievalDebugPayload } from "../lib/modules/retrieve/retrievalDebug";
+import { selectCandidateChunksFromVectors } from "../lib/modules/retrieve/candidateChunks";
 import { searchChunks } from "../lib/modules/retrieve/searchIndex";
 import type {
   AppSnapshot,
@@ -212,29 +213,6 @@ export class KnowledgeService {
       const label = this.activeLibraryTask.kind === "import" ? "导入文件" : "重建索引";
       throw new Error(`当前正在执行${label}任务，请稍后再试。`);
     }
-  }
-
-  private selectCandidateChunks(question: string, documents: DocumentRecord[], chunks: ChunkRecord[], vectorChunkIds: string[]): ChunkRecord[] {
-    if (vectorChunkIds.length === 0) {
-      return chunks;
-    }
-
-    const documentMap = new Map(documents.map((document) => [document.id, document]));
-    const vectorSet = new Set(vectorChunkIds);
-    const queryTokens = tokenize(question).filter((token) => token.length >= 2);
-    const lexicalFallback = chunks.filter((chunk) => {
-      const document = documentMap.get(chunk.documentId);
-      const haystack = [document?.title, document?.fileName, chunk.sectionTitle, chunk.sectionPath, chunk.text]
-        .filter(Boolean)
-        .join("\n")
-        .toLowerCase();
-      const matched = queryTokens.filter((token) => haystack.includes(token.toLowerCase())).length;
-      return matched >= Math.min(2, queryTokens.length);
-    });
-
-    const candidateIds = new Set([...vectorChunkIds, ...lexicalFallback.map((chunk) => chunk.id)]);
-    const candidates = chunks.filter((chunk) => candidateIds.has(chunk.id));
-    return candidates.length > 0 ? candidates : chunks;
   }
 
   async getSnapshot(): Promise<AppSnapshot> {
@@ -815,9 +793,16 @@ export class KnowledgeService {
       }
     }
 
-    const candidateChunks = this.selectCandidateChunks(question, documents, chunks, vectorChunkIds);
+    const candidateChunks = selectCandidateChunksFromVectors(question, documents, chunks, vectorChunkIds);
     const results = searchChunks(question, documents, candidateChunks, 6, queryEmbedding);
     const answer = answerQuestion(question, results);
+    if (process.env.PKRAG_RETRIEVAL_DEBUG === "1") {
+      console.log(
+        JSON.stringify(
+          buildRetrievalDebugPayload(question, vectorChunkIds, candidateChunks.length, results, answer)
+        )
+      );
+    }
     const turn: ChatTurn = {
       id: createStableId(`chat-turn:${sessionId}:${question}:${Date.now()}`),
       sessionId,
