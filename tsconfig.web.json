@@ -19,7 +19,7 @@
     "src/renderer/**/*.ts",
     "src/renderer/**/*.tsx",
     "src/lib/shared/**/*.ts",
-    "src/lib/eval/**/*.ts",
+    "src/lib/eval/queryLogDrafts.ts",
     "src/lib/modules/citation/**/*.ts",
     "src/lib/modules/retrieve/queryFeatures.ts",
     "src/lib/modules/retrieve/queryIntent.ts",

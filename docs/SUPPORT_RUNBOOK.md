@@ -76,3 +76,4 @@ When anonymize is **off**, more path and preview text is present to speed up int
 - Security assumptions: `docs/SECURITY_BASELINE.md`
 - Product direction: `AGENTS.md`, `TODO.md`
 - Developer regression eval (local benchmark runner, not part of the support bundle): `docs/EVAL_GUIDE.md`
+- Local macOS packaging and install (for building the app that generates support bundles): `docs/INSTALLATION.md`, `docs/RELEASE.md`

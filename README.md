@@ -59,8 +59,8 @@ Implemented:
 
 Still next:
 
-- stronger evaluation/regression gate for retrieval changes
-- release repeatability + signing/notarization for macOS distribution
+- expand eval benchmark coverage and regression comparisons beyond the Sprint 3 smoke set (`docs/EVAL_GUIDE.md`)
+- Apple signing / notarization / stapling and optional CI release uploads (release **packaging** foundation is in `docs/RELEASE.md`; install notes in `docs/INSTALLATION.md`)
 - deeper import/reindex error codes + UI refinement as diagnostics surface grows
 
 ## Project structure
@@ -136,25 +136,26 @@ Included tests cover:
 - retrieval ranking behavior
 - retrieval eval matching and summary logic
 
-## macOS app packaging
+## macOS app packaging (Sprint 4)
 
-To build a double-clickable macOS app bundle:
+Repeatable **release** build (full `tsc` + `electron-vite` + `electron-builder`):
 
 ```bash
-npm run app:mac
+npm run release:mac
 ```
 
-Output:
+`npm run dist:mac` is the same as `release:mac`. For a faster local pack (skips the root `tsc -b` step), use `npm run app:mac`.
+
+Output (gitignored until you build):
 
 - `release/mac-arm64/个人知识库 RAG.app`
 
-You can open the `.app` directly in Finder and drag it into the Dock like a normal macOS app.
+Detailed prerequisites, first-open Gatekeeper behavior, and what is **not** implemented yet: **`docs/INSTALLATION.md`**. Release checklist, versioning, and deferred signing work: **`docs/RELEASE.md`**.
 
 Notes:
 
-- The current package uses the default Electron app icon.
-- If you want a custom Dock/app icon next, add a macOS `.icns` asset and wire it into the build config.
-- Signing/notarization are intentionally not fully documented/automated yet (planned after security baseline + diagnostics story is cleaner).
+- Icon path is configured under `build.mac.icon` in `package.json` (`build/app-icon-1024.png`).
+- Signing, notarization, and DMG/installer distribution are **out of scope** for the current foundation; see `docs/RELEASE.md`.
 
 ## Architecture choices
 

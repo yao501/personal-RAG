@@ -192,18 +192,23 @@ Acceptance:
 
 ### P0.5 Release pipeline baseline
 
+Status (Sprint 4): **foundation in place** — `npm run release:mac` (alias `dist:mac`), predictable `release/mac-arm64/<productName>.app` output, `docs/INSTALLATION.md`, `docs/RELEASE.md`.
+
 Why this is P0 but after the items above:
 
 - it matters for delivery
 - but signing/notarization is more valuable after the app boundary and diagnostics story are cleaner
 
-Scope:
+Scope (done in Sprint 4):
 
 - add `npm run release:mac`
-- standardize release output shape
-- add release metadata
+- standardize release output shape (documented; `release/` + `build` config)
 - document install and release steps
-- then add signing/notarization/staple flow
+
+Still deferred:
+
+- signing/notarization/staple flow
+- optional CI artifact upload
 
 Required docs:
 

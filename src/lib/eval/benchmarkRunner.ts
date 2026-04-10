@@ -4,7 +4,7 @@ import { chunkText } from "../modules/chunk/chunkText";
 import { parseDocument } from "../modules/parse/parseDocument";
 import { searchChunks } from "../modules/retrieve/searchIndex";
 import { answerQuestion } from "../modules/answer/answerQuestion";
-import type { ChunkRecord, DocumentRecord, SupportedFileType } from "../shared/types";
+import type { ChunkRecord, DocumentRecord, ParsedDocumentContent, SupportedFileType } from "../shared/types";
 import { evaluateBenchmarkCase, summarizeBenchmarkResults, type BenchmarkCaseEvalResult } from "./benchmarkMetrics";
 import { isBenchmarkFileV1, type BenchmarkFileV1 } from "./benchmarkSchema";
 
@@ -16,7 +16,7 @@ export function loadBenchmarkJsonFile(absPath: string): BenchmarkFileV1 {
   return raw;
 }
 
-async function loadDocumentContent(filePath: string, parserHint?: SupportedFileType): Promise<{ fileType: SupportedFileType; content: string }> {
+async function loadDocumentContent(filePath: string, parserHint?: SupportedFileType): Promise<ParsedDocumentContent> {
   if (parserHint === "txt") {
     return {
       fileType: "txt",
