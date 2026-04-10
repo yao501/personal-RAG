@@ -44,17 +44,20 @@ Allowed navigation is limited to:
 
 ## IPC Rules
 
-IPC now follows a validated registration pattern in [src/main/main.ts](/Users/guangyaosun/personal-knowledge-rag/src/main/main.ts).
+IPC now follows a validated registration pattern in [src/main/main.ts](../src/main/main.ts).
 
 Current protections:
 
 - sender URL must match the app renderer origin
 - every registered IPC route validates its input shape
 - invalid requests fail before business logic runs
-- validation and handler failures return standardized error prefixes:
-  - `[IPC_VALIDATION]`
-  - `[IPC_HANDLER]`
-  - `[IPC_FORBIDDEN]`
+- failures return a renderer-consumable structured error object (via IPC result envelope), preserving:
+  - `code`
+  - `stage`
+  - `message`
+  - `suggestion`
+  - `retryable`
+  - optional `details`
 
 Covered input checks include:
 
@@ -77,7 +80,7 @@ This prevents citation links from becoming a generic URL-launch surface.
 
 ## Content Security Policy
 
-The renderer entry page now includes a CSP in [src/renderer/index.html](/Users/guangyaosun/personal-knowledge-rag/src/renderer/index.html).
+The renderer entry page now includes a CSP in [src/renderer/index.html](../src/renderer/index.html).
 
 The current policy allows:
 
@@ -108,7 +111,7 @@ This baseline is an important first step, not the final security state.
 Still recommended:
 
 - move from lightweight validation helpers to explicit per-channel schemas if the IPC surface grows further
-- add structured error objects once renderer error UX is upgraded
+- strengthen per-feature error UX as the structured error surface grows
 - review release-time entitlements and signing settings
 - add dependency-review guidance to release documentation
 - add regression checks for security-sensitive IPC routes

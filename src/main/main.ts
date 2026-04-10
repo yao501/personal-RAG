@@ -1,11 +1,10 @@
 import path from "node:path";
 import { app, BrowserWindow, dialog, ipcMain, type IpcMainInvokeEvent } from "electron";
 import { fileURLToPath } from "node:url";
-import type { AppSettings } from "../lib/shared/types";
+import type { AppSettings, IpcResult } from "../lib/shared/types";
 import { AppStore } from "./store";
 import { KnowledgeService } from "./knowledgeService";
 import {
-  IpcValidationError,
   expectAbsolutePath,
   expectFeedbackStatus,
   expectNoArgs,
@@ -17,6 +16,7 @@ import {
   expectStringArray
 } from "./ipcValidation";
 import { isAllowedAppNavigation } from "./security";
+import { IpcForbiddenError, toRendererErrorInfo } from "./ipcErrors";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rendererUrl = process.env.ELECTRON_RENDERER_URL;
@@ -28,17 +28,8 @@ const knowledgeService = new KnowledgeService(store);
 function ensureTrustedSender(event: IpcMainInvokeEvent): void {
   const senderUrl = event.senderFrame?.url || event.sender.getURL();
   if (!isAllowedAppNavigation(senderUrl, rendererUrl)) {
-    throw new Error(`[IPC_FORBIDDEN] Untrusted sender for ${senderUrl || "unknown-url"}.`);
+    throw new IpcForbiddenError(`Untrusted sender for ${senderUrl || "unknown-url"}.`);
   }
-}
-
-function formatIpcError(channel: string, error: unknown): Error {
-  if (error instanceof IpcValidationError) {
-    return new Error(`[IPC_VALIDATION] ${channel}: ${error.message}`);
-  }
-
-  const message = error instanceof Error ? error.message : "Unknown IPC error";
-  return new Error(`[IPC_HANDLER] ${channel}: ${message}`);
 }
 
 function registerIpc<Args extends unknown[], Result>(
@@ -50,9 +41,12 @@ function registerIpc<Args extends unknown[], Result>(
     try {
       ensureTrustedSender(event);
       const validatedArgs = validateArgs(args);
-      return await handler(event, ...validatedArgs);
+      const data = await handler(event, ...validatedArgs);
+      return { ok: true, data } satisfies IpcResult<Result>;
     } catch (error) {
-      throw formatIpcError(channel, error);
+      // Preserve a renderer-consumable structured error object.
+      // Note: we avoid throwing here because Electron invoke() will otherwise drop structured fields.
+      return { ok: false, error: toRendererErrorInfo(channel, error) } satisfies IpcResult<Result>;
     }
   });
 }

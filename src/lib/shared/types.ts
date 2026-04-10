@@ -185,6 +185,21 @@ export interface AppErrorInfo {
   retryable: boolean;
 }
 
+export type RendererErrorCode = AppErrorCode | "ipc_forbidden" | "ipc_validation" | "ipc_handler" | "unknown_ipc_error";
+
+export type RendererErrorStage = AppErrorStage | "ipc";
+
+export interface RendererErrorInfo {
+  code: RendererErrorCode;
+  stage: RendererErrorStage;
+  message: string;
+  suggestion: string | null;
+  retryable: boolean;
+  details?: Record<string, unknown> | null;
+}
+
+export type IpcResult<T> = { ok: true; data: T } | { ok: false; error: RendererErrorInfo };
+
 export interface ImportIssueDetail extends AppErrorInfo {
   filePath: string;
   reason: string;

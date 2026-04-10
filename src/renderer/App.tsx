@@ -18,6 +18,7 @@ import type {
   DesktopApi,
   DocumentRecord,
   LibraryTaskProgress,
+  RendererErrorInfo,
   SupportedFileType,
   SystemStatus
 } from "../lib/shared/types";
@@ -182,6 +183,29 @@ function formatQuestionMatchScore(score: number): string {
 function formatImportIssueSummary(item: ImportIssueDetail): string {
   const suffix = item.suggestion ? ` 建议：${item.suggestion}` : "";
   return `[${item.code}] ${item.reason}${suffix}`;
+}
+
+function extractRendererErrorInfo(error: unknown): RendererErrorInfo | null {
+  if (typeof error !== "object" || error === null) {
+    return null;
+  }
+  const record = error as Record<string, unknown>;
+  const info = record.errorInfo;
+  if (typeof info !== "object" || info === null) {
+    return null;
+  }
+  const candidate = info as Partial<RendererErrorInfo>;
+  if (!candidate.code || !candidate.stage || !candidate.message) {
+    return null;
+  }
+  return candidate as RendererErrorInfo;
+}
+
+function formatRendererError(info: RendererErrorInfo): string {
+  const bits = [`[${info.code}]`, info.stage ? `(${info.stage})` : "", info.message].filter(Boolean);
+  const suggestion = info.suggestion ? ` 建议：${info.suggestion}` : "";
+  const retryable = info.retryable ? "（可重试）" : "（不建议重试）";
+  return `${bits.join(" ")}${retryable}${suggestion}`;
 }
 
 export function App() {
@@ -677,7 +701,8 @@ export function App() {
 
       setStatus(`导入完成：新增 ${result.imported.length}，跳过 ${skippedDetails.length}，失败 ${failedDetails.length}`);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "未知导入错误";
+      const info = extractRendererErrorInfo(error);
+      const message = info ? formatRendererError(info) : (error instanceof Error ? error.message : "未知导入错误");
       setErrorMessage(message);
       setStatus("导入失败");
     }
@@ -709,7 +734,8 @@ export function App() {
 
       setStatus(`重试完成：成功 ${result.imported.length}，跳过 ${skippedDetails.length}，失败 ${failedDetails.length}`);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "未知重试错误";
+      const info = extractRendererErrorInfo(error);
+      const message = info ? formatRendererError(info) : (error instanceof Error ? error.message : "未知重试错误");
       setErrorMessage(message);
       setStatus("重试失败");
     }
@@ -745,7 +771,8 @@ export function App() {
       setErrorMessage("");
       setStatus("问题文档修复完成");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "未知修复错误";
+      const info = extractRendererErrorInfo(error);
+      const message = info ? formatRendererError(info) : (error instanceof Error ? error.message : "未知修复错误");
       setErrorMessage(message);
       setStatus("问题文档修复失败");
     }
@@ -934,7 +961,8 @@ export function App() {
       setAppInfo(snapshot.appInfo);
       setStatus("重建索引完成");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "未知重建索引错误";
+      const info = extractRendererErrorInfo(error);
+      const message = info ? formatRendererError(info) : (error instanceof Error ? error.message : "未知重建索引错误");
       setErrorMessage(message);
       setStatus("重建索引失败");
     }

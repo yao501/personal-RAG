@@ -1,16 +1,30 @@
 # Personal Knowledge RAG
 
-Local-first desktop app for macOS that imports personal files, indexes them locally, and answers questions with explicit source citations.
+本仓库目标是演进为 **enterprise-ready 的 macOS 桌面私有知识助手**：本地优先存储与索引、引用优先回答、可诊断/可修复的导入与重建索引流程，并保持行为可解释、可支持。
 
-## MVP stack
+核心方向（不变）：
+
+- local-first + enhanced hybrid RAG
+- citation-first answers
+- strong diagnostics
+
+非目标（当前阶段不做）：
+
+- 不将主线切换为 GraphRAG
+- 不引入复杂的多 agent 编排
+- 不扩展为 SaaS / 平台化产品
+
+## Current stack
 
 - Electron + React + TypeScript + Vite for a fast desktop shell
 - SQLite via `better-sqlite3` for local metadata and chunk storage
 - LanceDB for local vector recall over embedded chunks
 - `pdf-parse` and `mammoth` for `pdf` / `docx` parsing
 - Modular local retrieval pipeline with structure-aware chunking, hybrid retrieval, intent routing, sentence-level rerank, and citation-first answers
+- Electron security baseline work is in progress (hardened `BrowserWindow` defaults, navigation/window restrictions, IPC sender trust checks, IPC input validation)
+- IPC errors now use a renderer-consumable structured error envelope (code/stage/message/suggestion/retryable/details) for clearer UI surfacing and supportability
 
-This v1 intentionally avoids heavy agent architecture. The code is organized so future work can add local embeddings, rerankers, or model-backed answer synthesis without rewriting the app structure.
+This app intentionally avoids heavy agent architecture. The code is organized so future work can add reliability/diagnostics improvements without rewriting the app structure.
 
 ## Current vertical slice
 
@@ -44,10 +58,10 @@ Implemented:
 
 Still next:
 
-- optional local LLM answer synthesis
-- indexing progress events
-- source-file jump/highlight integration beyond current in-app evidence highlighting
-- packaging/signing for macOS distribution
+- support bundle export (exclude raw document content by default)
+- stronger evaluation/regression gate for retrieval changes
+- release repeatability + signing/notarization for macOS distribution
+- deeper import/reindex error codes + UI refinement as diagnostics surface grows
 
 ## Project structure
 
@@ -74,8 +88,6 @@ Key extension points:
 - `KnowledgeService` for orchestration
 
 ## Setup
-
-You need a recent Node.js release installed locally first. This shell did not currently have `node` or `npm`, so install verification could not be completed yet.
 
 Suggested:
 
@@ -138,6 +150,7 @@ Notes:
 
 - The current package uses the default Electron app icon.
 - If you want a custom Dock/app icon next, add a macOS `.icns` asset and wire it into the build config.
+- Signing/notarization are intentionally not fully documented/automated yet (planned after security baseline + diagnostics story is cleaner).
 
 ## Architecture choices
 

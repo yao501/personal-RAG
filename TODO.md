@@ -6,7 +6,7 @@ This file is the working product-upgrade guide for this repository.
 
 It combines:
 
-- the original project direction in [AGENTS.md](/Users/guangyaosun/personal-knowledge-rag/AGENTS.md)
+- the original project direction in [AGENTS.md](AGENTS.md)
 - the recent repo-specific roadmap discussion
 - the current codebase reality
 
@@ -84,9 +84,9 @@ Scope:
 
 Target files:
 
-- [src/main/main.ts](/Users/guangyaosun/personal-knowledge-rag/src/main/main.ts)
-- [src/preload/preload.ts](/Users/guangyaosun/personal-knowledge-rag/src/preload/preload.ts)
-- [src/lib/shared/types.ts](/Users/guangyaosun/personal-knowledge-rag/src/lib/shared/types.ts)
+- [src/main/main.ts](src/main/main.ts)
+- [src/preload/preload.ts](src/preload/preload.ts)
+- [src/lib/shared/types.ts](src/lib/shared/types.ts)
 - `docs/SECURITY_BASELINE.md`
 
 Acceptance:
@@ -113,10 +113,10 @@ Scope:
 
 Target areas:
 
-- [src/main/knowledgeService.ts](/Users/guangyaosun/personal-knowledge-rag/src/main/knowledgeService.ts)
-- [src/main/store.ts](/Users/guangyaosun/personal-knowledge-rag/src/main/store.ts)
-- [src/lib/health/libraryHealth.ts](/Users/guangyaosun/personal-knowledge-rag/src/lib/health/libraryHealth.ts)
-- [src/renderer/App.tsx](/Users/guangyaosun/personal-knowledge-rag/src/renderer/App.tsx)
+- [src/main/knowledgeService.ts](src/main/knowledgeService.ts)
+- [src/main/store.ts](src/main/store.ts)
+- [src/lib/health/libraryHealth.ts](src/lib/health/libraryHealth.ts)
+- [src/renderer/App.tsx](src/renderer/App.tsx)
 
 Acceptance:
 
@@ -174,9 +174,9 @@ Start small:
 
 Primary files:
 
-- [scripts/ragEval.config.ts](/Users/guangyaosun/personal-knowledge-rag/scripts/ragEval.config.ts)
-- [src/lib/eval/ragEval.ts](/Users/guangyaosun/personal-knowledge-rag/src/lib/eval/ragEval.ts)
-- [src/lib/eval/queryLogDrafts.ts](/Users/guangyaosun/personal-knowledge-rag/src/lib/eval/queryLogDrafts.ts)
+- [scripts/ragEval.config.ts](scripts/ragEval.config.ts)
+- [src/lib/eval/ragEval.ts](src/lib/eval/ragEval.ts)
+- [src/lib/eval/queryLogDrafts.ts](src/lib/eval/queryLogDrafts.ts)
 
 Acceptance:
 
