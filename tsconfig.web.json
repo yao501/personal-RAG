@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "composite": true,
-    "target": "ES2020",
+    "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "Bundler",
@@ -15,6 +15,14 @@
     "noEmit": true,
     "types": ["vite/client"]
   },
-  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx", "src/lib/shared/**/*.ts"]
+  "include": [
+    "src/renderer/**/*.ts",
+    "src/renderer/**/*.tsx",
+    "src/lib/shared/**/*.ts",
+    "src/lib/eval/**/*.ts",
+    "src/lib/modules/citation/**/*.ts",
+    "src/lib/modules/retrieve/queryFeatures.ts",
+    "src/lib/modules/retrieve/queryIntent.ts",
+    "src/lib/modules/retrieve/tokenize.ts"
+  ]
 }
-

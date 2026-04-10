@@ -7,13 +7,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && electron-vite build",
     "electron:dev": "electron-vite dev",
     "electron:build": "electron-vite build",
+    "app:mac": "npm run electron:build && electron-builder --mac dir",
+    "dist:mac": "npm run electron:build && electron-builder --mac",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "eval:rag": "./node_modules/.bin/vite-node scripts/runRagEval.ts"
   },
   "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
+    "@lancedb/lancedb": "^0.27.2",
+    "apache-arrow": "^18.1.0",
     "better-sqlite3": "^11.8.1",
     "mammoth": "^1.8.0",
     "pdf-parse": "^1.1.1",
@@ -26,10 +32,45 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "electron": "^35.1.2",
+    "electron-builder": "^26.0.12",
     "electron-vite": "^3.0.0",
     "typescript": "^5.8.3",
     "vite": "^5.4.14",
     "vitest": "^3.1.1"
+  },
+  "build": {
+    "appId": "com.guangyaosun.personal-knowledge-rag",
+    "productName": "个人知识库 RAG",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/@huggingface/transformers/.cache/Xenova/all-MiniLM-L6-v2",
+        "to": "transformers-models/Xenova/all-MiniLM-L6-v2",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "asar": true,
+    "mac": {
+      "icon": "build/app-icon-1024.png",
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ]
+    }
   }
 }
-
