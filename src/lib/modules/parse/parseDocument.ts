@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import pdfParse from "pdf-parse";
 import mammoth from "mammoth";
+import { normalizePdfTechnicalTokens } from "./pdfTextNormalize";
 import type { ParsedDocumentContent, SourcePageSpan, SupportedFileType } from "../../shared/types";
 
 export function getSupportedFileType(filePath: string): SupportedFileType | null {
@@ -236,7 +237,7 @@ export function cleanPdfText(text: string): string {
     merged.push(line);
   }
 
-  return merged.join("\n\n");
+  return normalizePdfTechnicalTokens(merged.join("\n\n"));
 }
 
 async function parseDocx(filePath: string): Promise<string> {

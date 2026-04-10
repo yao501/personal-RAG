@@ -1,0 +1,820 @@
+{
+  "generated_at": "2026-04-10T16:33:57.793Z",
+  "status": "ok",
+  "source": "/Users/guangyaosun/Desktop/和利时DCS操作手册",
+  "pdf_files_loaded": [
+    "HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf",
+    "HOLLiAS_MACS_V6.5用户手册2_快速入门.pdf",
+    "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
+    "HOLLiAS_MACS_V6.5用户手册4_算法组态.pdf",
+    "HOLLiAS_MACS_V6.5用户手册5_图形编辑.pdf",
+    "HOLLiAS_MACS_V6.5用户手册6_现场操作.pdf",
+    "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf"
+  ],
+  "total_chunks": 7274,
+  "questions": [
+    {
+      "source_question_id": "Q1",
+      "question": "HOLLiAS MACS V6.5 从安装到最终运行，完整使用步骤是什么？",
+      "citation_file_names": [
+        "HOLLiAS_MACS_V6.5用户手册5_图形编辑.pdf"
+      ],
+      "top_retrieval_hint": [
+        "HOLLiAS_MACS_V6.5用户手册5_图形编辑.pdf / 5.2.21.2 喘振极限线点名和性能曲线参数导入",
+        "HOLLiAS_MACS_V6.5用户手册5_图形编辑.pdf / 5.2.22 海康威视视频控件"
+      ],
+      "model_answer": "Direct answer\n选择导入文件—喘振极限线点名 选择导入文件—性能曲线参数 矢量图控件在线操作详见查看矢量图。 通过海康威视视频控件 HKVideoCtrl Class ，可以将监控视频画面嵌入 DCS 操作画面。每个流程图画 主要依据《HOLLiAS_MACS_V6.5用户手册5_图形编辑》。 更新于 2026/4/11。\n\nKey supporting points\n1. 选择导入文件—喘振极限线点名 选择导入文件—性能曲线参数 矢量图控件在线操作详见查看矢量图。 [HOLLiAS_MACS_V6.5用户手册5_图形编辑.pdf | p.86-87 | para 639-641]\n2. 通过海康威视视频控件 HKVideoCtrl Class ，可以将监控视频画面嵌入 DCS 操作画面。 [HOLLiAS_MACS_V6.5用户手册5_图形编辑.pdf | p.86-87 | para 639-641]\n3. 根据以下示意图连接好硬件，并用海康威视的 HikVision Tool 进行配置。 [HOLLiAS_MACS_V6.5用户手册5_图形编辑.pdf | p.87-88 | para 641-650]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "direct_answer": "选择导入文件—喘振极限线点名 选择导入文件—性能曲线参数 矢量图控件在线操作详见查看矢量图。 通过海康威视视频控件 HKVideoCtrl Class ，可以将监控视频画面嵌入 DCS 操作画面。每个流程图画 主要依据《HOLLiAS_MACS_V6.5用户手册5_图形编辑》。 更新于 2026/4/11。",
+      "model_citations": [
+        {
+          "chunkId": "1612c740d21757a9",
+          "fileName": "HOLLiAS_MACS_V6.5用户手册5_图形编辑.pdf",
+          "snippet": "选择导入文件—喘振极限线点名 选择导入文件—性能曲线参数 矢量图控件在线操作详见查看矢量图。 通过海康威视视频控件 HKVideoCtrl Class ，可以将监控视频画面嵌入 DCS 操作画面。每个流程图画"
+        },
+        {
+          "chunkId": "218e192d716763f4",
+          "fileName": "HOLLiAS_MACS_V6.5用户手册5_图形编辑.pdf",
+          "snippet": "面最大支持 个控件。使用步骤如下： 根据以下示意图连接好硬件，并用海康威视的 HikVision Tool 进行配置。"
+        }
+      ],
+      "verdict": "fail",
+      "score": 0,
+      "matched_gold_points": [],
+      "missed_gold_points": [
+        "安装",
+        "组态",
+        "编译",
+        "下装",
+        "运行"
+      ],
+      "fail_modes": [],
+      "notes": "benchmark12 规则抽检 id=Q1",
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "HOLLiAS MACS V6.5 从安装到最终运行，完整使用步骤是什么？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 24,
+        "candidateChunkCount": 7274,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "1612c740d21757a9",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册5_图形编辑.pdf",
+            "score": 17.852945582927372,
+            "lexicalScore": 36.388364471082944,
+            "semanticScore": 1.555156380276627,
+            "rerankScore": 2.4398979551694486,
+            "qualityScore": 0.7242622950819673,
+            "sectionTitle": "5.2.21.2 喘振极限线点名和性能曲线参数导入"
+          },
+          {
+            "chunkId": "218e192d716763f4",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册5_图形编辑.pdf",
+            "score": 15.8355594872631,
+            "lexicalScore": 39.499976955008705,
+            "semanticScore": 1.9092206712915096,
+            "rerankScore": 1.810015733352009,
+            "qualityScore": -0.07999999999999996,
+            "sectionTitle": "5.2.22 海康威视视频控件"
+          },
+          {
+            "chunkId": "9496a431f0542e54",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
+            "score": 10.853848641694654,
+            "lexicalScore": 24.25252561611331,
+            "semanticScore": 1.5640597195214705,
+            "rerankScore": 1.9937908049626893,
+            "qualityScore": 0.5672413793103451,
+            "sectionTitle": "第13章 常见问题"
+          },
+          {
+            "chunkId": "136569ecf19ea2fa",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
+            "score": 10.764252160398675,
+            "lexicalScore": 24.25252561611331,
+            "semanticScore": 1.5135831863142692,
+            "rerankScore": 1.9640526993319605,
+            "qualityScore": 0.368987341772152,
+            "sectionTitle": "第13章 常见问题"
+          },
+          {
+            "chunkId": "93695f06d2f7781d",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
+            "score": 10.391014792096565,
+            "lexicalScore": 22.243727452735648,
+            "semanticScore": 1.279983954761948,
+            "rerankScore": 2.634674544408674,
+            "qualityScore": 1.4967741935483871,
+            "sectionTitle": "1.4.2 在线帮助"
+          },
+          {
+            "chunkId": "3ba56021b235be74",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
+            "score": 10.24703708228552,
+            "lexicalScore": 22.243727452735648,
+            "semanticScore": 1.0666708079512666,
+            "rerankScore": 2.6034155173265283,
+            "qualityScore": 1.2880281690140847,
+            "sectionTitle": "1.4.1 表格"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "1612c740d21757a9",
+          "218e192d716763f4"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "hollias",
+          "macs",
+          "v6",
+          "5",
+          "从安装到最终运行",
+          "完整使用步骤是什么",
+          "从安",
+          "安装",
+          "装到",
+          "到最",
+          "最终",
+          "终运",
+          "运行",
+          "从安装",
+          "安装到",
+          "装到最",
+          "到最终",
+          "最终运",
+          "终运行",
+          "完整",
+          "整使",
+          "使用",
+          "用步",
+          "步骤",
+          "骤是",
+          "是什",
+          "完整使",
+          "整使用",
+          "使用步",
+          "用步骤",
+          "步骤是",
+          "骤是什",
+          "是什么",
+          "5从",
+          "行完",
+          "运行完",
+          "行完整",
+          "流程",
+          "首先",
+          "然后",
+          "最后",
+          "依次"
+        ],
+        "expandedTokens": [
+          "流程",
+          "步骤",
+          "首先",
+          "然后",
+          "最后",
+          "依次"
+        ],
+        "intentPrimary": "procedural",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "cautious_shell": false
+    },
+    {
+      "source_question_id": "Q6",
+      "question": "编译和下装的顺序是什么？",
+      "citation_file_names": [
+        "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf"
+      ],
+      "top_retrieval_hint": [
+        "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf / 第13章 常见问题",
+        "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf / 第13章 常见问题"
+      ],
+      "model_answer": "Direct answer\n2 Q：编译和下装的顺序是什么？ 先编译后下装。 主要依据《HOLLiAS_MACS_V6.5用户手册3_工程总控》。 更新于 2026/4/11。\n\nKey supporting points\n1. 第13章 常见问题: HOLLiAS_MACS_V6.5用户手册3_工程总控 contains relevant material for this answer. [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.229 | para 2522-2528]\n2. 第13章 常见问题: HOLLiAS_MACS_V6.5用户手册3_工程总控 contains relevant material for this answer. [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.229 | para 2523-2532]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "direct_answer": "2 Q：编译和下装的顺序是什么？ 先编译后下装。 主要依据《HOLLiAS_MACS_V6.5用户手册3_工程总控》。 更新于 2026/4/11。",
+      "model_citations": [
+        {
+          "chunkId": "9496a431f0542e54",
+          "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
+          "snippet": "2 Q：编译和下装的顺序是什么？ 先编译后下装。 先编译后下装。"
+        },
+        {
+          "chunkId": "d3fad7a997a836bf",
+          "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
+          "snippet": "2 Q：编译和下装的顺序是什么？ 先编译后下装。 先编译后下装。"
+        }
+      ],
+      "verdict": "partial",
+      "score": 0.5,
+      "matched_gold_points": [
+        "工程总控/站侧"
+      ],
+      "missed_gold_points": [
+        "控制器侧"
+      ],
+      "fail_modes": [],
+      "notes": "benchmark12 规则抽检 id=Q6",
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "编译和下装的顺序是什么？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 24,
+        "candidateChunkCount": 207,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "9496a431f0542e54",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
+            "score": 24.323271253292592,
+            "lexicalScore": 51.01434581099094,
+            "semanticScore": 2.5713408594446467,
+            "rerankScore": 8.666087717772733,
+            "qualityScore": 0.5672413793103451,
+            "sectionTitle": "第13章 常见问题"
+          },
+          {
+            "chunkId": "d3fad7a997a836bf",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
+            "score": 24.243326530110814,
+            "lexicalScore": 51.01434581099094,
+            "semanticScore": 2.6694577169636533,
+            "rerankScore": 8.621706639081308,
+            "qualityScore": 0.27136752136752157,
+            "sectionTitle": "第13章 常见问题"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "9496a431f0542e54",
+          "d3fad7a997a836bf"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "编译和下装的顺序是什么",
+          "编译",
+          "译和",
+          "和下",
+          "下装",
+          "装的",
+          "的顺",
+          "顺序",
+          "序是",
+          "是什",
+          "编译和",
+          "译和下",
+          "和下装",
+          "下装的",
+          "装的顺",
+          "的顺序",
+          "顺序是",
+          "序是什",
+          "是什么",
+          "流程",
+          "步骤",
+          "首先",
+          "然后",
+          "最后",
+          "依次"
+        ],
+        "expandedTokens": [
+          "流程",
+          "步骤",
+          "首先",
+          "然后",
+          "最后",
+          "依次"
+        ],
+        "intentPrimary": "explanatory",
+        "intentWantsSteps": false,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "cautious_shell": false
+    },
+    {
+      "source_question_id": "Q9",
+      "question": "如何实现域间访问？",
+      "citation_file_names": [
+        "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf"
+      ],
+      "top_retrieval_hint": [
+        "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf / 13.6 Q：模拟量历史库容量超过24M时工程总控编译失败"
+      ],
+      "model_answer": "Direct answer\n总述：域间访问通过工程总控中的域间引用表完成配置；不能把“网络互通”等同为已完成域间访问。\n\n步骤\n\n1. 在工程总控打开域间引用表，填写他域点名/项名以及本域点名/项名。\n2. 每个引用组最多允许 3000 个引用点；他域点名和本域点名需为全局变量且数据类型一致。\n3. 若本域点为控制站点，EW 项需置 TRUE。\n4. 配置完成后编译并下装本域工程。\n\n注意\n\n- 不能认为仅网络互通即可；需按表完成映射并完成本域下装。\n\nKey supporting points\n1. 对于同一个项目下的不同域（工程）， MACS 软件提供了 种域间访问方法： □ 域间引用表：实现不同工程间的数据访问。 [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.231-232 | para 2568-2583]\n2. □ 可访问的工程：在一个操作员站上查看多个工程。 [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.231-232 | para 2568-2583]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "direct_answer": "总述：域间访问通过工程总控中的域间引用表完成配置；不能把“网络互通”等同为已完成域间访问。\n\n步骤\n\n1. 在工程总控打开域间引用表，填写他域点名/项名以及本域点名/项名。\n2. 每个引用组最多允许 3000 个引用点；他域点名和本域点名需为全局变量且数据类型一致。\n3. 若本域点为控制站点，EW 项需置 TRUE。\n4. 配置完成后编译并下装本域工程。\n\n注意\n\n- 不能认为仅网络互通即可；需按表完成映射并完成本域下装。",
+      "model_citations": [
+        {
+          "chunkId": "80f0085b5258f9eb",
+          "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
+          "snippet": "对于同一个项目下的不同域（工程）， MACS 软件提供了 种域间访问方法： □ 域间引用表：实现不同工程间的数据访问。"
+        }
+      ],
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "引用表",
+        "3000",
+        "编译下装"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "benchmark12 规则抽检 id=Q9",
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "如何实现域间访问？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 24,
+        "candidateChunkCount": 43,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "80f0085b5258f9eb",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
+            "score": 18.215915272505764,
+            "lexicalScore": 37.74010626492081,
+            "semanticScore": 1.3222782833052853,
+            "rerankScore": 4.915070730700669,
+            "qualityScore": 0.5622834645669293,
+            "sectionTitle": "13.6 Q：模拟量历史库容量超过24M时工程总控编译失败"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "80f0085b5258f9eb"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "如何实现域间访问",
+          "何实",
+          "实现",
+          "现域",
+          "域间",
+          "间访",
+          "访问",
+          "如何实",
+          "何实现",
+          "实现域",
+          "现域间",
+          "域间访",
+          "间访问",
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "expandedTokens": [
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "intentPrimary": "procedural",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "cautious_shell": false
+    },
+    {
+      "source_question_id": "Q11",
+      "question": "安装过程中提示 UserSvr 服务启动失败，应如何处理？",
+      "citation_file_names": [
+        "HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf"
+      ],
+      "top_retrieval_hint": [
+        "HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf / 6.2 Q：安装过程中提示UserSvr服务启动失败",
+        "HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf / 第6章 常见问题"
+      ],
+      "model_answer": "Direct answer\n处理结论：若安装过程提示 UserSvr 服务启动失败，可在安装完成后手动启动该服务；必要时在 Common 目录执行注册/反注册脚本。\n\n步骤\n\n1. 安装完成后尝试手动启动 UserSvr 服务。\n2. 在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。\n3. 若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。\n\n注意\n\n- 路径与脚本名需完整一致；避免将 `.bat` 截断或改名后执行。\n\nKey supporting points\n1. 同理，若安装过程中提示删除 UserSvr 服务失败，请安装完成后在安装目录 \\HOLLiAS_MACS\\Common 下运行 UserUnReg.bat 文件。 [HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf | p.111-112 | para 969-971]\n2. 示UserSvr服务未启动 解决方法： 单击提示框的确定按钮，然后再次重启计算机。 [HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf | p.111-112 | para 969-971]\n3. 解决方法： 安装完成后手动启动 UserSvr 服务，启动方法为：在安装目录 \\HOLLiAS_MACS\\Common 下运行 UserReg.bat 文件。 [HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf | p.111-112 | para 969-971]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "direct_answer": "处理结论：若安装过程提示 UserSvr 服务启动失败，可在安装完成后手动启动该服务；必要时在 Common 目录执行注册/反注册脚本。\n\n步骤\n\n1. 安装完成后尝试手动启动 UserSvr 服务。\n2. 在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。\n3. 若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。\n\n注意\n\n- 路径与脚本名需完整一致；避免将 `.bat` 截断或改名后执行。",
+      "model_citations": [
+        {
+          "chunkId": "b05f3059a880c31a",
+          "fileName": "HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf",
+          "snippet": "同理，若安装过程中提示删除 UserSvr 服务失败，请安装完成后在安装目录 \\HOLLiAS_MACS\\Common 下运行 UserUnReg."
+        },
+        {
+          "chunkId": "cc0a1b17f087a924",
+          "fileName": "HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf",
+          "snippet": "同理，若安装过程中提示删除 UserSvr 服务失败，请安装完成后在安装目录 \\HOLLiAS_MACS\\Common 下运行 UserUnReg."
+        }
+      ],
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "UserSvr",
+        "UserReg",
+        "UserUnReg"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "benchmark12 规则抽检 id=Q11",
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "安装过程中提示 UserSvr 服务启动失败，应如何处理？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 24,
+        "candidateChunkCount": 844,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "cc0a1b17f087a924",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf",
+            "score": 47.40954788679891,
+            "lexicalScore": 102.62892748551101,
+            "semanticScore": 3.257057130431247,
+            "rerankScore": 6.712321056593631,
+            "qualityScore": 1.3500000000000003,
+            "sectionTitle": "6.2 Q：安装过程中提示UserSvr服务启动失败"
+          },
+          {
+            "chunkId": "b05f3059a880c31a",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf",
+            "score": 44.37840275234452,
+            "lexicalScore": 95.34324100234635,
+            "semanticScore": 3.3500996738982467,
+            "rerankScore": 6.712321056593631,
+            "qualityScore": 1.3500000000000003,
+            "sectionTitle": "第6章 常见问题"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "b05f3059a880c31a",
+          "cc0a1b17f087a924"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "安装过程中提示",
+          "usersvr",
+          "服务启动失败",
+          "应如何处理",
+          "安装",
+          "装过",
+          "过程",
+          "程中",
+          "中提",
+          "提示",
+          "安装过",
+          "装过程",
+          "过程中",
+          "程中提",
+          "中提示",
+          "服务",
+          "务启",
+          "启动",
+          "动失",
+          "失败",
+          "服务启",
+          "务启动",
+          "启动失",
+          "动失败",
+          "应如",
+          "何处",
+          "处理",
+          "应如何",
+          "如何处",
+          "何处理",
+          "示u",
+          "r服",
+          "败应",
+          "失败应",
+          "败应如",
+          "步骤",
+          "配置",
+          "连接",
+          "设置",
+          "流程",
+          "首先",
+          "然后",
+          "最后",
+          "依次"
+        ],
+        "expandedTokens": [
+          "步骤",
+          "配置",
+          "连接",
+          "设置",
+          "流程",
+          "步骤",
+          "首先",
+          "然后",
+          "最后",
+          "依次"
+        ],
+        "intentPrimary": "troubleshooting",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "cautious_shell": false
+    },
+    {
+      "source_question_id": "Q8",
+      "question": "什么是参数对齐？",
+      "citation_file_names": [],
+      "top_retrieval_hint": [
+        "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf / 0.00 否 否 否 否 请赋值为“副调点名.OVE”",
+        "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf / 6.2.6.2 引脚"
+      ],
+      "model_answer": "I could not find grounded evidence for that question in the current library. Try importing more files or rephrasing the question.",
+      "direct_answer": "I could not find grounded evidence for that question in the current library. Try importing more files or rephrasing the question.",
+      "model_citations": [],
+      "verdict": "fail",
+      "score": 0,
+      "matched_gold_points": [],
+      "missed_gold_points": [
+        "定义",
+        "TRUE",
+        "FALSE"
+      ],
+      "fail_modes": [],
+      "notes": "benchmark12 规则抽检 id=Q8",
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "什么是参数对齐？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 24,
+        "candidateChunkCount": 324,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "abc431fc7717c9c7",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
+            "score": 4.692672267323518,
+            "lexicalScore": 11.270641053316668,
+            "semanticScore": 1.4438903880822196,
+            "rerankScore": 0.964,
+            "qualityScore": -0.5673267326732672,
+            "sectionTitle": "0.00 否 否 否 否 请赋值为“副调点名.OVE”"
+          },
+          {
+            "chunkId": "7a4f31ff3927e655",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
+            "score": 4.476966921350755,
+            "lexicalScore": 11.270641053316668,
+            "semanticScore": 1.2524281505623862,
+            "rerankScore": 3.088253324883456,
+            "qualityScore": -1.070300751879699,
+            "sectionTitle": "6.2.6.2 引脚"
+          },
+          {
+            "chunkId": "3afe3ba17e4e068d",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册6_现场操作.pdf",
+            "score": 4.428944370442583,
+            "lexicalScore": 7.093489596797497,
+            "semanticScore": 1.2018015685961707,
+            "rerankScore": 2.417068833823273,
+            "qualityScore": 1.6,
+            "sectionTitle": "3.20 翻页"
+          },
+          {
+            "chunkId": "13683d54c2981878",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册6_现场操作.pdf",
+            "score": 4.379096207354994,
+            "lexicalScore": 7.093489596797497,
+            "semanticScore": 1.041001042507178,
+            "rerankScore": 2.417068833823273,
+            "qualityScore": 1.6,
+            "sectionTitle": "3.20 翻页"
+          },
+          {
+            "chunkId": "e0e01ebe7e9d760d",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册4_算法组态.pdf",
+            "score": 3.7845462635439002,
+            "lexicalScore": 4.902663921581148,
+            "semanticScore": 1.671135829718945,
+            "rerankScore": 3.3404133298899166,
+            "qualityScore": 1.388029197080292,
+            "sectionTitle": "16.9 全局变量用“详细”命令打开的参数面板中，设置为"
+          },
+          {
+            "chunkId": "6b522a690613d897",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册4_算法组态.pdf",
+            "score": 3.507641996173935,
+            "lexicalScore": 4.902663921581148,
+            "semanticScore": 1.1517255596559444,
+            "rerankScore": 2.7178807996938428,
+            "qualityScore": 1.4500000000000002,
+            "sectionTitle": "10.5 人机交互界面"
+          }
+        ],
+        "answerCitationChunkIds": [],
+        "answerFlags": {
+          "refusal": true,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "什么是参数对齐",
+          "么是",
+          "是参",
+          "参数",
+          "数对",
+          "对齐",
+          "什么是",
+          "么是参",
+          "是参数",
+          "参数对",
+          "数对齐"
+        ],
+        "expandedTokens": [],
+        "intentPrimary": "explanatory",
+        "intentWantsSteps": false,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "cautious_shell": false
+    },
+    {
+      "source_question_id": "Q10",
+      "question": "分组功能适用范围是什么？真实控制器支持吗？",
+      "citation_file_names": [
+        "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf"
+      ],
+      "top_retrieval_hint": [
+        "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf / 10.3 查找",
+        "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf / 第11章 分组功能"
+      ],
+      "model_answer": "Direct answer\n这个问题更适合参考“10.3 查找”整节，而不只是其中某一个子步骤。分组功能可实现将同一局域网中的计算机分成不同的组，不同组之间的操作相互独立、互不影响。 可重点按这些子步骤查看：第11章 分组功能。 相关内容更新于 2026/4/11。\n\nKey supporting points\n1. 提示：  真实控制器不支持该功能，只有 HiaSimuRTS 支持。 [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.212-213 | para 2409-2418]\n2. 设置时需保证组号设置后工程师站、操作站、历史站的 IP 地 址与计算机的 IP 地址一致，否则无法通信。 [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.212-213 | para 2409-2418]\n3.  设置时需保证以下所有的组态均一致，才可正常通信。 [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.212-213 | para 2409-2418]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "direct_answer": "这个问题更适合参考“10.3 查找”整节，而不只是其中某一个子步骤。分组功能可实现将同一局域网中的计算机分成不同的组，不同组之间的操作相互独立、互不影响。 可重点按这些子步骤查看：第11章 分组功能。 相关内容更新于 2026/4/11。",
+      "model_citations": [
+        {
+          "chunkId": "74353d2a5c35c06c",
+          "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
+          "snippet": "分组功能可实现将同一局域网中的计算机分成不同的组，不同组之间的操作相互独立、互不影响。"
+        },
+        {
+          "chunkId": "395d9c22e4a8883e",
+          "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
+          "snippet": "提示：  真实控制器不支持该功能，只有 HiaSimuRTS 支持。"
+        }
+      ],
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "HiaSimuRTS",
+        "真实控制器"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "benchmark12 规则抽检 id=Q10",
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "分组功能适用范围是什么？真实控制器支持吗？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 24,
+        "candidateChunkCount": 2549,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "74353d2a5c35c06c",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
+            "score": 25.73423506235884,
+            "lexicalScore": 58.08882731932645,
+            "semanticScore": 1.1667654839610333,
+            "rerankScore": 2.7941723749451053,
+            "qualityScore": 1.0595890410958906,
+            "sectionTitle": "10.3 查找"
+          },
+          {
+            "chunkId": "395d9c22e4a8883e",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
+            "score": 24.69944784836893,
+            "lexicalScore": 55.85849774345417,
+            "semanticScore": 1.9225119931689731,
+            "rerankScore": 1.4667919511685226,
+            "qualityScore": 0.9410404624277457,
+            "sectionTitle": "第11章 分组功能"
+          },
+          {
+            "chunkId": "51cc6c4e511ee353",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
+            "score": 14.607964881596333,
+            "lexicalScore": 34.19262289241624,
+            "semanticScore": 0.8657674621446116,
+            "rerankScore": 2.1532445451067224,
+            "qualityScore": -0.40111420612813353,
+            "sectionTitle": "3.8.3.2 引脚"
+          },
+          {
+            "chunkId": "37967fce3c866921",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
+            "score": 14.163591178678965,
+            "lexicalScore": 33.73262289241624,
+            "semanticScore": 0.902475499597289,
+            "rerankScore": 1.5207445451067223,
+            "qualityScore": -0.5006329113924048,
+            "sectionTitle": "3.8.3 SIZEOF（字节长度）"
+          },
+          {
+            "chunkId": "da8b6d26b835a4a7",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册6_现场操作.pdf",
+            "score": 13.235485755573594,
+            "lexicalScore": 27.87981466237332,
+            "semanticScore": 1.284139788903428,
+            "rerankScore": 2.8806306977740617,
+            "qualityScore": 1.4500000000000002,
+            "sectionTitle": "3.9.6.3 解除报警隐藏"
+          },
+          {
+            "chunkId": "332f24abd61612f6",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册4_算法组态.pdf",
+            "score": 13.06419788407891,
+            "lexicalScore": 29.704479332806706,
+            "semanticScore": 0.833856384452275,
+            "rerankScore": 0.6174783039102458,
+            "qualityScore": 0.5691536050156742,
+            "sectionTitle": "4.1.1.1 主机柜"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "74353d2a5c35c06c",
+          "395d9c22e4a8883e"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "分组功能适用范围是什么",
+          "真实控制器支持吗",
+          "分组",
+          "组功",
+          "功能",
+          "能适",
+          "适用",
+          "用范",
+          "范围",
+          "围是",
+          "是什",
+          "分组功",
+          "组功能",
+          "功能适",
+          "能适用",
+          "适用范",
+          "用范围",
+          "范围是",
+          "围是什",
+          "是什么",
+          "真实",
+          "实控",
+          "控制",
+          "制器",
+          "器支",
+          "支持",
+          "持吗",
+          "真实控",
+          "实控制",
+          "控制器",
+          "制器支",
+          "器支持",
+          "支持吗",
+          "么真",
+          "什么真",
+          "么真实"
+        ],
+        "expandedTokens": [],
+        "intentPrimary": "explanatory",
+        "intentWantsSteps": false,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "cautious_shell": false
+    }
+  ]
+}

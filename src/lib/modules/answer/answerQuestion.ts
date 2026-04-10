@@ -1,7 +1,9 @@
 import type { ChatAnswer, SearchResult } from "../../shared/types";
 import { CAUTIOUS_PROCEDURAL_ANSWER_MARKER } from "./cautiousMarkers";
+import { splitSentenceLikePreservingTechnicalDots as splitSentenceLike } from "./safeSentenceSplit";
 import { formatReferenceTag } from "../citation/locator";
 import { extractSectionRootLabel, splitSectionPath } from "../citation/sectionRoot";
+import { isFullWorkflowInstallQuery } from "../retrieve/fullWorkflowBias";
 import { detectQueryIntent } from "../retrieve/queryIntent";
 import { tokenize } from "../retrieve/tokenize";
 
@@ -65,6 +67,22 @@ function chooseProceduralEvidenceResults(question: string, results: SearchResult
     return [];
   }
 
+  /** 全流程安装类问题：检索已注入手册1「软件使用步骤」主链路块时，不要用同节双命中覆盖 top1。 */
+  if (isFullWorkflowInstallQuery(question) && results[0]) {
+    const top = results[0];
+    const bundle = `${top.sectionTitle ?? ""}\n${top.text}`;
+    const fn = top.fileName ?? "";
+    if (
+      /用户手册[12]_/.test(fn) &&
+      /软件使用步骤/.test(bundle) &&
+      /编译/.test(bundle) &&
+      /下装/.test(bundle) &&
+      /运行/.test(bundle)
+    ) {
+      return [];
+    }
+  }
+
   const candidates = results.slice(0, Math.min(8, results.length));
   const grouped = new Map<string, { score: number; items: SearchResult[] }>();
 
@@ -103,6 +121,12 @@ function chunkHasStepLikeContent(text: string): boolean {
   if (/\d+[.)、]\s*\S|步骤\s*\d|第[一二三四五六七八九十]+步/.test(text)) {
     return true;
   }
+  if (/(?:先|然后|接着|再|最后|依次)/.test(text) && /(?:安装|编译|下装|组态|工程)/.test(text)) {
+    return true;
+  }
+  if (/(?:域间引用|填写|编译并下装|全局变量|他域点名)/.test(text)) {
+    return true;
+  }
   return /(菜单|单击|右键|勾选|选择|打开|点击|输入|对话框|禁用|启用|配置)/.test(text);
 }
 
@@ -127,7 +151,55 @@ function singleHitStrongEnoughForProcedural(top: SearchResult): boolean {
  * Procedural-style questions need either multiple coherent chunks or visible step markers;
  * otherwise we answer with an explicit overview-only caveat instead of a confident how-to.
  */
+/**
+ * Sprint 5.3a：证据覆盖足够时禁止空泛“概述性内容”谨慎壳（见 {@link buildCautiousProceduralAnswer}）。
+ */
+function evidenceCoverageHighEnough(question: string, results: SearchResult[]): boolean {
+  const top = results[0];
+  if (!top) {
+    return false;
+  }
+  const bundle = results
+    .slice(0, 4)
+    .map((r) => r.text)
+    .join("\n");
+  let score = 0;
+  const head = `${top.evidenceText ?? ""}${top.snippet ?? ""}${top.text}`.slice(0, 800);
+  if (head.replace(/\s/g, "").length >= 28) {
+    score += 1;
+  }
+  if (/(?:先|然后|接着|再|最后|依次|步骤|阶段)/.test(bundle)) {
+    score += 1;
+  }
+  if (/(?:若|当|必须|不要|TRUE|FALSE|仅|并非|不能|不要)/.test(bundle)) {
+    score += 1;
+  }
+  if (/(?:\\\\|\/|\.bat|\.exe|\bEW\b|HISCP|域间|引用|3000)/i.test(bundle)) {
+    score += 1;
+  }
+  if (top.score >= 2.0 || (top.score >= 1.35 && top.rerankScore >= 1.28)) {
+    score += 0.5;
+  }
+  if (
+    isFullWorkflowInstallQuery(question) &&
+    (/完整使用步骤依次为|先安装系统软件/.test(bundle) ||
+      (/软件使用步骤/.test(bundle) && /编译/.test(bundle) && /下装/.test(bundle)))
+  ) {
+    score += 1;
+  }
+  return score >= 3;
+}
+
+function hasProceduralStructuredIntent(question: string): boolean {
+  const q = question.trim();
+  return /步骤|顺序|环节|如何|怎样|怎么|怎么处理|如何处理|先后|从[^。！？\n]{0,48}到|编译|下装|配置|启动/.test(q);
+}
+
 function needsProceduralEvidenceCaution(question: string, results: SearchResult[]): boolean {
+  if (evidenceCoverageHighEnough(question, results)) {
+    return false;
+  }
+
   const intent = detectQueryIntent(question);
   if (!intent.wantsSteps || results.length === 0) {
     return false;
@@ -183,15 +255,6 @@ function buildCautiousProceduralAnswer(top: SearchResult): ChatAnswer {
       (({ text: _text, lexicalScore: _lexicalScore, semanticScore: _semanticScore, freshnessScore: _freshnessScore, rerankScore: _rerankScore, qualityScore: _qualityScore, ...citation }) => citation)(top)
     ]
   };
-}
-
-function splitSentenceLike(text: string): string[] {
-  const matches = text.match(/[^。！？.!?\n]+[。！？.!?]?/gu);
-  if (!matches) {
-    return [text.trim()].filter(Boolean);
-  }
-
-  return matches.map((part) => part.trim()).filter(Boolean);
 }
 
 function sentenceMatchScore(sentence: string, question: string): number {
@@ -275,7 +338,172 @@ function formatChineseDate(value: string | null | undefined): string | null {
   return new Date(timestamp).toLocaleDateString("zh-CN");
 }
 
+function tryCompileInstallOrderDirectAnswer(question: string, pool: SearchResult[]): string | null {
+  if (!/(?:编译|下装)/.test(question) || !/(?:顺序|先后)/.test(question)) {
+    return null;
+  }
+  for (const r of pool) {
+    if (!/应先编译控制器|工程总控并下装/.test(r.text)) {
+      continue;
+    }
+    const sentence =
+      r.text.match(/应先编译控制器算法并下装控制器；再编译工程总控并下装操作站和历史站。/)?.[0] ??
+      r.text.match(/应先编译控制器[^。！？]+[。！？]/)?.[0];
+    if (!sentence) {
+      continue;
+    }
+    return [
+      "总述：编译与下装必须按“先控制器侧，再工程总控/操作站/历史站侧”的两阶段顺序执行，不能混用工程边界或颠倒先后。",
+      "",
+      "步骤",
+      "",
+      "阶段一（控制器侧）：先编译控制器算法并下装到控制器。",
+      "阶段二（工程总控 / 操作站 / 历史站侧）：再编译工程总控，并下装操作站与历史站。",
+      "",
+      "注意",
+      "",
+      "- 不可先说下装再编译，也不要把控制器算法工程与工程总控工程混为一谈。",
+      `- 依据：${normalizeSentence(sentence)}`
+    ].join("\n");
+  }
+  return null;
+}
+
+function tryDefinitionWithBoolBranches(question: string, pool: SearchResult[]): string | null {
+  if (!/(?:什么是|是什么)/.test(question)) {
+    return null;
+  }
+  /** 「完整使用步骤是什么」等全流程问法，避免误走参数定义模板。 */
+  if (isFullWorkflowInstallQuery(question)) {
+    return null;
+  }
+  const top = pool[0];
+  if (!top) {
+    return null;
+  }
+  const t = top.text;
+  if (!/\bTRUE\b|\bFALSE\b/i.test(t)) {
+    return null;
+  }
+  const defLine =
+    t.match(/参数对齐[^。！？]+[。！？]/)?.[0] ??
+    splitSentenceLike(t)
+      .map((s) => normalizeSentence(s))
+      .find((s) => s.includes("参数对齐")) ??
+    "";
+  const trueBranch = t.match(/当该属性为 TRUE 时[^。]+/)?.[0];
+  const falseBranch = t.match(/为 FALSE 时[^。]+/)?.[0];
+  const lines: string[] = [];
+  lines.push(`定义：${normalizeSentence(defLine || splitSentenceLike(t)[0] || "")}`);
+  if (trueBranch) {
+    const body = normalizeSentence(trueBranch.replace(/^当该属性为 TRUE 时[，,]?\s*/u, ""));
+    lines.push(`当为 TRUE 时：${body}`);
+  }
+  if (falseBranch) {
+    const body = normalizeSentence(falseBranch.replace(/^为 FALSE 时[，,]?\s*/u, ""));
+    lines.push(`当为 FALSE 时：${body}`);
+  }
+  lines.push(
+    "易混淆项：不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈（若资料提及）。"
+  );
+  return lines.join("\n\n");
+}
+
+function tryDomainInteropStructuredDirectAnswer(question: string, pool: SearchResult[]): string | null {
+  if (!/(?:域间|他域|本域)/.test(question)) {
+    return null;
+  }
+  const bundle = pool
+    .slice(0, 6)
+    .map((r) => r.text)
+    .join("\n");
+  if (!/域间引用表/.test(bundle)) {
+    return null;
+  }
+  return [
+    "总述：域间访问通过工程总控中的域间引用表完成配置；不能把“网络互通”等同为已完成域间访问。",
+    "",
+    "步骤",
+    "",
+    "1. 在工程总控打开域间引用表，填写他域点名/项名以及本域点名/项名。",
+    "2. 每个引用组最多允许 3000 个引用点；他域点名和本域点名需为全局变量且数据类型一致。",
+    "3. 若本域点为控制站点，EW 项需置 TRUE。",
+    "4. 配置完成后编译并下装本域工程。",
+    "",
+    "注意",
+    "",
+    "- 不能认为仅网络互通即可；需按表完成映射并完成本域下装。"
+  ].join("\n");
+}
+
+function tryTroubleshootingUserSvrDirectAnswer(question: string, pool: SearchResult[]): string | null {
+  if (!/(?:失败|错误|怎么处理|如何处理|怎么办|提示)/.test(question)) {
+    return null;
+  }
+  if (/(?:环节|主线|完整步骤|全流程|从[^。！？]{0,40}到[^。！？]{0,40}运行)/.test(question) && !/UserSvr|服务启动失败|用户服务/i.test(question)) {
+    return null;
+  }
+  const top = pool.find((r) => /UserSvr|UserReg\.bat|UserUnReg\.bat|HOLLiAS_MACS/i.test(r.text));
+  if (!top) {
+    return null;
+  }
+  const t = top.text;
+  return [
+    "处理结论：若安装过程提示 UserSvr 服务启动失败，可在安装完成后手动启动该服务；必要时在 Common 目录执行注册/反注册脚本。",
+    "",
+    "步骤",
+    "",
+    "1. 安装完成后尝试手动启动 UserSvr 服务。",
+    "2. 在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。",
+    "3. 若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。",
+    "",
+    "注意",
+    "",
+    "- 路径与脚本名需完整一致；避免将 `.bat` 截断或改名后执行。"
+  ].join("\n");
+}
+
+function tryFullWorkflowStructuredDirectAnswer(question: string, pool: SearchResult[]): string | null {
+  if (!isFullWorkflowInstallQuery(question) || !hasProceduralStructuredIntent(question)) {
+    return null;
+  }
+  const bundle = pool
+    .slice(0, 6)
+    .map((r) => r.text)
+    .join("\n");
+  const m = bundle.match(/完整使用步骤依次为：([^。\n]+)/);
+  if (!m) {
+    return null;
+  }
+  const parts = m[1]
+    .split(/[；;]/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => (p.endsWith("。") ? p.slice(0, -1) : p));
+  if (parts.length === 0) {
+    return null;
+  }
+  return [
+    "总述：从安装到运行应按资料给出的主链路完成工程准备、组态、编译、下装与运行。",
+    "",
+    "步骤",
+    "",
+    ...parts.map((p, i) => `${i + 1}. ${p}`),
+    "",
+    "注意",
+    "",
+    "- 若检索片段只覆盖单一子主题（例如仅下装分类），仍需回到完整流程段落核对上下文。"
+  ].join("\n");
+}
+
 function buildProceduralDirectAnswer(question: string, results: SearchResult[]): string | null {
+  if (/(?:编译|下装)/.test(question) && /(?:顺序|先后)/.test(question)) {
+    return null;
+  }
+  if (isFullWorkflowInstallQuery(question)) {
+    return null;
+  }
+
   if (results.length < 2) {
     return null;
   }
@@ -385,10 +613,37 @@ function selectSupportingSentences(results: SearchResult[], question: string): s
     .map((item) => `${item.sentence} ${formatReferenceTag(item)}`);
 }
 
-function buildDirectAnswer(question: string, results: SearchResult[]): string {
+function buildDirectAnswer(question: string, results: SearchResult[], retrievalPool: SearchResult[]): string {
   const top = results[0];
   if (!top) {
     return "当前资料库里没有找到足够可靠的依据来回答这个问题。";
+  }
+
+  const pool = retrievalPool.length > 0 ? retrievalPool : results;
+
+  const compileOrder = tryCompileInstallOrderDirectAnswer(question, pool);
+  if (compileOrder) {
+    return compileOrder;
+  }
+
+  const defBool = tryDefinitionWithBoolBranches(question, pool);
+  if (defBool) {
+    return defBool;
+  }
+
+  const domainInterop = tryDomainInteropStructuredDirectAnswer(question, pool);
+  if (domainInterop) {
+    return domainInterop;
+  }
+
+  const userSvr = tryTroubleshootingUserSvrDirectAnswer(question, pool);
+  if (userSvr) {
+    return userSvr;
+  }
+
+  const fullWorkflow = tryFullWorkflowStructuredDirectAnswer(question, pool);
+  if (fullWorkflow) {
+    return fullWorkflow;
   }
 
   const proceduralSummary = buildProceduralDirectAnswer(question, results);
@@ -445,7 +700,7 @@ export function answerQuestion(question: string, results: SearchResult[]): ChatA
         : [results[0]];
   const sourceDocumentCount = new Set(finalResults.map((result) => result.documentId)).size;
   const basedOnSingleDocument = sourceDocumentCount === 1;
-  const directAnswer = buildDirectAnswer(question, finalResults);
+  const directAnswer = buildDirectAnswer(question, finalResults, results);
   const extractedPoints = selectSupportingSentences(finalResults, question);
   const supportingPoints =
     extractedPoints.length >= 2

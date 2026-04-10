@@ -1,0 +1,2122 @@
+{
+  "generated_at": "2026-04-10T16:25:15.947Z",
+  "corpus": "docs/evals/fixtures/sprint-5.3-synthetic-corpus.md",
+  "retrieval": "full_5.3a",
+  "results": [
+    {
+      "source_question_id": "Q1",
+      "paraphrase_id": "Q1-p1",
+      "question": "HOLLiAS MACS V6.5 从装好软件到系统最终跑起来，主线要按什么顺序做？",
+      "direct_answer": "这个问题更适合参考“Sprint 5.3 合成语料（评测专用，非厂商原文） > Q1 安装到运行（HOLLiAS MACS V6.5）”整节，而不只是其中某一个子步骤。完整使用步骤依次为：先安装系统软件；然后创建工程并完成工程组态；接着进行算法组态、图形组态、报表组态、操作组态；之后编译工程；再执行下装；最后运行系统。 可重点按这些子步骤查看：Sprint 5.3 合成语料（评测专用，非厂商原文）；Q1 安装到运行（HOLLiAS MACS V6.5）。 相关内容更新于 2026/4/11。",
+      "model_answer": "Direct answer\n这个问题更适合参考“Sprint 5.3 合成语料（评测专用，非厂商原文） > Q1 安装到运行（HOLLiAS MACS V6.5）”整节，而不只是其中某一个子步骤。完整使用步骤依次为：先安装系统软件；然后创建工程并完成工程组态；接着进行算法组态、图形组态、报表组态、操作组态；之后编译工程；再执行下装；最后运行系统。 可重点按这些子步骤查看：Sprint 5.3 合成语料（评测专用，非厂商原文）；Q1 安装到运行（HOLLiAS MACS V6.5）。 相关内容更新于 2026/4/11。\n\nKey supporting points\n1. 完整使用步骤依次为：先安装系统软件；然后创建工程并完成工程组态；接着进行算法组态、图形组态、报表组态、操作组态；之后编译工程；再执行下装；最后运行系统。 [sprint-5.3-synthetic-corpus.md | para 2]\n2. 本文件仅为本地 RAG 回归评测构造的可检索文本，**不**声称与真实《软件安装手册》《快速入门》等逐字一致。 [sprint-5.3-synthetic-corpus.md | para 1-2]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "359cebb1a2be09ea",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "完整使用步骤依次为：先安装系统软件；然后创建工程并完成工程组态；接着进行算法组态、图形组态、报表组态、操作组态；之后编译工程；再执行下装；最后运行系统。"
+        },
+        {
+          "chunkId": "7035af8162756d11",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "完整使用步骤依次为：先安装系统软件；然后创建工程并完成工程组态；接着进行算法组态、图形组态、报表组态、操作组态；之后编译工程；再执行下装；最后运行系统。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "HOLLiAS MACS V6.5 从装好软件到系统最终跑起来，主线要按什么顺序做？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "359cebb1a2be09ea",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 7.82398970967854,
+            "lexicalScore": 14.16268624952399,
+            "semanticScore": 2.826690730283544,
+            "rerankScore": 1.9926698113207544,
+            "qualityScore": 1.6499999999999997,
+            "sectionTitle": "Q1 安装到运行（HOLLiAS MACS V6.5）"
+          },
+          {
+            "chunkId": "7035af8162756d11",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 7.573082471471965,
+            "lexicalScore": 14.16268624952399,
+            "semanticScore": 2.070110809251262,
+            "rerankScore": 1.9860877217685158,
+            "qualityScore": 1.606119402985075,
+            "sectionTitle": "Sprint 5.3 合成语料（评测专用，非厂商原文）"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "359cebb1a2be09ea",
+          "7035af8162756d11"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "hollias",
+          "macs",
+          "v6",
+          "5",
+          "从装好软件到系统最终跑起来",
+          "主线要按什么顺序做",
+          "从装",
+          "装好",
+          "好软",
+          "软件",
+          "件到",
+          "到系",
+          "系统",
+          "统最",
+          "最终",
+          "终跑",
+          "跑起",
+          "起来",
+          "从装好",
+          "装好软",
+          "好软件",
+          "软件到",
+          "件到系",
+          "到系统",
+          "系统最",
+          "统最终",
+          "最终跑",
+          "终跑起",
+          "跑起来",
+          "主线",
+          "线要",
+          "要按",
+          "按什",
+          "么顺",
+          "顺序",
+          "序做",
+          "主线要",
+          "线要按",
+          "要按什",
+          "按什么",
+          "什么顺",
+          "么顺序",
+          "顺序做",
+          "5从",
+          "来主",
+          "起来主",
+          "来主线",
+          "流程",
+          "步骤",
+          "首先",
+          "然后",
+          "最后",
+          "依次"
+        ],
+        "expandedTokens": [
+          "流程",
+          "步骤",
+          "首先",
+          "然后",
+          "最后",
+          "依次"
+        ],
+        "intentPrimary": "general",
+        "intentWantsSteps": false,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "含安装/软件步骤",
+        "含组态/工程",
+        "含编译",
+        "含下装",
+        "含运行"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=5 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q1",
+      "paraphrase_id": "Q1-p2",
+      "question": "MACS 这套从装机到能正常投运，一般需要哪些大步骤？",
+      "direct_answer": "这个问题更适合参考“Sprint 5.3 合成语料（评测专用，非厂商原文） > Q1 安装到运行（HOLLiAS MACS V6.5）”整节，而不只是其中某一个子步骤。完整使用步骤依次为：先安装系统软件；然后创建工程并完成工程组态；接着进行算法组态、图形组态、报表组态、操作组态；之后编译工程；再执行下装；最后运行系统。 可重点按这些子步骤查看：Sprint 5.3 合成语料（评测专用，非厂商原文）；Q1 安装到运行（HOLLiAS MACS V6.5）。 相关内容更新于 2026/4/11。",
+      "model_answer": "Direct answer\n这个问题更适合参考“Sprint 5.3 合成语料（评测专用，非厂商原文） > Q1 安装到运行（HOLLiAS MACS V6.5）”整节，而不只是其中某一个子步骤。完整使用步骤依次为：先安装系统软件；然后创建工程并完成工程组态；接着进行算法组态、图形组态、报表组态、操作组态；之后编译工程；再执行下装；最后运行系统。 可重点按这些子步骤查看：Sprint 5.3 合成语料（评测专用，非厂商原文）；Q1 安装到运行（HOLLiAS MACS V6.5）。 相关内容更新于 2026/4/11。\n\nKey supporting points\n1. 完整使用步骤依次为：先安装系统软件；然后创建工程并完成工程组态；接着进行算法组态、图形组态、报表组态、操作组态；之后编译工程；再执行下装；最后运行系统。 [sprint-5.3-synthetic-corpus.md | para 2]\n2. 本文件仅为本地 RAG 回归评测构造的可检索文本，**不**声称与真实《软件安装手册》《快速入门》等逐字一致。 [sprint-5.3-synthetic-corpus.md | para 1-2]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "7035af8162756d11",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "完整使用步骤依次为：先安装系统软件；然后创建工程并完成工程组态；接着进行算法组态、图形组态、报表组态、操作组态；之后编译工程；再执行下装；最后运行系统。"
+        },
+        {
+          "chunkId": "359cebb1a2be09ea",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "完整使用步骤依次为：先安装系统软件；然后创建工程并完成工程组态；接着进行算法组态、图形组态、报表组态、操作组态；之后编译工程；再执行下装；最后运行系统。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "MACS 这套从装机到能正常投运，一般需要哪些大步骤？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "359cebb1a2be09ea",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 5.2315858139877545,
+            "lexicalScore": 8.02884828365134,
+            "semanticScore": 1.7964591481516248,
+            "rerankScore": 2.8739782608695656,
+            "qualityScore": 1.6499999999999997,
+            "sectionTitle": "Q1 安装到运行（HOLLiAS MACS V6.5）"
+          },
+          {
+            "chunkId": "7035af8162756d11",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 5.214158340467275,
+            "lexicalScore": 8.02884828365134,
+            "semanticScore": 1.793039758364812,
+            "rerankScore": 2.867396171317327,
+            "qualityScore": 1.606119402985075,
+            "sectionTitle": "Sprint 5.3 合成语料（评测专用，非厂商原文）"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "7035af8162756d11",
+          "359cebb1a2be09ea"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "macs",
+          "这套从装机到能正常投运",
+          "一般需要哪些大步骤",
+          "这套",
+          "套从",
+          "从装",
+          "装机",
+          "机到",
+          "到能",
+          "能正",
+          "正常",
+          "常投",
+          "投运",
+          "这套从",
+          "套从装",
+          "从装机",
+          "装机到",
+          "机到能",
+          "到能正",
+          "能正常",
+          "正常投",
+          "常投运",
+          "一般",
+          "般需",
+          "需要",
+          "要哪",
+          "哪些",
+          "些大",
+          "大步",
+          "步骤",
+          "一般需",
+          "般需要",
+          "需要哪",
+          "要哪些",
+          "哪些大",
+          "些大步",
+          "大步骤",
+          "s这",
+          "运一",
+          "投运一",
+          "运一般",
+          "流程",
+          "首先",
+          "然后",
+          "最后",
+          "依次"
+        ],
+        "expandedTokens": [
+          "流程",
+          "步骤",
+          "首先",
+          "然后",
+          "最后",
+          "依次"
+        ],
+        "intentPrimary": "procedural",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "含安装/软件步骤",
+        "含组态/工程",
+        "含编译",
+        "含下装",
+        "含运行"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=5 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q1",
+      "paraphrase_id": "Q1-p3",
+      "question": "V6.5 下安装完成后，到可以运行之前要依次完成哪些环节？",
+      "direct_answer": "总述：从安装到运行应按资料给出的主链路完成工程准备、组态、编译、下装与运行。\n\n步骤\n\n1. 先安装系统软件\n2. 然后创建工程并完成工程组态\n3. 接着进行算法组态、图形组态、报表组态、操作组态\n4. 之后编译工程\n5. 再执行下装\n6. 最后运行系统\n\n注意\n\n- 若检索片段只覆盖单一子主题（例如仅下装分类），仍需回到完整流程段落核对上下文。",
+      "model_answer": "Direct answer\n总述：从安装到运行应按资料给出的主链路完成工程准备、组态、编译、下装与运行。\n\n步骤\n\n1. 先安装系统软件\n2. 然后创建工程并完成工程组态\n3. 接着进行算法组态、图形组态、报表组态、操作组态\n4. 之后编译工程\n5. 再执行下装\n6. 最后运行系统\n\n注意\n\n- 若检索片段只覆盖单一子主题（例如仅下装分类），仍需回到完整流程段落核对上下文。\n\nKey supporting points\n1. 安装过程中若提示 UserSvr 服务启动失败，安装完成后可手动启动 UserSvr 服务。 [sprint-5.3-synthetic-corpus.md | para 12]\n2. 在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。 [sprint-5.3-synthetic-corpus.md | para 12]\n3. 若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。 [sprint-5.3-synthetic-corpus.md | para 12]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "910d8137e02fa392",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "安装过程中若提示 UserSvr 服务启动失败，安装完成后可手动启动 UserSvr 服务。在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "V6.5 下安装完成后，到可以运行之前要依次完成哪些环节？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "910d8137e02fa392",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 7.572063855369588,
+            "lexicalScore": 14.473194267106914,
+            "semanticScore": 1.1538077410874905,
+            "rerankScore": 3.7710993793071017,
+            "qualityScore": 0.9000000000000001,
+            "sectionTitle": "Q11 UserSvr 服务启动失败"
+          },
+          {
+            "chunkId": "7035af8162756d11",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 6.280625299682327,
+            "lexicalScore": 10.714508771908445,
+            "semanticScore": 2.221606916891551,
+            "rerankScore": 1.7263179104477615,
+            "qualityScore": 1.606119402985075,
+            "sectionTitle": "Sprint 5.3 合成语料（评测专用，非厂商原文）"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "910d8137e02fa392"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "v6",
+          "5",
+          "下安装完成后",
+          "到可以运行之前要依次完成哪些环节",
+          "下安",
+          "安装",
+          "装完",
+          "完成",
+          "成后",
+          "下安装",
+          "安装完",
+          "装完成",
+          "完成后",
+          "到可",
+          "可以",
+          "以运",
+          "运行",
+          "行之",
+          "之前",
+          "前要",
+          "要依",
+          "依次",
+          "次完",
+          "成哪",
+          "哪些",
+          "些环",
+          "环节",
+          "到可以",
+          "可以运",
+          "以运行",
+          "运行之",
+          "行之前",
+          "之前要",
+          "前要依",
+          "要依次",
+          "依次完",
+          "次完成",
+          "完成哪",
+          "成哪些",
+          "哪些环",
+          "些环节",
+          "5下",
+          "后到",
+          "成后到",
+          "后到可"
+        ],
+        "expandedTokens": [],
+        "intentPrimary": "procedural",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "含安装/软件步骤",
+        "含组态/工程",
+        "含编译",
+        "含下装",
+        "含运行"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=5 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q6",
+      "paraphrase_id": "Q6-p1",
+      "question": "控制器侧和工程总控侧的编译、下装应该按什么先后顺序执行？",
+      "direct_answer": "总述：编译与下装必须按“先控制器侧，再工程总控/操作站/历史站侧”的两阶段顺序执行，不能混用工程边界或颠倒先后。\n\n步骤\n\n阶段一（控制器侧）：先编译控制器算法并下装到控制器。\n阶段二（工程总控 / 操作站 / 历史站侧）：再编译工程总控，并下装操作站与历史站。\n\n注意\n\n- 不可先说下装再编译，也不要把控制器算法工程与工程总控工程混为一谈。\n- 依据：应先编译控制器算法并下装控制器；再编译工程总控并下装操作站和历史站。",
+      "model_answer": "Direct answer\n总述：编译与下装必须按“先控制器侧，再工程总控/操作站/历史站侧”的两阶段顺序执行，不能混用工程边界或颠倒先后。\n\n步骤\n\n阶段一（控制器侧）：先编译控制器算法并下装到控制器。\n阶段二（工程总控 / 操作站 / 历史站侧）：再编译工程总控，并下装操作站与历史站。\n\n注意\n\n- 不可先说下装再编译，也不要把控制器算法工程与工程总控工程混为一谈。\n- 依据：应先编译控制器算法并下装控制器；再编译工程总控并下装操作站和历史站。\n\nKey supporting points\n1. 应先编译控制器算法并下装控制器；再编译工程总控并下装操作站和历史站。 [sprint-5.3-synthetic-corpus.md | chunk 7]\n2. 不可先说下装再编译，也不应混淆控制器算法工程与工程总控工程。 [sprint-5.3-synthetic-corpus.md | chunk 7]\n3. 分组功能涉及计算机 IP、工程总控组号、HiaSimuRTS 组号、AT 配置、编译下装、操作员在线配置。 [sprint-5.3-synthetic-corpus.md | para 11]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "33f0ec2fba516bd3",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "应先编译控制器算法并下装控制器；再编译工程总控并下装操作站和历史站。不可先说下装再编译，也不应混淆控制器算法工程与工程总控工程。"
+        },
+        {
+          "chunkId": "625b64068b8df6c4",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "分组功能涉及计算机 IP、工程总控组号、HiaSimuRTS 组号、AT 配置、编译下装、操作员在线配置。**关键边界：真实控制器不支持分组功能，只有 HiaSimuRTS 支持。** 不要把分组功能与域间访问混为一谈。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "控制器侧和工程总控侧的编译、下装应该按什么先后顺序执行？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "33f0ec2fba516bd3",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 9.457942250642377,
+            "lexicalScore": 1.2,
+            "semanticScore": 1.1,
+            "rerankScore": 1.35,
+            "qualityScore": 1.1,
+            "sectionTitle": "Q6 编译与下装顺序"
+          },
+          {
+            "chunkId": "625b64068b8df6c4",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 8.307942250642377,
+            "lexicalScore": 16.79740059193932,
+            "semanticScore": 1.9688624925554004,
+            "rerankScore": 1.5303937697076846,
+            "qualityScore": 0.9000000000000001,
+            "sectionTitle": "Q10 分组功能适用范围"
+          },
+          {
+            "chunkId": "5795c0350fff3db8",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 8.120091506994896,
+            "lexicalScore": 15.839012121989445,
+            "semanticScore": 2.39182895812117,
+            "rerankScore": 0.8283610851898477,
+            "qualityScore": 1.6,
+            "sectionTitle": "Q7 何时需要编译工程总控"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "33f0ec2fba516bd3",
+          "625b64068b8df6c4"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "控制器侧和工程总控侧的编译",
+          "下装应该按什么先后顺序执行",
+          "控制",
+          "制器",
+          "器侧",
+          "侧和",
+          "和工",
+          "工程",
+          "程总",
+          "总控",
+          "控侧",
+          "侧的",
+          "的编",
+          "编译",
+          "控制器",
+          "制器侧",
+          "器侧和",
+          "侧和工",
+          "和工程",
+          "工程总",
+          "程总控",
+          "总控侧",
+          "控侧的",
+          "侧的编",
+          "的编译",
+          "下装",
+          "装应",
+          "应该",
+          "该按",
+          "按什",
+          "么先",
+          "先后",
+          "后顺",
+          "顺序",
+          "序执",
+          "执行",
+          "下装应",
+          "装应该",
+          "应该按",
+          "该按什",
+          "按什么",
+          "什么先",
+          "么先后",
+          "先后顺",
+          "后顺序",
+          "顺序执",
+          "序执行",
+          "译下",
+          "编译下",
+          "译下装",
+          "流程",
+          "步骤",
+          "首先",
+          "然后",
+          "最后",
+          "依次"
+        ],
+        "expandedTokens": [
+          "流程",
+          "步骤",
+          "首先",
+          "然后",
+          "最后",
+          "依次"
+        ],
+        "intentPrimary": "general",
+        "intentWantsSteps": false,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "区分控制器侧",
+        "含工程总控或操作站/历史站侧",
+        "顺序/阶段表述"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=3 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q6",
+      "paraphrase_id": "Q6-p2",
+      "question": "“先编译再下装”在 MACS 里具体怎么分阶段？会不会出现先下装再编译？",
+      "direct_answer": "应先编译控制器算法并下装控制器；再编译工程总控并下装操作站和历史站。不可先说下装再编译，也不应混淆控制器算法工程与工程总控工程。 主要依据《Sprint 5.3 合成语料（评测专用）》。 更新于 2026/4/11。",
+      "model_answer": "Direct answer\n应先编译控制器算法并下装控制器；再编译工程总控并下装操作站和历史站。不可先说下装再编译，也不应混淆控制器算法工程与工程总控工程。 主要依据《Sprint 5.3 合成语料（评测专用）》。 更新于 2026/4/11。\n\nKey supporting points\n1. 不可先说下装再编译，也不应混淆控制器算法工程与工程总控工程。 [sprint-5.3-synthetic-corpus.md | para 7]\n2. 应先编译控制器算法并下装控制器；再编译工程总控并下装操作站和历史站。 [sprint-5.3-synthetic-corpus.md | para 7]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "33f0ec2fba516bd3",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "应先编译控制器算法并下装控制器；再编译工程总控并下装操作站和历史站。不可先说下装再编译，也不应混淆控制器算法工程与工程总控工程。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "“先编译再下装”在 MACS 里具体怎么分阶段？会不会出现先下装再编译？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "33f0ec2fba516bd3",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 9.270695229773338,
+            "lexicalScore": 18.231048142753053,
+            "semanticScore": 1.8377409474703064,
+            "rerankScore": 2.2725241640966374,
+            "qualityScore": 1.6,
+            "sectionTitle": "Q6 编译与下装顺序"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "33f0ec2fba516bd3"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "先编译再下装",
+          "在",
+          "macs",
+          "里具体怎么分阶段",
+          "会不会出现先下装再编译",
+          "先编",
+          "编译",
+          "译再",
+          "再下",
+          "下装",
+          "先编译",
+          "编译再",
+          "译再下",
+          "再下装",
+          "里具",
+          "具体",
+          "体怎",
+          "么分",
+          "分阶",
+          "阶段",
+          "里具体",
+          "具体怎",
+          "体怎么",
+          "怎么分",
+          "么分阶",
+          "分阶段",
+          "会不",
+          "不会",
+          "会出",
+          "出现",
+          "现先",
+          "先下",
+          "装再",
+          "再编",
+          "会不会",
+          "不会出",
+          "会出现",
+          "出现先",
+          "现先下",
+          "先下装",
+          "下装再",
+          "装再编",
+          "再编译",
+          "装在",
+          "在m",
+          "s里",
+          "段会",
+          "下装在",
+          "阶段会",
+          "段会不",
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "expandedTokens": [
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "intentPrimary": "procedural",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "区分控制器侧",
+        "含工程总控或操作站/历史站侧",
+        "顺序/阶段表述"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=3 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q6",
+      "paraphrase_id": "Q6-p3",
+      "question": "先下装控制器算法还是先处理操作站/历史站？和工程总控编译是什么关系？",
+      "direct_answer": "这个问题更适合参考“Sprint 5.3 合成语料（评测专用，非厂商原文） > Q5 下装的含义与分类”整节，而不只是其中某一个子步骤。下装是把编译生成的下装文件通过网络传输到历史站、操作员站和控制器的过程。下装分为：下装控制器算法；下装操作站；下装历史站；下装报表打印站。运行不属于下装类型。 可重点按这些子步骤查看：Q5 下装的含义与分类；Q6 编译与下装顺序。 相关内容更新于 2026/4/11。",
+      "model_answer": "Direct answer\n这个问题更适合参考“Sprint 5.3 合成语料（评测专用，非厂商原文） > Q5 下装的含义与分类”整节，而不只是其中某一个子步骤。下装是把编译生成的下装文件通过网络传输到历史站、操作员站和控制器的过程。下装分为：下装控制器算法；下装操作站；下装历史站；下装报表打印站。运行不属于下装类型。 可重点按这些子步骤查看：Q5 下装的含义与分类；Q6 编译与下装顺序。 相关内容更新于 2026/4/11。\n\nKey supporting points\n1. 应先编译控制器算法并下装控制器；再编译工程总控并下装操作站和历史站。 [sprint-5.3-synthetic-corpus.md | para 7]\n2. 不可先说下装再编译，也不应混淆控制器算法工程与工程总控工程。 [sprint-5.3-synthetic-corpus.md | para 7]\n3. 下装是把编译生成的下装文件通过网络传输到历史站、操作员站和控制器的过程。 [sprint-5.3-synthetic-corpus.md | para 6]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "33f0ec2fba516bd3",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "应先编译控制器算法并下装控制器；再编译工程总控并下装操作站和历史站。不可先说下装再编译，也不应混淆控制器算法工程与工程总控工程。"
+        },
+        {
+          "chunkId": "0a98f744bec56b47",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "下装是把编译生成的下装文件通过网络传输到历史站、操作员站和控制器的过程。下装分为：下装控制器算法；下装操作站；下装历史站；下装报表打印站。运行不属于下装类型。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "先下装控制器算法还是先处理操作站/历史站？和工程总控编译是什么关系？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "33f0ec2fba516bd3",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 16.580740158320996,
+            "lexicalScore": 34.05689674850356,
+            "semanticScore": 2.682618332326932,
+            "rerankScore": 4.096508367855229,
+            "qualityScore": 1.6,
+            "sectionTitle": "Q6 编译与下装顺序"
+          },
+          {
+            "chunkId": "0a98f744bec56b47",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 13.99923464338453,
+            "lexicalScore": 27.877449692959267,
+            "semanticScore": 2.390115464146469,
+            "rerankScore": 4.571681720255597,
+            "qualityScore": 1.6,
+            "sectionTitle": "Q5 下装的含义与分类"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "33f0ec2fba516bd3",
+          "0a98f744bec56b47"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "先下装控制器算法还是先处理操作站",
+          "历史站",
+          "和工程总控编译是什么关系",
+          "先下",
+          "下装",
+          "装控",
+          "控制",
+          "制器",
+          "器算",
+          "算法",
+          "法还",
+          "还是",
+          "是先",
+          "先处",
+          "处理",
+          "理操",
+          "操作",
+          "作站",
+          "先下装",
+          "下装控",
+          "装控制",
+          "控制器",
+          "制器算",
+          "器算法",
+          "算法还",
+          "法还是",
+          "还是先",
+          "是先处",
+          "先处理",
+          "处理操",
+          "理操作",
+          "操作站",
+          "历史",
+          "史站",
+          "和工",
+          "工程",
+          "程总",
+          "总控",
+          "控编",
+          "编译",
+          "译是",
+          "是什",
+          "么关",
+          "关系",
+          "和工程",
+          "工程总",
+          "程总控",
+          "总控编",
+          "控编译",
+          "编译是",
+          "译是什",
+          "是什么",
+          "什么关",
+          "么关系",
+          "站历",
+          "站和",
+          "作站历",
+          "站历史",
+          "史站和",
+          "站和工"
+        ],
+        "expandedTokens": [],
+        "intentPrimary": "explanatory",
+        "intentWantsSteps": false,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "区分控制器侧",
+        "含工程总控或操作站/历史站侧",
+        "顺序/阶段表述"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=3 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q8",
+      "paraphrase_id": "Q8-p1",
+      "question": "参数对齐这个属性是什么意思？TRUE 和 FALSE 时下装行为差在哪？",
+      "direct_answer": "定义：参数对齐是功能块参数的一种属性。\n\n当为 TRUE 时：下装会比较在线值与离线值；若不一致，系统提示用户选择是否同步\n\n当为 FALSE 时：不进行值比较\n\n易混淆项：不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈（若资料提及）。",
+      "model_answer": "Direct answer\n定义：参数对齐是功能块参数的一种属性。\n\n当为 TRUE 时：下装会比较在线值与离线值；若不一致，系统提示用户选择是否同步\n\n当为 FALSE 时：不进行值比较\n\n易混淆项：不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈（若资料提及）。\n\nKey supporting points\n1. 当该属性为 TRUE 时，下装会比较在线值与离线值；若不一致，系统提示用户选择是否同步。 [sprint-5.3-synthetic-corpus.md | para 9]\n2. 不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈。 [sprint-5.3-synthetic-corpus.md | para 9]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "8edb5b68a9998f08",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "参数对齐是功能块参数的一种属性。当该属性为 TRUE 时，下装会比较在线值与离线值；若不一致，系统提示用户选择是否同步。为 FALSE 时，不进行值比较。不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "参数对齐这个属性是什么意思？TRUE 和 FALSE 时下装行为差在哪？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "8edb5b68a9998f08",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 13.307798663845432,
+            "lexicalScore": 28.375897928045816,
+            "semanticScore": 2.3439243628988815,
+            "rerankScore": 2.304113552579717,
+            "qualityScore": 0.4600000000000002,
+            "sectionTitle": "Q8 参数对齐"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "8edb5b68a9998f08"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "参数对齐这个属性是什么意思",
+          "true",
+          "false",
+          "时下装行为差在哪",
+          "参数",
+          "数对",
+          "对齐",
+          "齐这",
+          "这个",
+          "个属",
+          "属性",
+          "性是",
+          "是什",
+          "么意",
+          "意思",
+          "参数对",
+          "数对齐",
+          "对齐这",
+          "齐这个",
+          "这个属",
+          "个属性",
+          "属性是",
+          "性是什",
+          "是什么",
+          "什么意",
+          "么意思",
+          "时下",
+          "下装",
+          "装行",
+          "行为",
+          "为差",
+          "差在",
+          "在哪",
+          "时下装",
+          "下装行",
+          "装行为",
+          "行为差",
+          "为差在",
+          "差在哪",
+          "思t",
+          "e和",
+          "和f",
+          "e时"
+        ],
+        "expandedTokens": [],
+        "intentPrimary": "explanatory",
+        "intentWantsSteps": false,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "定义含参数对齐",
+        "含 TRUE 分支",
+        "含 FALSE 分支"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=3 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q8",
+      "paraphrase_id": "Q8-p2",
+      "question": "功能块里的“参数对齐”怎么理解？两种取值各会怎样？",
+      "direct_answer": "参数对齐是功能块参数的一种属性。当该属性为 TRUE 时，下装会比较在线值与离线值；若不一致，系统提示用户选择是否同步。为 FALSE 时，不进行值比较。不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈。 主要依据《Sprint 5.3 合成语料（评测专用）》。 更新于 2026/4/11。",
+      "model_answer": "Direct answer\n参数对齐是功能块参数的一种属性。当该属性为 TRUE 时，下装会比较在线值与离线值；若不一致，系统提示用户选择是否同步。为 FALSE 时，不进行值比较。不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈。 主要依据《Sprint 5.3 合成语料（评测专用）》。 更新于 2026/4/11。\n\nKey supporting points\n1. 当该属性为 TRUE 时，下装会比较在线值与离线值；若不一致，系统提示用户选择是否同步。 [sprint-5.3-synthetic-corpus.md | para 9]\n2. 不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈。 [sprint-5.3-synthetic-corpus.md | para 9]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "8edb5b68a9998f08",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "参数对齐是功能块参数的一种属性。当该属性为 TRUE 时，下装会比较在线值与离线值；若不一致，系统提示用户选择是否同步。为 FALSE 时，不进行值比较。不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "功能块里的“参数对齐”怎么理解？两种取值各会怎样？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "8edb5b68a9998f08",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 11.578539174312752,
+            "lexicalScore": 23.74336338636266,
+            "semanticScore": 1.9553150616023,
+            "rerankScore": 3.8353585588351082,
+            "qualityScore": 0.4600000000000002,
+            "sectionTitle": "Q8 参数对齐"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "8edb5b68a9998f08"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "功能块里的",
+          "参数对齐",
+          "怎么理解",
+          "两种取值各会怎样",
+          "功能",
+          "能块",
+          "块里",
+          "里的",
+          "功能块",
+          "能块里",
+          "块里的",
+          "参数",
+          "数对",
+          "对齐",
+          "参数对",
+          "数对齐",
+          "么理",
+          "理解",
+          "怎么理",
+          "么理解",
+          "两种",
+          "种取",
+          "取值",
+          "值各",
+          "各会",
+          "会怎",
+          "两种取",
+          "种取值",
+          "取值各",
+          "值各会",
+          "各会怎",
+          "会怎样",
+          "的参",
+          "齐怎",
+          "解两",
+          "里的参",
+          "的参数",
+          "对齐怎",
+          "齐怎么",
+          "理解两",
+          "解两种",
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "expandedTokens": [
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "intentPrimary": "procedural",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "定义含参数对齐",
+        "含 TRUE 分支",
+        "含 FALSE 分支"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=3 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q8",
+      "paraphrase_id": "Q8-p3",
+      "question": "请说明参数对齐：定义是什么，TRUE/FALSE 分别会怎样？",
+      "direct_answer": "定义：参数对齐是功能块参数的一种属性。\n\n当为 TRUE 时：下装会比较在线值与离线值；若不一致，系统提示用户选择是否同步\n\n当为 FALSE 时：不进行值比较\n\n易混淆项：不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈（若资料提及）。",
+      "model_answer": "Direct answer\n定义：参数对齐是功能块参数的一种属性。\n\n当为 TRUE 时：下装会比较在线值与离线值；若不一致，系统提示用户选择是否同步\n\n当为 FALSE 时：不进行值比较\n\n易混淆项：不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈（若资料提及）。\n\nKey supporting points\n1. 当该属性为 TRUE 时，下装会比较在线值与离线值；若不一致，系统提示用户选择是否同步。 [sprint-5.3-synthetic-corpus.md | para 9]\n2. 不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈。 [sprint-5.3-synthetic-corpus.md | para 9]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "8edb5b68a9998f08",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "参数对齐是功能块参数的一种属性。当该属性为 TRUE 时，下装会比较在线值与离线值；若不一致，系统提示用户选择是否同步。为 FALSE 时，不进行值比较。不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "请说明参数对齐：定义是什么，TRUE/FALSE 分别会怎样？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "8edb5b68a9998f08",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 9.644571030392532,
+            "lexicalScore": 19.422467969854665,
+            "semanticScore": 2.202195431026172,
+            "rerankScore": 2.94569954288846,
+            "qualityScore": 0.4600000000000002,
+            "sectionTitle": "Q8 参数对齐"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "8edb5b68a9998f08"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "请说明参数对齐",
+          "定义是什么",
+          "true",
+          "false",
+          "分别会怎样",
+          "请说",
+          "说明",
+          "明参",
+          "参数",
+          "数对",
+          "对齐",
+          "请说明",
+          "说明参",
+          "明参数",
+          "参数对",
+          "数对齐",
+          "定义",
+          "义是",
+          "是什",
+          "定义是",
+          "义是什",
+          "是什么",
+          "分别",
+          "别会",
+          "会怎",
+          "分别会",
+          "别会怎",
+          "会怎样",
+          "齐定",
+          "么t",
+          "e分",
+          "对齐定",
+          "齐定义",
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "expandedTokens": [
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "intentPrimary": "procedural",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "定义含参数对齐",
+        "含 TRUE 分支",
+        "含 FALSE 分支"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=3 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q9",
+      "paraphrase_id": "Q9-p1",
+      "question": "要做跨域点互访，工程里一般怎么配置？",
+      "direct_answer": "通过工程总控中的域间引用表实现域间访问。需填写他域点名/项名以及本域点名/项名。每个引用组最多允许添加 3000 个引用点。他域点名和本域点名必须为全局变量，且数据类型一致。本域项名一般为当前输入项（例如 AI 对应他域 AV）。若本域点为控制站点，EW 项需置 TRUE。配置完成后需要编译并下装本域工程。不能认为仅网络互通即可。 主要依据《Sprint 5.3 合成语料（评测专用）》。 更新于 2026/4/11。",
+      "model_answer": "Direct answer\n通过工程总控中的域间引用表实现域间访问。需填写他域点名/项名以及本域点名/项名。每个引用组最多允许添加 3000 个引用点。他域点名和本域点名必须为全局变量，且数据类型一致。本域项名一般为当前输入项（例如 AI 对应他域 AV）。若本域点为控制站点，EW 项需置 TRUE。配置完成后需要编译并下装本域工程。不能认为仅网络互通即可。 主要依据《Sprint 5.3 合成语料（评测专用）》。 更新于 2026/4/11。\n\nKey supporting points\n1. 他域点名和本域点名必须为全局变量，且数据类型一致。 [sprint-5.3-synthetic-corpus.md | para 10]\n2. 本域项名一般为当前输入项（例如 AI 对应他域 AV）。 [sprint-5.3-synthetic-corpus.md | para 10]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "9bf82febcf06c38a",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "通过工程总控中的域间引用表实现域间访问。需填写他域点名/项名以及本域点名/项名。每个引用组最多允许添加 3000 个引用点。他域点名和本域点名必须为全局变量，且数据类型一致。本域项名一般为当前输入项（例如 AI 对应他域 AV）。若本域点为控制站点，EW 项需置 TRUE。配置完成后需要编译并下装本域工程。不能认为仅网络互通即可。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "要做跨域点互访，工程里一般怎么配置？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "9bf82febcf06c38a",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 3.1068301724928813,
+            "lexicalScore": 6.4839410322057764,
+            "semanticScore": 1.1897465967437149,
+            "rerankScore": 1.134224534501643,
+            "qualityScore": 0.6330120481927712,
+            "sectionTitle": "Q9 域间访问"
+          },
+          {
+            "chunkId": "45036639191e5358",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 2.456176962901763,
+            "lexicalScore": 3.7870775404859,
+            "semanticScore": 1.294917406121564,
+            "rerankScore": 1.682636363636364,
+            "qualityScore": 1.6,
+            "sectionTitle": "Q2 工程组态基本流程"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "9bf82febcf06c38a"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "要做跨域点互访",
+          "工程里一般怎么配置",
+          "要做",
+          "做跨",
+          "跨域",
+          "域点",
+          "点互",
+          "互访",
+          "要做跨",
+          "做跨域",
+          "跨域点",
+          "域点互",
+          "点互访",
+          "工程",
+          "程里",
+          "里一",
+          "一般",
+          "般怎",
+          "么配",
+          "配置",
+          "工程里",
+          "程里一",
+          "里一般",
+          "一般怎",
+          "般怎么",
+          "怎么配",
+          "么配置",
+          "访工",
+          "互访工",
+          "访工程",
+          "步骤",
+          "连接",
+          "设置"
+        ],
+        "expandedTokens": [
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "intentPrimary": "procedural",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "域间引用表/域间引用",
+        "3000 点约束",
+        "编译并下装本域"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=3 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q9",
+      "paraphrase_id": "Q9-p2",
+      "question": "域间数据引用该怎么建？有哪些硬约束？",
+      "direct_answer": "总述：域间访问通过工程总控中的域间引用表完成配置；不能把“网络互通”等同为已完成域间访问。\n\n步骤\n\n1. 在工程总控打开域间引用表，填写他域点名/项名以及本域点名/项名。\n2. 每个引用组最多允许 3000 个引用点；他域点名和本域点名需为全局变量且数据类型一致。\n3. 若本域点为控制站点，EW 项需置 TRUE。\n4. 配置完成后编译并下装本域工程。\n\n注意\n\n- 不能认为仅网络互通即可；需按表完成映射并完成本域下装。",
+      "model_answer": "Direct answer\n总述：域间访问通过工程总控中的域间引用表完成配置；不能把“网络互通”等同为已完成域间访问。\n\n步骤\n\n1. 在工程总控打开域间引用表，填写他域点名/项名以及本域点名/项名。\n2. 每个引用组最多允许 3000 个引用点；他域点名和本域点名需为全局变量且数据类型一致。\n3. 若本域点为控制站点，EW 项需置 TRUE。\n4. 配置完成后编译并下装本域工程。\n\n注意\n\n- 不能认为仅网络互通即可；需按表完成映射并完成本域下装。\n\nKey supporting points\n1. 他域点名和本域点名必须为全局变量，且数据类型一致。 [sprint-5.3-synthetic-corpus.md | para 10]\n2. 本域项名一般为当前输入项（例如 AI 对应他域 AV）。 [sprint-5.3-synthetic-corpus.md | para 10]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "9bf82febcf06c38a",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "通过工程总控中的域间引用表实现域间访问。需填写他域点名/项名以及本域点名/项名。每个引用组最多允许添加 3000 个引用点。他域点名和本域点名必须为全局变量，且数据类型一致。本域项名一般为当前输入项（例如 AI 对应他域 AV）。若本域点为控制站点，EW 项需置 TRUE。配置完成后需要编译并下装本域工程。不能认为仅网络互通即可。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "域间数据引用该怎么建？有哪些硬约束？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "9bf82febcf06c38a",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 3.3838090445557905,
+            "lexicalScore": 7.147551360018054,
+            "semanticScore": 1.1879672958878884,
+            "rerankScore": 1.1288341601700922,
+            "qualityScore": 0.6330120481927712,
+            "sectionTitle": "Q9 域间访问"
+          },
+          {
+            "chunkId": "45036639191e5358",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 2.0948183921841106,
+            "lexicalScore": 2.9595984928747106,
+            "semanticScore": 1.2522579559780733,
+            "rerankScore": 1.6799411764705885,
+            "qualityScore": 1.6,
+            "sectionTitle": "Q2 工程组态基本流程"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "9bf82febcf06c38a"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "域间数据引用该怎么建",
+          "有哪些硬约束",
+          "域间",
+          "间数",
+          "数据",
+          "据引",
+          "引用",
+          "用该",
+          "该怎",
+          "么建",
+          "域间数",
+          "间数据",
+          "数据引",
+          "据引用",
+          "引用该",
+          "用该怎",
+          "该怎么",
+          "怎么建",
+          "有哪",
+          "哪些",
+          "些硬",
+          "硬约",
+          "约束",
+          "有哪些",
+          "哪些硬",
+          "些硬约",
+          "硬约束",
+          "建有",
+          "么建有",
+          "建有哪",
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "expandedTokens": [
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "intentPrimary": "procedural",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "域间引用表/域间引用",
+        "3000 点约束",
+        "编译并下装本域"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=3 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q9",
+      "paraphrase_id": "Q9-p3",
+      "question": "通过工程总控做域间访问时，要填什么、做完还要干什么？",
+      "direct_answer": "总述：域间访问通过工程总控中的域间引用表完成配置；不能把“网络互通”等同为已完成域间访问。\n\n步骤\n\n1. 在工程总控打开域间引用表，填写他域点名/项名以及本域点名/项名。\n2. 每个引用组最多允许 3000 个引用点；他域点名和本域点名需为全局变量且数据类型一致。\n3. 若本域点为控制站点，EW 项需置 TRUE。\n4. 配置完成后编译并下装本域工程。\n\n注意\n\n- 不能认为仅网络互通即可；需按表完成映射并完成本域下装。",
+      "model_answer": "Direct answer\n总述：域间访问通过工程总控中的域间引用表完成配置；不能把“网络互通”等同为已完成域间访问。\n\n步骤\n\n1. 在工程总控打开域间引用表，填写他域点名/项名以及本域点名/项名。\n2. 每个引用组最多允许 3000 个引用点；他域点名和本域点名需为全局变量且数据类型一致。\n3. 若本域点为控制站点，EW 项需置 TRUE。\n4. 配置完成后编译并下装本域工程。\n\n注意\n\n- 不能认为仅网络互通即可；需按表完成映射并完成本域下装。\n\nKey supporting points\n1. 他域点名和本域点名必须为全局变量，且数据类型一致。 [sprint-5.3-synthetic-corpus.md | para 10]\n2. 本域项名一般为当前输入项（例如 AI 对应他域 AV）。 [sprint-5.3-synthetic-corpus.md | para 10]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "9bf82febcf06c38a",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "通过工程总控中的域间引用表实现域间访问。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "通过工程总控做域间访问时，要填什么、做完还要干什么？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "9bf82febcf06c38a",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 13.89613299333201,
+            "lexicalScore": 26.840957267965756,
+            "semanticScore": 1.80074812781501,
+            "rerankScore": 8.406704203537261,
+            "qualityScore": 0.6330120481927712,
+            "sectionTitle": "Q9 域间访问"
+          },
+          {
+            "chunkId": "5795c0350fff3db8",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 6.867398371805564,
+            "lexicalScore": 12.426366038480612,
+            "semanticScore": 2.011640826652534,
+            "rerankScore": 2.1850726335519157,
+            "qualityScore": 1.6,
+            "sectionTitle": "Q7 何时需要编译工程总控"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "9bf82febcf06c38a"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "通过工程总控做域间访问时",
+          "要填什么",
+          "做完还要干什么",
+          "通过",
+          "过工",
+          "工程",
+          "程总",
+          "总控",
+          "控做",
+          "做域",
+          "域间",
+          "间访",
+          "访问",
+          "问时",
+          "通过工",
+          "过工程",
+          "工程总",
+          "程总控",
+          "总控做",
+          "控做域",
+          "做域间",
+          "域间访",
+          "间访问",
+          "访问时",
+          "要填",
+          "填什",
+          "要填什",
+          "填什么",
+          "做完",
+          "完还",
+          "还要",
+          "要干",
+          "干什",
+          "做完还",
+          "完还要",
+          "还要干",
+          "要干什",
+          "干什么",
+          "时要",
+          "么做",
+          "问时要",
+          "时要填",
+          "什么做",
+          "么做完"
+        ],
+        "expandedTokens": [],
+        "intentPrimary": "general",
+        "intentWantsSteps": false,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "域间引用表/域间引用",
+        "3000 点约束",
+        "编译并下装本域"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=3 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q10",
+      "paraphrase_id": "Q10-p1",
+      "question": "分组功能能用在真实控制器上吗？适用范围是什么？",
+      "direct_answer": "**关键边界：真实控制器不支持分组功能，只有 HiaSimuRTS 支持。 主要依据《Sprint 5.3 合成语料（评测专用）》。 更新于 2026/4/11。",
+      "model_answer": "Direct answer\n**关键边界：真实控制器不支持分组功能，只有 HiaSimuRTS 支持。 主要依据《Sprint 5.3 合成语料（评测专用）》。 更新于 2026/4/11。\n\nKey supporting points\n1. 关键边界：真实控制器不支持分组功能，只有 HiaSimuRTS 支持。 [sprint-5.3-synthetic-corpus.md | para 11]\n2. 分组功能涉及计算机 IP、工程总控组号、HiaSimuRTS 组号、AT 配置、编译下装、操作员在线配置。 [sprint-5.3-synthetic-corpus.md | para 11]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "625b64068b8df6c4",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "**关键边界：真实控制器不支持分组功能，只有 HiaSimuRTS 支持。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "分组功能能用在真实控制器上吗？适用范围是什么？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "625b64068b8df6c4",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 15.385003211291739,
+            "lexicalScore": 32.93080744914428,
+            "semanticScore": 2.3207227695604677,
+            "rerankScore": 2.402909200397257,
+            "qualityScore": 0.9000000000000001,
+            "sectionTitle": "Q10 分组功能适用范围"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "625b64068b8df6c4"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "分组功能能用在真实控制器上吗",
+          "适用范围是什么",
+          "分组",
+          "组功",
+          "功能",
+          "能能",
+          "能用",
+          "用在",
+          "在真",
+          "真实",
+          "实控",
+          "控制",
+          "制器",
+          "器上",
+          "上吗",
+          "分组功",
+          "组功能",
+          "功能能",
+          "能能用",
+          "能用在",
+          "用在真",
+          "在真实",
+          "真实控",
+          "实控制",
+          "控制器",
+          "制器上",
+          "器上吗",
+          "适用",
+          "用范",
+          "范围",
+          "围是",
+          "是什",
+          "适用范",
+          "用范围",
+          "范围是",
+          "围是什",
+          "是什么",
+          "吗适",
+          "上吗适",
+          "吗适用"
+        ],
+        "expandedTokens": [],
+        "intentPrimary": "explanatory",
+        "intentWantsSteps": false,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "真实控制器边界",
+        "提及 HiaSimuRTS"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=2 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q10",
+      "paraphrase_id": "Q10-p2",
+      "question": "分组功能在仿真和真机上的支持一样吗？涉及哪些配置？",
+      "direct_answer": "分组功能涉及计算机 IP、工程总控组号、HiaSimuRTS 组号、AT 配置、编译下装、操作员在线配置。**关键边界：真实控制器不支持分组功能，只有 HiaSimuRTS 支持。** 不要把分组功能与域间访问混为一谈。 主要依据《Sprint 5.3 合成语料（评测专用）》。 更新于 2026/4/11。",
+      "model_answer": "Direct answer\n分组功能涉及计算机 IP、工程总控组号、HiaSimuRTS 组号、AT 配置、编译下装、操作员在线配置。**关键边界：真实控制器不支持分组功能，只有 HiaSimuRTS 支持。** 不要把分组功能与域间访问混为一谈。 主要依据《Sprint 5.3 合成语料（评测专用）》。 更新于 2026/4/11。\n\nKey supporting points\n1. 分组功能涉及计算机 IP、工程总控组号、HiaSimuRTS 组号、AT 配置、编译下装、操作员在线配置。 [sprint-5.3-synthetic-corpus.md | para 11]\n2. 关键边界：真实控制器不支持分组功能，只有 HiaSimuRTS 支持。 [sprint-5.3-synthetic-corpus.md | para 11]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "625b64068b8df6c4",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "分组功能涉及计算机 IP、工程总控组号、HiaSimuRTS 组号、AT 配置、编译下装、操作员在线配置。**关键边界：真实控制器不支持分组功能，只有 HiaSimuRTS 支持。** 不要把分组功能与域间访问混为一谈。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "分组功能在仿真和真机上的支持一样吗？涉及哪些配置？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "625b64068b8df6c4",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 10.3069300905983,
+            "lexicalScore": 20.86938695279099,
+            "semanticScore": 1.8555108406698495,
+            "rerankScore": 3.0026327719019577,
+            "qualityScore": 0.9000000000000001,
+            "sectionTitle": "Q10 分组功能适用范围"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "625b64068b8df6c4"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "分组功能在仿真和真机上的支持一样吗",
+          "涉及哪些配置",
+          "分组",
+          "组功",
+          "功能",
+          "能在",
+          "在仿",
+          "仿真",
+          "真和",
+          "和真",
+          "真机",
+          "机上",
+          "上的",
+          "的支",
+          "支持",
+          "持一",
+          "一样",
+          "样吗",
+          "分组功",
+          "组功能",
+          "功能在",
+          "能在仿",
+          "在仿真",
+          "仿真和",
+          "真和真",
+          "和真机",
+          "真机上",
+          "机上的",
+          "上的支",
+          "的支持",
+          "支持一",
+          "持一样",
+          "一样吗",
+          "涉及",
+          "及哪",
+          "哪些",
+          "些配",
+          "配置",
+          "涉及哪",
+          "及哪些",
+          "哪些配",
+          "些配置",
+          "吗涉",
+          "样吗涉",
+          "吗涉及"
+        ],
+        "expandedTokens": [],
+        "intentPrimary": "procedural",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "真实控制器边界",
+        "提及 HiaSimuRTS"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=2 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q10",
+      "paraphrase_id": "Q10-p3",
+      "question": "分组功能大概覆盖哪些内容？HiaSimuRTS 和真实控制器分别怎样？",
+      "direct_answer": "分组功能涉及计算机 IP、工程总控组号、HiaSimuRTS 组号、AT 配置、编译下装、操作员在线配置。**关键边界：真实控制器不支持分组功能，只有 HiaSimuRTS 支持。** 不要把分组功能与域间访问混为一谈。 主要依据《Sprint 5.3 合成语料（评测专用）》。 更新于 2026/4/11。",
+      "model_answer": "Direct answer\n分组功能涉及计算机 IP、工程总控组号、HiaSimuRTS 组号、AT 配置、编译下装、操作员在线配置。**关键边界：真实控制器不支持分组功能，只有 HiaSimuRTS 支持。** 不要把分组功能与域间访问混为一谈。 主要依据《Sprint 5.3 合成语料（评测专用）》。 更新于 2026/4/11。\n\nKey supporting points\n1. 关键边界：真实控制器不支持分组功能，只有 HiaSimuRTS 支持。 [sprint-5.3-synthetic-corpus.md | para 11]\n2. 分组功能涉及计算机 IP、工程总控组号、HiaSimuRTS 组号、AT 配置、编译下装、操作员在线配置。 [sprint-5.3-synthetic-corpus.md | para 11]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "625b64068b8df6c4",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "分组功能涉及计算机 IP、工程总控组号、HiaSimuRTS 组号、AT 配置、编译下装、操作员在线配置。**关键边界：真实控制器不支持分组功能，只有 HiaSimuRTS 支持。** 不要把分组功能与域间访问混为一谈。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "分组功能大概覆盖哪些内容？HiaSimuRTS 和真实控制器分别怎样？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "625b64068b8df6c4",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 14.758842695433113,
+            "lexicalScore": 30.619686903258216,
+            "semanticScore": 2.4891320703929005,
+            "rerankScore": 3.7315602465584794,
+            "qualityScore": 0.9000000000000001,
+            "sectionTitle": "Q10 分组功能适用范围"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "625b64068b8df6c4"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "分组功能大概覆盖哪些内容",
+          "hiasimurts",
+          "和真实控制器分别怎样",
+          "分组",
+          "组功",
+          "功能",
+          "能大",
+          "大概",
+          "概覆",
+          "覆盖",
+          "盖哪",
+          "哪些",
+          "些内",
+          "内容",
+          "分组功",
+          "组功能",
+          "功能大",
+          "能大概",
+          "大概覆",
+          "概覆盖",
+          "覆盖哪",
+          "盖哪些",
+          "哪些内",
+          "些内容",
+          "和真",
+          "真实",
+          "实控",
+          "控制",
+          "制器",
+          "器分",
+          "分别",
+          "别怎",
+          "和真实",
+          "真实控",
+          "实控制",
+          "控制器",
+          "制器分",
+          "器分别",
+          "分别怎",
+          "别怎样",
+          "容h",
+          "s和",
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "expandedTokens": [
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "intentPrimary": "procedural",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "真实控制器边界",
+        "提及 HiaSimuRTS"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=2 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q11",
+      "paraphrase_id": "Q11-p1",
+      "question": "安装时提示 UserSvr 服务起不来，一般怎么处理？",
+      "direct_answer": "处理结论：若安装过程提示 UserSvr 服务启动失败，可在安装完成后手动启动该服务；必要时在 Common 目录执行注册/反注册脚本。\n\n步骤\n\n1. 安装完成后尝试手动启动 UserSvr 服务。\n2. 在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。\n3. 若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。\n\n注意\n\n- 路径与脚本名需完整一致；避免将 `.bat` 截断或改名后执行。",
+      "model_answer": "Direct answer\n处理结论：若安装过程提示 UserSvr 服务启动失败，可在安装完成后手动启动该服务；必要时在 Common 目录执行注册/反注册脚本。\n\n步骤\n\n1. 安装完成后尝试手动启动 UserSvr 服务。\n2. 在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。\n3. 若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。\n\n注意\n\n- 路径与脚本名需完整一致；避免将 `.bat` 截断或改名后执行。\n\nKey supporting points\n1. 安装过程中若提示 UserSvr 服务启动失败，安装完成后可手动启动 UserSvr 服务。 [sprint-5.3-synthetic-corpus.md | para 12]\n2. 若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。 [sprint-5.3-synthetic-corpus.md | para 12]\n3. 在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。 [sprint-5.3-synthetic-corpus.md | para 12]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "910d8137e02fa392",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "安装过程中若提示 UserSvr 服务启动失败，安装完成后可手动启动 UserSvr 服务。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "安装时提示 UserSvr 服务起不来，一般怎么处理？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "910d8137e02fa392",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 7.075681301664838,
+            "lexicalScore": 14.553450048041709,
+            "semanticScore": 2.3347604163442996,
+            "rerankScore": 1.7429843291844938,
+            "qualityScore": 0.9000000000000001,
+            "sectionTitle": "Q11 UserSvr 服务启动失败"
+          },
+          {
+            "chunkId": "240994847cb1b3b9",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 3.8534928061065794,
+            "lexicalScore": 7.49162804456312,
+            "semanticScore": 1.3364939130147264,
+            "rerankScore": 1.3255555915680792,
+            "qualityScore": 0.0031578947368422483,
+            "sectionTitle": "Q12 模拟量历史库超过 24M 编译失败"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "910d8137e02fa392"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "安装时提示",
+          "usersvr",
+          "服务起不来",
+          "一般怎么处理",
+          "安装",
+          "装时",
+          "时提",
+          "提示",
+          "安装时",
+          "装时提",
+          "时提示",
+          "服务",
+          "务起",
+          "起不",
+          "不来",
+          "服务起",
+          "务起不",
+          "起不来",
+          "一般",
+          "般怎",
+          "么处",
+          "处理",
+          "一般怎",
+          "般怎么",
+          "怎么处",
+          "么处理",
+          "示u",
+          "r服",
+          "来一",
+          "不来一",
+          "来一般",
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "expandedTokens": [
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "intentPrimary": "procedural",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "提及 UserSvr",
+        "UserReg.bat",
+        "UserUnReg.bat",
+        "Common 路径线索"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=4 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q11",
+      "paraphrase_id": "Q11-p2",
+      "question": "UserSvr 启动失败时，装完后可以怎么手工恢复？",
+      "direct_answer": "处理结论：若安装过程提示 UserSvr 服务启动失败，可在安装完成后手动启动该服务；必要时在 Common 目录执行注册/反注册脚本。\n\n步骤\n\n1. 安装完成后尝试手动启动 UserSvr 服务。\n2. 在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。\n3. 若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。\n\n注意\n\n- 路径与脚本名需完整一致；避免将 `.bat` 截断或改名后执行。",
+      "model_answer": "Direct answer\n处理结论：若安装过程提示 UserSvr 服务启动失败，可在安装完成后手动启动该服务；必要时在 Common 目录执行注册/反注册脚本。\n\n步骤\n\n1. 安装完成后尝试手动启动 UserSvr 服务。\n2. 在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。\n3. 若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。\n\n注意\n\n- 路径与脚本名需完整一致；避免将 `.bat` 截断或改名后执行。\n\nKey supporting points\n1. 安装过程中若提示 UserSvr 服务启动失败，安装完成后可手动启动 UserSvr 服务。 [sprint-5.3-synthetic-corpus.md | para 12]\n2. 若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。 [sprint-5.3-synthetic-corpus.md | para 12]\n3. 在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。 [sprint-5.3-synthetic-corpus.md | para 12]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "910d8137e02fa392",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "安装过程中若提示 UserSvr 服务启动失败，安装完成后可手动启动 UserSvr 服务。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "UserSvr 启动失败时，装完后可以怎么手工恢复？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "910d8137e02fa392",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 11.526730879911138,
+            "lexicalScore": 22.637370990396928,
+            "semanticScore": 2.6524494264005187,
+            "rerankScore": 4.04898064436486,
+            "qualityScore": 0.9000000000000001,
+            "sectionTitle": "Q11 UserSvr 服务启动失败"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "910d8137e02fa392"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "usersvr",
+          "启动失败时",
+          "装完后可以怎么手工恢复",
+          "启动",
+          "动失",
+          "失败",
+          "败时",
+          "启动失",
+          "动失败",
+          "失败时",
+          "装完",
+          "完后",
+          "后可",
+          "可以",
+          "以怎",
+          "么手",
+          "手工",
+          "工恢",
+          "恢复",
+          "装完后",
+          "完后可",
+          "后可以",
+          "可以怎",
+          "以怎么",
+          "怎么手",
+          "么手工",
+          "手工恢",
+          "工恢复",
+          "r启",
+          "时装",
+          "败时装",
+          "时装完",
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "expandedTokens": [
+          "步骤",
+          "配置",
+          "连接",
+          "设置"
+        ],
+        "intentPrimary": "troubleshooting",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "提及 UserSvr",
+        "UserReg.bat",
+        "UserUnReg.bat",
+        "Common 路径线索"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=4 missed=0；详见 missed 列表。"
+    },
+    {
+      "source_question_id": "Q11",
+      "paraphrase_id": "Q11-p3",
+      "question": "装软件过程中 UserSvr 报错，Common 目录里常用哪些脚本？",
+      "direct_answer": "安装过程中若提示 UserSvr 服务启动失败，安装完成后可手动启动 UserSvr 服务。在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。 主要依据《Sprint 5.3 合成语料（评测专用）》。 更新于 2026/4/11。",
+      "model_answer": "Direct answer\n安装过程中若提示 UserSvr 服务启动失败，安装完成后可手动启动 UserSvr 服务。在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。 主要依据《Sprint 5.3 合成语料（评测专用）》。 更新于 2026/4/11。\n\nKey supporting points\n1. 安装过程中若提示 UserSvr 服务启动失败，安装完成后可手动启动 UserSvr 服务。 [sprint-5.3-synthetic-corpus.md | para 12]\n2. 在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。 [sprint-5.3-synthetic-corpus.md | para 12]\n3. 若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。 [sprint-5.3-synthetic-corpus.md | para 12]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "model_citations": [
+        {
+          "chunkId": "910d8137e02fa392",
+          "fileName": "sprint-5.3-synthetic-corpus.md",
+          "snippet": "安装过程中若提示 UserSvr 服务启动失败，安装完成后可手动启动 UserSvr 服务。在安装目录 `\\HOLLiAS_MACS\\Common` 下运行 `UserReg.bat` 进行注册。若提示删除 UserSvr 服务失败，则运行 `UserUnReg.bat`。"
+        }
+      ],
+      "retrieval_debug": {
+        "schemaVersion": 2,
+        "kind": "pkrag.retrieval",
+        "question": "装软件过程中 UserSvr 报错，Common 目录里常用哪些脚本？",
+        "vectorRecallBackend": "memory",
+        "runtime": "eval",
+        "vectorShortlistCount": 13,
+        "candidateChunkCount": 13,
+        "searchTopK": 6,
+        "topResults": [
+          {
+            "chunkId": "910d8137e02fa392",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 6.4748069013639835,
+            "lexicalScore": 12.948491536282996,
+            "semanticScore": 2.17305778130476,
+            "rerankScore": 2.3036024723665953,
+            "qualityScore": 0.9000000000000001,
+            "sectionTitle": "Q11 UserSvr 服务启动失败"
+          },
+          {
+            "chunkId": "7035af8162756d11",
+            "fileName": "sprint-5.3-synthetic-corpus.md",
+            "score": 4.649168206747183,
+            "lexicalScore": 8.275767266587666,
+            "semanticScore": 1.4668298826476687,
+            "rerankScore": 2.829764064293915,
+            "qualityScore": 1.606119402985075,
+            "sectionTitle": "Sprint 5.3 合成语料（评测专用，非厂商原文）"
+          }
+        ],
+        "answerCitationChunkIds": [
+          "910d8137e02fa392"
+        ],
+        "answerFlags": {
+          "refusal": false,
+          "cautiousProcedural": false
+        },
+        "effectiveQueryTokens": [
+          "装软件过程中",
+          "usersvr",
+          "报错",
+          "common",
+          "目录里常用哪些脚本",
+          "装软",
+          "软件",
+          "件过",
+          "过程",
+          "程中",
+          "装软件",
+          "软件过",
+          "件过程",
+          "过程中",
+          "目录",
+          "录里",
+          "里常",
+          "常用",
+          "用哪",
+          "哪些",
+          "些脚",
+          "脚本",
+          "目录里",
+          "录里常",
+          "里常用",
+          "常用哪",
+          "用哪些",
+          "哪些脚",
+          "些脚本",
+          "中u",
+          "r报",
+          "错c",
+          "n目",
+          "流程",
+          "步骤",
+          "首先",
+          "然后",
+          "最后",
+          "依次"
+        ],
+        "expandedTokens": [
+          "流程",
+          "步骤",
+          "首先",
+          "然后",
+          "最后",
+          "依次"
+        ],
+        "intentPrimary": "troubleshooting",
+        "intentWantsSteps": true,
+        "ablation": {
+          "sprint53aRetrievalBias": true,
+          "sprint53aCandidateInject": true
+        }
+      },
+      "verdict": "pass",
+      "score": 1,
+      "matched_gold_points": [
+        "提及 UserSvr",
+        "UserReg.bat",
+        "UserUnReg.bat",
+        "Common 路径线索"
+      ],
+      "missed_gold_points": [],
+      "fail_modes": [],
+      "notes": "规则抽检：matched=4 missed=0；详见 missed 列表。"
+    }
+  ]
+}

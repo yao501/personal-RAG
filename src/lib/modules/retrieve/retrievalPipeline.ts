@@ -1,5 +1,7 @@
 import { cosineSimilarity, embedTexts } from "../embed/localEmbedder";
 import type { ChunkRecord, DocumentRecord, SearchResult } from "../../shared/types";
+import { applyFullWorkflowRetrievalBias, injectSprint53aCandidateChunks } from "./fullWorkflowBias";
+import { applySprint53cRetrievalBias } from "./sprint53cBias";
 import { selectCandidateChunksFromVectors } from "./candidateChunks";
 import { searchChunks } from "./searchIndex";
 
@@ -87,19 +89,36 @@ export interface RetrievalPipelineResult {
  * shortlist → lexical merge → `searchChunks` with the same `limit` and embedding
  * signal as production (LanceDB replaced by in-memory similarity when ids are computed here).
  */
+export interface RunRetrievalLikeDesktopOptions {
+  /** Passed to `searchChunks` (default {@link DEFAULT_RETRIEVAL_LIMIT}). */
+  limit?: number;
+  /** When true (default), embed chunk text before vector shortlist. */
+  hydrateEmbeddings?: boolean;
+  /**
+   * Sprint 5.3a/5.3b: when false, skip `applyFullWorkflowRetrievalBias` (ablation Group C).
+   * Default true.
+   */
+  sprint53aRetrievalBias?: boolean;
+  /**
+   * Sprint 5.3a/5.3b: when false, skip `injectSprint53aCandidateChunks` (ablation Group B).
+   * Default true.
+   */
+  sprint53aCandidateInject?: boolean;
+  /** Sprint 5.3c：多卷手册路由 + 全流程噪声惩罚（默认 true）。 */
+  sprint53cRetrievalBias?: boolean;
+}
+
 export async function runRetrievalLikeDesktop(
   question: string,
   documents: DocumentRecord[],
   chunks: ChunkRecord[],
-  options: {
-    /** Passed to `searchChunks` (default {@link DEFAULT_RETRIEVAL_LIMIT}). */
-    limit?: number;
-    /** When true (default), embed chunk text before vector shortlist. */
-    hydrateEmbeddings?: boolean;
-  } = {}
+  options: RunRetrievalLikeDesktopOptions = {}
 ): Promise<RetrievalPipelineResult> {
   const limit = options.limit ?? DEFAULT_RETRIEVAL_LIMIT;
   const hydrate = options.hydrateEmbeddings !== false;
+  const useBias = options.sprint53aRetrievalBias !== false;
+  const useInject = options.sprint53aCandidateInject !== false;
+  const use53c = options.sprint53cRetrievalBias !== false;
 
   let working = chunks;
   if (hydrate) {
@@ -120,7 +139,16 @@ export async function runRetrievalLikeDesktop(
 
   const vectorChunkIds = rankChunkIdsByEmbeddingSimilarity(working, queryEmbedding, VECTOR_SHORTLIST_MAX);
   const candidateChunks = selectCandidateChunksFromVectors(question, documents, working, vectorChunkIds);
-  const results = searchChunks(question, documents, candidateChunks, limit, queryEmbedding);
+  let results = searchChunks(question, documents, candidateChunks, limit, queryEmbedding);
+  if (useBias) {
+    results = applyFullWorkflowRetrievalBias(question, results);
+  }
+  if (useInject) {
+    results = injectSprint53aCandidateChunks(question, results, candidateChunks, documents, limit, working);
+  }
+  if (use53c) {
+    results = applySprint53cRetrievalBias(question, results);
+  }
 
   return {
     results,
