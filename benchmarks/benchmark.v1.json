@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "repo-smoke-v1",
+  "description": "Small in-repo fixtures for CI-friendly RAG eval smoke tests (no absolute user paths).",
+  "chunkSize": 120,
+  "chunkOverlap": 24,
+  "retrievalTopK": 8,
+  "documents": [
+    {
+      "id": "alpha-rag",
+      "path": "benchmarks/fixtures/alpha_rag_basics.md",
+      "title": "RAG 基础备忘"
+    },
+    {
+      "id": "beta-chunk",
+      "path": "benchmarks/fixtures/beta_chunking.md",
+      "title": "切片策略笔记"
+    }
+  ],
+  "cases": [
+    {
+      "id": "rag-acronym",
+      "question": "RAG 的全称是什么？",
+      "expectedDocs": ["alpha_rag_basics.md", "alpha-rag"],
+      "expectedFacts": ["Retrieval-Augmented Generation"],
+      "expectedCitations": {
+        "fileNameIncludes": ["alpha"]
+      },
+      "mustRefuse": false,
+      "notes": "Should retrieve alpha fixture and surface acronym in evidence or answer."
+    },
+    {
+      "id": "chunking-why",
+      "question": "为什么要做文档切分？",
+      "expectedDocs": ["alpha_rag_basics.md"],
+      "expectedFacts": ["检索精度"],
+      "mustRefuse": false,
+      "notes": "Section on 为什么要切分 in alpha fixture."
+    },
+    {
+      "id": "overlap-mention",
+      "question": "重叠 overlap 的作用是什么？",
+      "expectedDocs": ["beta_chunking.md"],
+      "expectedFacts": ["截断"],
+      "mustRefuse": false,
+      "notes": "beta fixture discusses overlap."
+    },
+    {
+      "id": "must-refuse-nonsense",
+      "question": "zzzzzz_nonsense_query_no_match_please_99999",
+      "expectedDocs": [],
+      "mustRefuse": true,
+      "notes": "No chunk should reliably answer; expect refusal-style empty grounded answer."
+    }
+  ]
+}

@@ -128,6 +128,8 @@ Retrieval eval:
 npm run eval:rag
 ```
 
+Writes a timestamped Markdown report under `reports/rag-eval/`. Benchmark format, metrics, and limitations: [docs/EVAL_GUIDE.md](docs/EVAL_GUIDE.md).
+
 Included tests cover:
 
 - chunk overlap behavior

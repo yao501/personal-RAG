@@ -151,6 +151,8 @@ Acceptance:
 
 ### P0.4 Regression-quality evaluation
 
+Status (Sprint 3): **foundation in place** — versioned benchmark JSON (`benchmarks/benchmark.v1.json`), `npm run eval:rag`, deterministic metrics, Markdown reports under `reports/rag-eval/`, and [docs/EVAL_GUIDE.md](docs/EVAL_GUIDE.md).
+
 Why this is P0:
 
 - retrieval quality work is already active
@@ -174,7 +176,11 @@ Start small:
 
 Primary files:
 
-- [scripts/ragEval.config.ts](scripts/ragEval.config.ts)
+- [benchmarks/benchmark.v1.json](benchmarks/benchmark.v1.json)
+- [scripts/runRagEval.ts](scripts/runRagEval.ts)
+- [src/lib/eval/benchmarkMetrics.ts](src/lib/eval/benchmarkMetrics.ts)
+- [src/lib/eval/benchmarkRunner.ts](src/lib/eval/benchmarkRunner.ts)
+- [scripts/ragEval.config.ts](scripts/ragEval.config.ts) (legacy datasets)
 - [src/lib/eval/ragEval.ts](src/lib/eval/ragEval.ts)
 - [src/lib/eval/queryLogDrafts.ts](src/lib/eval/queryLogDrafts.ts)
 

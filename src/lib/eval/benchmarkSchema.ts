@@ -1,0 +1,50 @@
+import type { SupportedFileType } from "../shared/types";
+
+/** Version 1 benchmark file (JSON). See docs/EVAL_GUIDE.md */
+export interface BenchmarkDocumentRefV1 {
+  id: string;
+  /** Path relative to repository root (or cwd when running eval). */
+  path: string;
+  title?: string;
+  parserHint?: SupportedFileType;
+}
+
+export interface BenchmarkExpectedCitationsV1 {
+  /** At least one citation fileName must include one of these substrings (case-insensitive). */
+  fileNameIncludes?: string[];
+}
+
+export interface BenchmarkCaseV1 {
+  id: string;
+  question: string;
+  /**
+   * Expected source documents: match by exact `fileName`, exact `documentId`, or basename substring.
+   * Empty array with `mustRefuse: true` means no document should be confidently retrieved.
+   */
+  expectedDocs: string[];
+  /** Optional phrases that should appear in top retrieval evidence/snippets or direct answer (case-insensitive). */
+  expectedFacts?: string[];
+  expectedCitations?: BenchmarkExpectedCitationsV1;
+  mustRefuse: boolean;
+  notes?: string;
+}
+
+export interface BenchmarkFileV1 {
+  schemaVersion: 1;
+  id: string;
+  description?: string;
+  chunkSize?: number;
+  chunkOverlap?: number;
+  /** Top-k for retrieval metrics and for answer pipeline input. Default 8. */
+  retrievalTopK?: number;
+  documents: BenchmarkDocumentRefV1[];
+  cases: BenchmarkCaseV1[];
+}
+
+export function isBenchmarkFileV1(value: unknown): value is BenchmarkFileV1 {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const record = value as Record<string, unknown>;
+  return record.schemaVersion === 1 && typeof record.id === "string" && Array.isArray(record.documents) && Array.isArray(record.cases);
+}

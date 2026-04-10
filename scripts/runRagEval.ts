@@ -1,11 +1,23 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { evaluateCase, summarizeCaseResults, type EvalCaseResult } from "../src/lib/eval/ragEval";
 import { chunkText } from "../src/lib/modules/chunk/chunkText";
 import { parseDocument } from "../src/lib/modules/parse/parseDocument";
 import { searchChunks } from "../src/lib/modules/retrieve/searchIndex";
 import type { ChunkRecord, DocumentRecord, SupportedFileType } from "../src/lib/shared/types";
 import { ragEvalDatasets } from "./ragEval.config";
+import {
+  loadBenchmarkJsonFile,
+  materializeBenchmarkLibrary,
+  renderBenchmarkMarkdownReport,
+  runBenchmarkCases,
+  writeReportToFile
+} from "../src/lib/eval/benchmarkRunner";
+import { summarizeBenchmarkResults } from "../src/lib/eval/benchmarkMetrics";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(__dirname, "..");
 
 const requestedDatasetId = process.argv[2] ?? null;
 
@@ -66,7 +78,7 @@ async function loadDataset(datasetId: string): Promise<{
   return { documents, chunks };
 }
 
-async function runDataset(datasetId: string): Promise<{ datasetId: string; caseResults: EvalCaseResult[] }> {
+async function runLegacyDataset(datasetId: string): Promise<{ datasetId: string; caseResults: EvalCaseResult[] }> {
   const dataset = ragEvalDatasets.find((item) => item.id === datasetId);
   if (!dataset) {
     throw new Error(`Unknown dataset: ${datasetId}`);
@@ -81,17 +93,81 @@ async function runDataset(datasetId: string): Promise<{ datasetId: string; caseR
   return { datasetId, caseResults };
 }
 
-const datasetIds = requestedDatasetId ? [requestedDatasetId] : ragEvalDatasets.map((item) => item.id);
-const failures: string[] = [];
+async function runBenchmarkMode(benchmarkPath: string): Promise<void> {
+  const resolved = path.isAbsolute(benchmarkPath) ? benchmarkPath : path.join(repoRoot, benchmarkPath);
+  const config = loadBenchmarkJsonFile(resolved);
+  const { documents, chunks } = await materializeBenchmarkLibrary(config, repoRoot);
+  const caseResults = await runBenchmarkCases(config, documents, chunks);
+  const summary = summarizeBenchmarkResults(caseResults);
+  const generatedAt = new Date().toISOString();
+  const stamp = generatedAt.replace(/[:.]/g, "-");
+  const reportPath = path.join(repoRoot, "reports", "rag-eval", `eval-${stamp}.md`);
 
-for (const datasetId of datasetIds) {
+  const markdown = renderBenchmarkMarkdownReport({
+    benchmarkId: config.id,
+    benchmarkPath: resolved,
+    config,
+    caseResults,
+    generatedAt
+  });
+
+  writeReportToFile(markdown, reportPath);
+
+  console.log(`\nBenchmark: ${config.id}`);
+  console.log(config.description ?? "");
+  console.log(`Passed ${summary.passed}/${summary.total}`);
+  console.log(`Mean recall@k: ${summary.meanRecallAtK.toFixed(3)} | Doc hit rate: ${summary.docHitRate.toFixed(3)}`);
+  console.log(`mustRefuse correct: ${summary.mustRefuseCorrect}/${summary.mustRefuseCases}`);
+  console.log(`\nReport written: ${reportPath}`);
+
+  for (const row of caseResults.filter((item) => !item.passed)) {
+    console.log(`\nFAIL ${row.case.id} :: ${row.case.question}`);
+    console.log(row.failureReasons.join("; "));
+  }
+
+  if (summary.failed > 0) {
+    process.exit(1);
+  }
+}
+
+async function main(): Promise<void> {
+  if (requestedDatasetId === "--legacy-all") {
+    const failures: string[] = [];
+    for (const datasetId of ragEvalDatasets.map((item) => item.id)) {
+      try {
+        const { caseResults } = await runLegacyDataset(datasetId);
+        const summary = summarizeCaseResults(caseResults);
+        console.log(`\nDataset: ${datasetId} — Passed ${summary.passed}/${summary.total}`);
+        for (const caseResult of caseResults.filter((item) => !item.passed)) {
+          failures.push(`${datasetId}:${caseResult.evalCase.id}`);
+        }
+      } catch (error) {
+        failures.push(datasetId);
+        console.log(`\nDataset: ${datasetId}`);
+        console.log(`ERROR ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    if (failures.length > 0) {
+      console.error(`\nRAG eval failed for ${failures.join(", ")}`);
+      process.exit(1);
+    }
+    return;
+  }
+
+  if (!requestedDatasetId || requestedDatasetId.endsWith(".json")) {
+    const benchmarkPath = requestedDatasetId ?? path.join("benchmarks", "benchmark.v1.json");
+    await runBenchmarkMode(benchmarkPath);
+    return;
+  }
+
+  const failures: string[] = [];
   try {
-    const dataset = ragEvalDatasets.find((item) => item.id === datasetId);
+    const dataset = ragEvalDatasets.find((item) => item.id === requestedDatasetId);
     if (!dataset) {
-      throw new Error(`Unknown dataset: ${datasetId}`);
+      throw new Error(`Unknown dataset: ${requestedDatasetId}. Use a dataset id from ragEval.config.ts or a .json benchmark file.`);
     }
 
-    const { caseResults } = await runDataset(datasetId);
+    const { caseResults } = await runLegacyDataset(requestedDatasetId);
     const summary = summarizeCaseResults(caseResults);
 
     console.log(`\nDataset: ${dataset.id}`);
@@ -114,14 +190,16 @@ for (const datasetId of datasetIds) {
       }
     }
   } catch (error) {
-    failures.push(datasetId);
+    failures.push(requestedDatasetId);
     const message = error instanceof Error ? error.message : String(error);
-    console.log(`\nDataset: ${datasetId}`);
+    console.log(`\nDataset: ${requestedDatasetId}`);
     console.log(`ERROR ${message}`);
+  }
+
+  if (failures.length > 0) {
+    console.error(`\nRAG eval failed for ${failures.join(", ")}`);
+    process.exit(1);
   }
 }
 
-if (failures.length > 0) {
-  console.error(`\nRAG eval failed for ${failures.join(", ")}`);
-  process.exit(1);
-}
+void main();

@@ -7,3 +7,6 @@ release
 coverage
 data
 
+# Generated RAG eval reports (keep directory in repo via .gitkeep)
+reports/rag-eval/*.md
+
