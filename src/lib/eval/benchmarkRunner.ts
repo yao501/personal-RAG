@@ -90,7 +90,7 @@ export async function runBenchmarkCases(
   const evalDebug = process.env.PKRAG_RETRIEVAL_DEBUG === "1";
 
   for (const benchmarkCase of config.cases) {
-    const { results: searchResults, vectorChunkIds, candidateChunks } = await runRetrievalLikeDesktop(
+    const { results: searchResults, vectorChunkIds, candidateChunks, queryRetrievalType } = await runRetrievalLikeDesktop(
       benchmarkCase.question,
       documents,
       chunks,
@@ -112,7 +112,8 @@ export async function runBenchmarkCases(
             {
               searchLimit: topK,
               vectorRecallBackend: "memory",
-              runtime: "eval"
+              runtime: "eval",
+              queryRetrievalType
             }
           )
         )

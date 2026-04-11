@@ -1,5 +1,7 @@
 import type { SearchResult } from "../../shared/types";
 import { isFullWorkflowInstallQuery } from "./fullWorkflowBias";
+import type { QueryRetrievalType } from "./queryRetrievalType";
+import { resolveQueryRetrievalType } from "./queryRetrievalType";
 
 const M1_INSTALL = /用户手册1_软件安装/i;
 const M2_QUICK = /用户手册2_快速入门/i;
@@ -26,18 +28,25 @@ function rescore(results: SearchResult[], deltaFor: (r: SearchResult) => number)
  * - Part A：安装/流程/编译域间/功能块 等措辞 → 偏置对应分册（手册1/2、3、7）。
  * - Part B：全流程类问题 → 提升顺序链与手册1/2 中工程主链片段；压低手册5 中海康/视频等噪声块。
  */
-export function applySprint53cRetrievalBias(question: string, results: SearchResult[]): SearchResult[] {
+export function applySprint53cRetrievalBias(
+  question: string,
+  results: SearchResult[],
+  queryType: QueryRetrievalType = resolveQueryRetrievalType(question)
+): SearchResult[] {
   if (results.length === 0) {
     return results;
   }
   const q = question.trim();
 
   const installOrFlow =
+    queryType === "procedural_full_flow" ||
     /(?:安装|快速入门|完整步骤|完整使用|从\s*安装|全流程|投运|整体流程|先做什么|后做什么|主链路|到\s*[^。！？\n]{0,24}运行|依次|环节)/.test(q) ||
     isFullWorkflowInstallQuery(q);
-  const engOrCross = /(?:编译|下装|域间|分组|工程总控|引用表|操作站|历史站)/.test(q);
+  const engOrCross =
+    queryType === "compile_order" || /(?:编译|下装|域间|分组|工程总控|引用表|操作站|历史站)/.test(q);
   const fbOrAlign = /(?:参数对齐|TRUE|FALSE|功能块|功能块参数|属性)/i.test(q);
   const wf =
+    queryType === "procedural_full_flow" ||
     isFullWorkflowInstallQuery(q) ||
     /(?:完整步骤|全流程|整体流程|主链路|环节|依次做|依次完成|依次|完整使用步骤)/.test(q);
 

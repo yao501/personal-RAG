@@ -169,12 +169,8 @@ async function runQuestion(
   chunks: ChunkRecord[]
 ) {
   const topK = DEFAULT_RETRIEVAL_LIMIT;
-  const { results: searchResults, vectorChunkIds, candidateChunks } = await runRetrievalLikeDesktop(
-    question,
-    documents,
-    chunks,
-    { limit: topK, hydrateEmbeddings: true }
-  );
+  const { results: searchResults, vectorChunkIds, candidateChunks, queryRetrievalType } =
+    await runRetrievalLikeDesktop(question, documents, chunks, { limit: topK, hydrateEmbeddings: true });
   const answer = answerQuestion(question, searchResults);
   const debug = buildRetrievalDebugPayload(
     question,
@@ -182,7 +178,7 @@ async function runQuestion(
     candidateChunks.length,
     searchResults,
     answer,
-    { searchLimit: topK, vectorRecallBackend: "memory", runtime: "eval" }
+    { searchLimit: topK, vectorRecallBackend: "memory", runtime: "eval", queryRetrievalType }
   );
   return {
     direct_answer: answer.directAnswer,

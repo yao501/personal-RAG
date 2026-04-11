@@ -2,9 +2,11 @@ import type { ChatAnswer, SearchResult } from "../../shared/types";
 import { isCautiousProceduralAnswer } from "../answer/cautiousMarkers";
 import { detectQueryIntent } from "./queryIntent";
 import { expandQueryTokens } from "./queryFeatures";
+import type { QueryRetrievalType } from "./queryRetrievalType";
+import { resolveQueryRetrievalType } from "./queryRetrievalType";
 
-/** Bump when JSON shape changes (for log parsers). Sprint 5.2 adds `vectorRecallBackend` + `runtime`. */
-export const RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION = 2;
+/** Bump when JSON shape changes (for log parsers). v3 adds `queryRetrievalType` (P0-B). */
+export const RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION = 3;
 
 export type VectorRecallBackend = "lancedb" | "memory";
 export type RetrievalDebugRuntime = "desktop" | "eval";
@@ -13,6 +15,8 @@ export interface RetrievalDebugBuildOptions {
   searchLimit?: number;
   vectorRecallBackend?: VectorRecallBackend;
   runtime?: RetrievalDebugRuntime;
+  /** When set (e.g. from `runRetrievalLikeDesktop`), must match pipeline bias input. */
+  queryRetrievalType?: QueryRetrievalType;
 }
 
 export interface RetrievalDebugPayload {
@@ -29,6 +33,8 @@ export interface RetrievalDebugPayload {
   expandedTokens: string[];
   intentPrimary: string;
   intentWantsSteps: boolean;
+  /** Coarse retrieval bucket for bias + logs (P0-B B1). */
+  queryRetrievalType: QueryRetrievalType;
   vectorShortlistCount: number;
   candidateChunkCount: number;
   /** `searchChunks` limit (desktop default 6). */
@@ -62,11 +68,15 @@ function detectRefusalAnswer(answer: ChatAnswer): boolean {
   );
 }
 
-export function buildQueryRetrievalDebugHints(question: string): {
+export function buildQueryRetrievalDebugHints(
+  question: string,
+  queryRetrievalTypeOverride?: QueryRetrievalType
+): {
   effectiveQueryTokens: string[];
   expandedTokens: string[];
   intentPrimary: string;
   intentWantsSteps: boolean;
+  queryRetrievalType: QueryRetrievalType;
 } {
   const intent = detectQueryIntent(question);
   const expanded = expandQueryTokens(question, intent);
@@ -75,7 +85,8 @@ export function buildQueryRetrievalDebugHints(question: string): {
     effectiveQueryTokens,
     expandedTokens: expanded,
     intentPrimary: intent.primary,
-    intentWantsSteps: intent.wantsSteps
+    intentWantsSteps: intent.wantsSteps,
+    queryRetrievalType: queryRetrievalTypeOverride ?? resolveQueryRetrievalType(question)
   };
 }
 
@@ -90,7 +101,7 @@ export function buildRetrievalDebugPayload(
   const searchLimit = options?.searchLimit ?? 6;
   const vectorRecallBackend = options?.vectorRecallBackend ?? "lancedb";
   const runtime = options?.runtime ?? "desktop";
-  const hints = buildQueryRetrievalDebugHints(question);
+  const hints = buildQueryRetrievalDebugHints(question, options?.queryRetrievalType);
   return {
     schemaVersion: RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION,
     kind: "pkrag.retrieval",

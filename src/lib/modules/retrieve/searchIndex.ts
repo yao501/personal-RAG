@@ -3,6 +3,7 @@ import { cosineSimilarity as cosineSimilarityVector } from "../embed/localEmbedd
 import { formatEvidenceAnchorLabel } from "../citation/locator";
 import { extractSectionRootLabel } from "../citation/sectionRoot";
 import { detectQueryIntent } from "./queryIntent";
+import { retrievalHaystack } from "./retrievalHaystack";
 import { expandQueryTokens, isRoleQuestion, maxConsecutiveTokenMatch, selectAnchorTokens } from "./queryFeatures";
 import {
   chunkQualityScore,
@@ -165,9 +166,7 @@ function normalizeFreshness(timestamp: number, minTimestamp: number, maxTimestam
 }
 
 function getChunkContext(chunk: ChunkRecord, document: DocumentRecord): string {
-  return [document.title, document.fileName, chunk.sectionTitle, chunk.sectionPath, chunk.text]
-    .filter(Boolean)
-    .join("\n");
+  return [document.title, document.fileName, retrievalHaystack(chunk)].filter(Boolean).join("\n");
 }
 
 function splitSentenceLike(text: string): string[] {
@@ -438,7 +437,7 @@ export function searchChunks(
   const queryNgrams = charNgrams(query);
   const anchorTokens = selectAnchorTokens(queryTokens);
   const effectiveTokens = anchorTokens.length > 0 ? anchorTokens : queryTokens;
-  const chunkTokens = chunks.map((chunk) => tokenize(chunk.text));
+  const chunkTokens = chunks.map((chunk) => tokenize(retrievalHaystack(chunk)));
   const documentFrequency = new Map<string, number>();
 
   for (const tokens of chunkTokens) {
@@ -499,7 +498,7 @@ export function searchChunks(
       const evidenceCoverage = effectiveTokens.length > 0 ? evidenceMatchedTokenCount / effectiveTokens.length : 0;
       const rerankScore =
         coverage * 1.35 +
-        phraseBoost(query, chunk.text) * 0.45 +
+        phraseBoost(query, retrievalHaystack(chunk)) * 0.45 +
         metadataBoost +
         longestMatch * 0.05 +
         sectionBoost * 0.55 +

@@ -1,4 +1,5 @@
 import type { ChunkRecord, DocumentRecord } from "../../shared/types";
+import { retrievalHaystack } from "./retrievalHaystack";
 import { tokenize } from "./tokenize";
 
 /**
@@ -20,7 +21,7 @@ export function selectCandidateChunksFromVectors(
   const queryTokens = tokenize(question).filter((token) => token.length >= 2);
   const lexicalFallback = chunks.filter((chunk) => {
     const document = documentMap.get(chunk.documentId);
-    const haystack = [document?.title, document?.fileName, chunk.sectionTitle, chunk.sectionPath, chunk.text]
+    const haystack = [document?.title, document?.fileName, retrievalHaystack(chunk)]
       .filter(Boolean)
       .join("\n")
       .toLowerCase();

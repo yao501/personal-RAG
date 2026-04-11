@@ -7,6 +7,11 @@ This document describes the **local-first** benchmark format and how to run the 
 - Before or after changing chunking, retrieval, reranking, or answer assembly.
 - To compare two branches or commits using the same benchmark file and the same runner.
 
+### Real-library regression track (P0-A)
+
+- **Plan and scope:** [`docs/P0-A_REAL_QUERY_EXPANSION_PLAN.md`](P0-A_REAL_QUERY_EXPANSION_PLAN.md) — small, anonymized real questions; no benchmark inflation in early rounds.
+- **Directory placeholder (cases + `fail_stage` notes):** [`evals/cases/README.md`](../evals/cases/README.md).
+
 ## Benchmark format (`schemaVersion: 1`)
 
 Benchmarks are JSON files (single object). See `benchmarks/benchmark.v1.json`.
@@ -143,9 +148,10 @@ export PKRAG_RETRIEVAL_DEBUG=1
 - **Electron**: each `askQuestion` logs **one JSON object per line** (stderr).
 - **Eval runner**: logs **one line per benchmark case** when the same env var is set (same schema for apples-to-apples inspection).
 
-Payload **`schemaVersion` is 2** (`RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION`). Fields include:
+Payload **`schemaVersion` is 3** (`RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION`). Fields include:
 
 - `vectorRecallBackend` (`lancedb` | `memory`), `runtime` (`desktop` | `eval`)
+- `queryRetrievalType` — coarse P0-B bucket (`procedural_full_flow` | `compile_order` | `definition` | `troubleshooting` | `default`) aligned with retrieval bias
 - `effectiveQueryTokens` / `expandedTokens` / `intentPrimary` / `intentWantsSteps` — aligned with `searchChunks` tokenization
 - `vectorShortlistCount`, `candidateChunkCount`, `searchTopK`
 - `topResults` — top `searchTopK` rows with scores

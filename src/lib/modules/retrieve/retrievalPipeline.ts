@@ -1,6 +1,9 @@
 import { cosineSimilarity, embedTexts } from "../embed/localEmbedder";
 import type { ChunkRecord, DocumentRecord, SearchResult } from "../../shared/types";
 import { applyFullWorkflowRetrievalBias, injectSprint53aCandidateChunks } from "./fullWorkflowBias";
+import { retrievalHaystack } from "./retrievalHaystack";
+import type { QueryRetrievalType } from "./queryRetrievalType";
+import { resolveQueryRetrievalType } from "./queryRetrievalType";
 import { applySprint53cRetrievalBias } from "./sprint53cBias";
 import { selectCandidateChunksFromVectors } from "./candidateChunks";
 import { searchChunks } from "./searchIndex";
@@ -61,7 +64,7 @@ export async function hydrateChunkEmbeddingsForEval(chunks: ChunkRecord[]): Prom
     return chunks;
   }
 
-  const texts = need.map((chunk) => [chunk.sectionPath, chunk.text].filter(Boolean).join("\n"));
+  const texts = need.map((chunk) => retrievalHaystack(chunk));
   const vectors = await embedTexts(texts);
   let index = 0;
   return chunks.map((chunk) => {
@@ -82,6 +85,8 @@ export interface RetrievalPipelineResult {
   queryEmbedding: number[] | null;
   vectorChunkIds: string[];
   candidateChunks: ChunkRecord[];
+  /** P0-B: coarse bucket for bias + debug; see {@link resolveQueryRetrievalType}. */
+  queryRetrievalType: QueryRetrievalType;
 }
 
 /**
@@ -137,6 +142,7 @@ export async function runRetrievalLikeDesktop(
     queryEmbedding = null;
   }
 
+  const queryRetrievalType = resolveQueryRetrievalType(question);
   const vectorChunkIds = rankChunkIdsByEmbeddingSimilarity(working, queryEmbedding, VECTOR_SHORTLIST_MAX);
   const candidateChunks = selectCandidateChunksFromVectors(question, documents, working, vectorChunkIds);
   let results = searchChunks(question, documents, candidateChunks, limit, queryEmbedding);
@@ -147,13 +153,14 @@ export async function runRetrievalLikeDesktop(
     results = injectSprint53aCandidateChunks(question, results, candidateChunks, documents, limit, working);
   }
   if (use53c) {
-    results = applySprint53cRetrievalBias(question, results);
+    results = applySprint53cRetrievalBias(question, results, queryRetrievalType);
   }
 
   return {
     results,
     queryEmbedding,
     vectorChunkIds,
-    candidateChunks
+    candidateChunks,
+    queryRetrievalType
   };
 }

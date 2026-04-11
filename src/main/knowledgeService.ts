@@ -7,6 +7,7 @@ import { embedTexts, getEmbeddingStatus } from "../lib/modules/embed/localEmbedd
 import { answerQuestion } from "../lib/modules/answer/answerQuestion";
 import { parseDocument } from "../lib/modules/parse/parseDocument";
 import { buildRetrievalDebugPayload } from "../lib/modules/retrieve/retrievalDebug";
+import { resolveQueryRetrievalType } from "../lib/modules/retrieve/queryRetrievalType";
 import { selectCandidateChunksFromVectors } from "../lib/modules/retrieve/candidateChunks";
 import { searchChunks } from "../lib/modules/retrieve/searchIndex";
 import type {
@@ -802,7 +803,8 @@ export class KnowledgeService {
           buildRetrievalDebugPayload(question, vectorChunkIds, candidateChunks.length, results, answer, {
             searchLimit: 6,
             vectorRecallBackend: "lancedb",
-            runtime: "desktop"
+            runtime: "desktop",
+            queryRetrievalType: resolveQueryRetrievalType(question)
           })
         )
       );

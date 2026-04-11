@@ -684,4 +684,54 @@ describe("searchChunks", () => {
     expect(results[1]?.sectionRootLabel).toBe("5.4 OPC客户端");
     expect(results.slice(0, 2).map((result) => result.chunkId).sort()).toEqual(["direction", "server-config"]);
   });
+
+  it("lexical scoring uses sectionTitle in haystack so title-only keyword hits still rank", () => {
+    const documents: DocumentRecord[] = [
+      {
+        id: "doc-1",
+        filePath: "/tmp/manual.pdf",
+        fileName: "manual.pdf",
+        title: "物理实验手册",
+        fileType: "pdf",
+        content: "",
+        importedAt: "2026-04-01T00:00:00.000Z",
+        updatedAt: "2026-04-01T00:00:00.000Z",
+        sourceCreatedAt: "2026-04-01T00:00:00.000Z",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        chunkCount: 2
+      }
+    ];
+
+    const chunks: ChunkRecord[] = [
+      {
+        id: "unrelated-body",
+        documentId: "doc-1",
+        text: "本段讨论天气与饮食，与实验步骤检索词无关。",
+        chunkIndex: 0,
+        startOffset: 0,
+        endOffset: 24,
+        tokenCount: 12,
+        sectionTitle: "附录杂记",
+        sectionPath: "物理实验手册 > 附录杂记",
+        headingTrail: "物理实验手册 > 附录杂记"
+      },
+      {
+        id: "title-only-hit",
+        documentId: "doc-1",
+        text: "正文仅为占位句子，不出现检索短语中的词。",
+        chunkIndex: 1,
+        startOffset: 25,
+        endOffset: 48,
+        tokenCount: 12,
+        sectionTitle: "量子纠缠实验步骤",
+        sectionPath: "物理实验手册 > 量子纠缠实验步骤",
+        headingTrail: "物理实验手册 > 量子纠缠实验步骤"
+      }
+    ];
+
+    const results = searchChunks("量子纠缠实验步骤", documents, chunks, 2);
+
+    expect(results[0]?.chunkId).toBe("title-only-hit");
+    expect(results[0]?.lexicalScore).toBeGreaterThan(0);
+  });
 });

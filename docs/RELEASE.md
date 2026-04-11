@@ -67,6 +67,18 @@ Use this before sharing a build outside your own machine:
 - **Multi-arch** (x64) or universal binaries.
 - **CI** job that uploads `release/` artifacts (add only when signing story is clearer).
 
+## Apple distribution pipeline checklist (manual, P0-C)
+
+勾选每一行时填写「命令 / 期望关键词 / 当前是否具备 / 缺口」。首轮以文档闭环为主，不要求 CI 全自动。
+
+| Step | Command or entry | Expect to see (keyword) | In repo today? | Gap if not |
+|------|-------------------|-------------------------|----------------|------------|
+| **build** | `npm run release:mac`（或 `npm run build` + `electron-builder --mac`） | `release/mac-arm64/`、`.app`、`electron-builder` **done** | Yes — produces unpacked `.app` under `release/mac-arm64/` | — |
+| **sign** | `codesign --verify --deep --strict ...` on the `.app`（具体 identity 见 Apple 账号与 `codesign -dvvv`） | **valid on disk**、Team ID 与签名链一致 | No — Developer ID / entitlements 未在仓库内固化 | 需证书、Provisioning、entitlements 文件与本地 `codesign` 脚本 |
+| **notarize** | `xcrun notarytool submit ...`（或 `altool` 已弃用路径） | **Accepted**、UUID、`status: Accepted` | No — 无自动化提交与存储凭证 | 需 App Store Connect API key 或 Apple ID app 专用密码、CI secret 策略 |
+| **staple** | `xcrun stapler staple "…/MyApp.app"` | **The staple and validate action worked** | No — 依赖成功 notarize | 需上一步通过后再 staple |
+| **verify** | `spctl --assess --verbose --type execute .../MyApp.app` | **accepted** / **source=Notarized Developer ID** | No — 未作为发布门禁运行 | 在干净 macOS 用户上 gatekeeper 抽检 |
+
 ## Related documentation
 
 - End-user style install steps and Gatekeeper notes: **`docs/INSTALLATION.md`**

@@ -62,12 +62,8 @@ async function main(): Promise<void> {
   }> = [];
 
   for (const q of input.questions) {
-    const { results: searchResults, vectorChunkIds, candidateChunks } = await runRetrievalLikeDesktop(
-      q.question,
-      documents,
-      chunks,
-      { limit: topK, hydrateEmbeddings: true }
-    );
+    const { results: searchResults, vectorChunkIds, candidateChunks, queryRetrievalType } =
+      await runRetrievalLikeDesktop(q.question, documents, chunks, { limit: topK, hydrateEmbeddings: true });
     const answer = answerQuestion(q.question, searchResults);
     const debug = buildRetrievalDebugPayload(
       q.question,
@@ -75,7 +71,7 @@ async function main(): Promise<void> {
       candidateChunks.length,
       searchResults,
       answer,
-      { searchLimit: topK, vectorRecallBackend: "memory", runtime: "eval" }
+      { searchLimit: topK, vectorRecallBackend: "memory", runtime: "eval", queryRetrievalType }
     );
 
     out.push({
