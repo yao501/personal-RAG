@@ -8,6 +8,7 @@ import { answerQuestion } from "../lib/modules/answer/answerQuestion";
 import { parseDocument } from "../lib/modules/parse/parseDocument";
 import { buildRetrievalDebugPayload } from "../lib/modules/retrieve/retrievalDebug";
 import { resolveQueryRetrievalType } from "../lib/modules/retrieve/queryRetrievalType";
+import { applySprint53cRetrievalBias } from "../lib/modules/retrieve/sprint53cBias";
 import { selectCandidateChunksFromVectors } from "../lib/modules/retrieve/candidateChunks";
 import { searchChunks } from "../lib/modules/retrieve/searchIndex";
 import type {
@@ -774,6 +775,8 @@ export class KnowledgeService {
     const chunks = await this.backfillMissingEmbeddings(documents, this.store.listChunks());
     let queryEmbedding: number[] | null = null;
 
+    const queryRetrievalType = resolveQueryRetrievalType(question);
+
     try {
       const [vector] = await embedTexts([question]);
       queryEmbedding = vector ?? null;
@@ -795,7 +798,10 @@ export class KnowledgeService {
     }
 
     const candidateChunks = selectCandidateChunksFromVectors(question, documents, chunks, vectorChunkIds);
-    const results = searchChunks(question, documents, candidateChunks, 6, queryEmbedding);
+    const baseResults = searchChunks(question, documents, candidateChunks, 6, queryEmbedding);
+    const results = applySprint53cRetrievalBias(question, baseResults, queryRetrievalType, {
+      documentCount: documents.length
+    });
     const answer = answerQuestion(question, results);
     if (process.env.PKRAG_RETRIEVAL_DEBUG === "1") {
       console.log(
@@ -804,7 +810,7 @@ export class KnowledgeService {
             searchLimit: 6,
             vectorRecallBackend: "lancedb",
             runtime: "desktop",
-            queryRetrievalType: resolveQueryRetrievalType(question)
+            queryRetrievalType
           })
         )
       );

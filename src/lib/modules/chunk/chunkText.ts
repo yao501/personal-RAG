@@ -24,6 +24,76 @@ interface SectionUnit {
 
 const MARKDOWN_HEADING = /^(#{1,6})\s+(.+?)\s*$/;
 
+/**
+ * P0-B B4 (single-rule, single-fragment):
+ * PDF 抽取文本在「术语/参数表」附近常出现空行密集，导致术语名行与解释行被分到不同 block（`\\n{2,}`）并进而切碎。
+ *
+ * 该规则只在 PDF 路径启用（`pageSpans` 存在时），且只针对 Q8 同族的白名单 cue：
+ * - `参数对齐`
+ * - `该属性设为` + `TRUE/FALSE`
+ *
+ * 动作：在 cue 附近的有限窗口内，把“表格/短行”之间的空行折叠为单换行，减少硬切分。
+ * 非目标：不重写 parse 栈；不做通用表格识别；不影响 markdown/纯文本导入。
+ */
+function coalescePdfTermTableWhitespaceForB4(text: string): string {
+  if (!/参数对齐/.test(text) && !(/该属性设为/.test(text) && /TRUE/i.test(text) && /FALSE/i.test(text))) {
+    return text;
+  }
+
+  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  const out: string[] = [];
+  const windowSize = 28;
+  let windowRemaining = 0;
+  let recentCueLine = false;
+
+  const isShortTableLikeLine = (line: string): boolean => {
+    const t = line.trim();
+    if (!t) {
+      return false;
+    }
+    if (t.length > 22) {
+      return false;
+    }
+    // short, column-like signals
+    return /^(?:[0-9.]+|TRUE|FALSE|是|否|0|1)\b/i.test(t) || /(?:TRUE|FALSE|是|否|点名|赋值)/i.test(t);
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] ?? "";
+    const trimmed = line.trim();
+
+    if (/参数对齐/.test(trimmed) || (/该属性设为/.test(trimmed) && /TRUE/i.test(trimmed) && /FALSE/i.test(trimmed))) {
+      windowRemaining = windowSize;
+      recentCueLine = true;
+    } else if (trimmed) {
+      recentCueLine = false;
+    }
+
+    if (!trimmed) {
+      const prev = out.at(-1) ?? "";
+      const next = lines[i + 1] ?? "";
+      const shouldFold =
+        windowRemaining > 0 &&
+        ((recentCueLine && next.trim().length > 0) || (isShortTableLikeLine(prev) && isShortTableLikeLine(next)));
+      if (shouldFold) {
+        // fold blank line inside table-like short lines to avoid `\n{2,}` block split.
+        continue;
+      } else {
+        out.push(line);
+      }
+    } else {
+      out.push(line);
+    }
+
+    if (windowRemaining > 0) {
+      windowRemaining -= 1;
+    }
+  }
+
+  // Collapse 2+ blank lines to a single blank line within the processed text.
+  return out.join("\n").replace(/\n{3,}/g, "\n\n");
+}
+
 function endsWithContinuationMarker(text: string): boolean {
   const trimmed = text.trim();
   return /[：:([（"“]$/.test(trimmed);
@@ -149,7 +219,7 @@ function splitOversizedUnit(unit: SectionUnit, maxTokens: number, pageSpans?: So
 }
 
 function buildUnits(text: string, pageSpans?: SourcePageSpan[]): SectionUnit[] {
-  const normalized = text.replace(/\r\n/g, "\n").trim();
+  const normalized = (pageSpans ? coalescePdfTermTableWhitespaceForB4(text) : text).replace(/\r\n/g, "\n").trim();
   if (!normalized) {
     return [];
   }

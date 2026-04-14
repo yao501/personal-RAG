@@ -153,7 +153,9 @@ export async function runRetrievalLikeDesktop(
     results = injectSprint53aCandidateChunks(question, results, candidateChunks, documents, limit, working);
   }
   if (use53c) {
-    results = applySprint53cRetrievalBias(question, results, queryRetrievalType);
+    results = applySprint53cRetrievalBias(question, results, queryRetrievalType, {
+      documentCount: documents.length
+    });
   }
 
   return {

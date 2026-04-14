@@ -4,6 +4,7 @@ import { formatEvidenceAnchorLabel } from "../citation/locator";
 import { extractSectionRootLabel } from "../citation/sectionRoot";
 import { detectQueryIntent } from "./queryIntent";
 import { retrievalHaystack } from "./retrievalHaystack";
+import { normalizeForLexicalMatch } from "./termNormalize";
 import { expandQueryTokens, isRoleQuestion, maxConsecutiveTokenMatch, selectAnchorTokens } from "./queryFeatures";
 import {
   chunkQualityScore,
@@ -427,17 +428,19 @@ export function searchChunks(
   limit = 6,
   queryEmbedding: number[] | null = null
 ): SearchResult[] {
-  const intent = detectQueryIntent(query);
-  const queryTokens = [...new Set([...intent.queryTokens, ...expandQueryTokens(query, intent)])];
+  // B5: normalize only for lexical matching signals; do not mutate stored chunk text/snippets.
+  const lexicalQuery = normalizeForLexicalMatch(query);
+  const intent = detectQueryIntent(lexicalQuery);
+  const queryTokens = [...new Set([...intent.queryTokens, ...expandQueryTokens(lexicalQuery, intent)])];
   if (queryTokens.length === 0) {
     return [];
   }
 
   const documentMap = new Map(documents.map((document) => [document.id, document]));
-  const queryNgrams = charNgrams(query);
+  const queryNgrams = charNgrams(lexicalQuery);
   const anchorTokens = selectAnchorTokens(queryTokens);
   const effectiveTokens = anchorTokens.length > 0 ? anchorTokens : queryTokens;
-  const chunkTokens = chunks.map((chunk) => tokenize(retrievalHaystack(chunk)));
+  const chunkTokens = chunks.map((chunk) => tokenize(normalizeForLexicalMatch(retrievalHaystack(chunk))));
   const documentFrequency = new Map<string, number>();
 
   for (const tokens of chunkTokens) {
@@ -462,7 +465,10 @@ export function searchChunks(
       const tokens = chunkTokens[index] ?? [];
       const frequencies = termFrequency(tokens);
       const contextText = getChunkContext(chunk, document);
-      const metadataTokens = tokenize([document.title, chunk.sectionTitle, chunk.sectionPath].filter(Boolean).join(" "));
+      const lexicalContextText = normalizeForLexicalMatch(contextText);
+      const metadataTokens = tokenize(
+        normalizeForLexicalMatch([document.title, chunk.sectionTitle, chunk.sectionPath].filter(Boolean).join(" "))
+      );
       const embeddingScore = queryEmbedding ? cosineSimilarityVector(queryEmbedding, parseEmbedding(chunk.embedding)) * 3.2 : 0;
       const exactTitleBoost = titleBoost(query, document, chunk);
       const sectionBoost = intentSectionBoost(intent, chunk, document);
@@ -479,26 +485,26 @@ export function searchChunks(
         }
       }
 
-      lexicalScore += phraseBoost(query, contextText) + exactTitleBoost + sectionBoost * 0.4;
+      lexicalScore += phraseBoost(lexicalQuery, lexicalContextText) + exactTitleBoost + sectionBoost * 0.4;
 
       const semanticScore =
-        cosineSimilarity(queryNgrams, charNgrams(contextText)) * 2.2 +
+        cosineSimilarity(queryNgrams, charNgrams(lexicalContextText)) * 2.2 +
         jaccardSimilarity(queryTokens, tokens) * 1.4 +
         jaccardSimilarity(queryTokens, metadataTokens) * 1.1 +
         embeddingScore;
 
       const freshnessScore = normalizeFreshness(getDocumentTimestamp(document), minTimestamp, maxTimestamp);
-      const matchedTokenCount = effectiveTokens.filter((token) => contextText.toLowerCase().includes(token)).length;
+      const matchedTokenCount = effectiveTokens.filter((token) => lexicalContextText.toLowerCase().includes(token)).length;
       const coverage = matchedTokenCount / effectiveTokens.length;
-      const matchedAnchorCount = anchorTokens.filter((token) => contextText.toLowerCase().includes(token)).length;
+      const matchedAnchorCount = anchorTokens.filter((token) => lexicalContextText.toLowerCase().includes(token)).length;
       const metadataBoost = chunk.sectionTitle ? 0.18 : 0;
-      const longestMatch = maxConsecutiveTokenMatch(queryTokens, contextText);
+      const longestMatch = maxConsecutiveTokenMatch(queryTokens, lexicalContextText);
       const qualityScore = chunkQualityScore(chunk.text, chunk, document);
       const evidenceMatchedTokenCount = effectiveTokens.filter((token) => evidence.evidenceText.toLowerCase().includes(token.toLowerCase())).length;
       const evidenceCoverage = effectiveTokens.length > 0 ? evidenceMatchedTokenCount / effectiveTokens.length : 0;
       const rerankScore =
         coverage * 1.35 +
-        phraseBoost(query, retrievalHaystack(chunk)) * 0.45 +
+        phraseBoost(lexicalQuery, normalizeForLexicalMatch(retrievalHaystack(chunk))) * 0.45 +
         metadataBoost +
         longestMatch * 0.05 +
         sectionBoost * 0.55 +
@@ -524,7 +530,7 @@ export function searchChunks(
         /(用于|用来|负责|完成|实现|作用是)/.test(evidence.evidenceText) &&
         anchorTokens.some((token) => contextText.toLowerCase().includes(token.toLowerCase()));
       const hasStrongSignal =
-        phraseBoost(query, contextText) > 0 ||
+        phraseBoost(lexicalQuery, lexicalContextText) > 0 ||
         embeddingScore > 0.55 ||
         exactTitleBoost > 0 ||
         longestMatch >= 4 ||

@@ -104,4 +104,76 @@ describe("chunkText", () => {
     expect(chunks[0]?.locatorLabel).toContain("p.");
     expect(chunks[0]?.locatorLabel).toContain("para");
   });
+
+  it("B4 single-rule: coalesces PDF term/table whitespace around 参数对齐 so key phrases stay in one chunk", () => {
+    const fragment = [
+      "# 功能块",
+      "",
+      "## 1.6 术语",
+      "",
+      "参数对齐",
+      "",
+      "该属性设为 TRUE 的参数，在工程进行下装时，系统会将在线值和离线值进行对比并做值比较；若不一致会给出同步提示，由用户选择是否进行同步；若为 FALSE 则不进行值比较。",
+      "",
+      // table-like short lines with blank rows (common in PDF extraction)
+      "0.00",
+      "",
+      "否",
+      "",
+      "否",
+      "",
+      "请赋值为“副调点名.OVE”"
+    ].join("\n");
+
+    // Before (simulate non-PDF path: pageSpans absent => rule disabled)
+    const before = chunkText("doc-b4-before", fragment, {
+      chunkSize: 30,
+      chunkOverlap: 4,
+      documentTitle: "功能块"
+    });
+    const beforeHasAll = before.some(
+      (c) =>
+        (c.sectionTitle === "参数对齐" || c.text.includes("参数对齐")) &&
+        /TRUE/.test(c.text) &&
+        /FALSE/.test(c.text) &&
+        c.text.includes("在线值") &&
+        c.text.includes("离线值") &&
+        c.text.includes("同步") &&
+        c.text.includes("值比较")
+    );
+    expect(beforeHasAll).toBe(false);
+
+    // After (PDF path: pageSpans present => rule enabled)
+    const after = chunkText("doc-b4-after", fragment, {
+      chunkSize: 30,
+      chunkOverlap: 4,
+      documentTitle: "功能块",
+      pageSpans: [{ pageNumber: 1, startOffset: 0, endOffset: fragment.length }]
+    });
+    const afterHasAll = after.some(
+      (c) =>
+        (c.sectionTitle === "参数对齐" || c.text.includes("参数对齐")) &&
+        /TRUE/.test(c.text) &&
+        /FALSE/.test(c.text) &&
+        c.text.includes("在线值") &&
+        c.text.includes("离线值") &&
+        c.text.includes("同步") &&
+        c.text.includes("值比较")
+    );
+    expect(afterHasAll).toBe(true);
+  });
+
+  it("B4 non-target: keeps ordinary prose chunking behavior unchanged for non-PDF input", () => {
+    const prose = [
+      "# 说明",
+      "",
+      "这是一段普通说明文本，不包含布尔属性或参数表等提示。",
+      "",
+      "它应该按现有策略正常切分，不应触发 B4 的空行折叠规则。"
+    ].join("\n");
+
+    const chunks = chunkText("doc-b4-prose", prose, { chunkSize: 24, chunkOverlap: 4, documentTitle: "说明" });
+    expect(chunks.length).toBeGreaterThanOrEqual(1);
+    expect(chunks.some((c) => c.text.includes("参数对齐"))).toBe(false);
+  });
 });

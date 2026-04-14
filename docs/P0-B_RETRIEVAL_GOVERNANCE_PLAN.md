@@ -84,6 +84,41 @@
 
 **建议实施顺序**：**B3 → B1 → B2 → B5 → B4**（先统一 haystack，再挂类型与 prior，再扩归一，最后动切分——减少连锁 diff）。
 
+### B2 已落地（第二轮，P0-B）
+
+| 项 | 说明 |
+|----|------|
+| **模块** | `src/lib/modules/retrieve/sourcePrior.ts` — 分册族表 `MANUAL_FAMILY_PATTERNS`（install / quickstart / engineering / algorithm_config / graphics / field_ops / function_block），`computeSourcePriorDelta` + `rescoreBySourcePrior`。 |
+| **启用条件** | `documentCount >= 2`（`SOURCE_PRIOR_ENABLED_MIN_DOCUMENTS`）；单册库 delta 为 0，避免误伤。 |
+| **与 B1 组合** | 仅按 `QueryRetrievalType` 选用行：`procedural_full_flow` 抬安装/快速入门、压图形/现场（图形噪声另用正文启发）；`compile_order` 抬工程总控/算法组态；`definition` 抬功能块；`troubleshooting` 抬安装/入门/工程总控；`default` 仅弱提示（或问句像全流程/编译时的极小 fallback）。 |
+| **挂接点** | `applySprint53cRetrievalBias(..., { documentCount })` 内：`contentDelta`（chunk 正文启发） + `computeSourcePriorDelta`；`runRetrievalLikeDesktop` 传入 `documents.length`。 |
+
+### 桌面主链已桥接（小范围桥接 PR）
+
+- **桥接点**：`src/main/knowledgeService.ts` → `askQuestion()` 在 `searchChunks` 之后、`answerQuestion` 之前调用：
+  - `queryRetrievalType = resolveQueryRetrievalType(question)`（B1）
+  - `applySprint53cRetrievalBias(question, baseResults, queryRetrievalType, { documentCount: documents.length })`（B2/B1）
+- **共享治理层**：桌面与 eval 均复用 `src/lib/modules/retrieve/sprint53cBias.ts` + `src/lib/modules/retrieve/sourcePrior.ts`；桌面 debug payload 记录同一 `queryRetrievalType`。
+
+### B5 已落地（第三轮，P0-B，小步白名单）
+
+| 项 | 说明 |
+|----|------|
+| **模块** | `src/lib/modules/retrieve/termNormalize.ts` — `normalizeForLexicalMatch(text)`（白名单 + 表驱动扩展）。 |
+| **白名单范围（首轮）** | `TRUE/FALSE` 大小写/全角/断字归一；`启用/禁用` → `TRUE/FALSE` 扩展；`参数对齐` 触发 `在线值/离线值/值比较/同步/同步提示` 扩展；`Param/In/Out/引脚` 小步结构词扩展。 |
+| **生效层级** | **仅检索打分**：`searchChunks()` 在 tokenize/phrase/ngram 相关路径使用 `normalizeForLexicalMatch`；不改 chunk 原文、不改 citation/snippet。 |
+| **受益题型** | 定义/参数/TRUE-FALSE/表格项类问法在真实 PDF 中更稳定召回与排序（尤其是 Q8 同类问法的字面变体）。 |
+
+### B4 第一规则已落地（第四轮，P0-B，单规则）
+
+| 项 | 说明 |
+|----|------|
+| **目标单点** | Q8 同族：`参数对齐` + `TRUE/FALSE` + 在线/离线值比较 + 同步提示（手册 7 功能块） |
+| **规则位置** | `src/lib/modules/chunk/chunkText.ts`（`coalescePdfTermTableWhitespaceForB4`） |
+| **规则形态** | PDF 路径（`pageSpans` 存在）下，在白名单 cue 附近有限窗口内折叠“表格/短行”之间的空行，减少 `\\n{2,}` block 边界造成的切碎。 |
+| **验证** | `src/lib/modules/chunk/chunkText.test.ts`：同一片段 before/after（禁用/启用 PDF 路径）断言关键子串是否落在同一 chunk。 |
+| **非目标** | 不做通用表格识别；不改 parsePdf；不扩到多规则；不追求全 PDF 泛化。 |
+
 ---
 
 ## 4. 验收方案
