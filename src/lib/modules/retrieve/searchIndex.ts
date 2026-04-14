@@ -4,6 +4,7 @@ import { formatEvidenceAnchorLabel } from "../citation/locator";
 import { extractSectionRootLabel } from "../citation/sectionRoot";
 import { detectQueryIntent } from "./queryIntent";
 import { retrievalHaystack } from "./retrievalHaystack";
+import { computeNoiseChunkPenalty } from "./noiseChunkPenalty";
 import { normalizeForLexicalMatch } from "./termNormalize";
 import { expandQueryTokens, isRoleQuestion, maxConsecutiveTokenMatch, selectAnchorTokens } from "./queryFeatures";
 import {
@@ -512,11 +513,19 @@ export function searchChunks(
         roleAnswerBoost(query, evidence.evidenceText, chunk, document) +
         evidence.evidenceScore * 0.72 +
         Math.max(0, qualityScore) * 0.15;
+      const noisePenalty = computeNoiseChunkPenalty({
+        chunk,
+        document,
+        evidenceText: evidence.evidenceText,
+        intent,
+        qualityScore
+      });
       const penalty =
         mismatchPenalty(query, contextText) +
         intentMismatchPenalty(intent, chunk, document, evidence.evidenceText) +
         (intent.wantsSteps && anchorTokens.length > 0 && evidenceCoverage < 0.18 ? 0.45 : 0) +
-        Math.max(0, -qualityScore) * 0.9;
+        Math.max(0, -qualityScore) * 0.9 +
+        noisePenalty;
       const score =
         lexicalScore * 0.42 +
         semanticScore * 0.31 +

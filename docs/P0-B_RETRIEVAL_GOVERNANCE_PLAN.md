@@ -119,6 +119,16 @@
 | **验证** | `src/lib/modules/chunk/chunkText.test.ts`：同一片段 before/after（禁用/启用 PDF 路径）断言关键子串是否落在同一 chunk。 |
 | **非目标** | 不做通用表格识别；不改 parsePdf；不扩到多规则；不追求全 PDF 泛化。 |
 
+### Ranking 治理小轮已落地：压目录/表格短行伪段落
+
+| 项 | 说明 |
+|----|------|
+| **要压的噪声模式** | 目录点线（dot leaders）、表格表头（类型/项名/数据类型/描述/默认值/数据同步/掉电保护/参数对齐/强制/备注）、短行字段拼接（0.00/是/否/TRUE/FALSE 等密集但缺少解释句）。 |
+| **落点** | `src/lib/modules/retrieve/searchIndex.ts` penalty 汇总处（单点惩罚），调用 `src/lib/modules/retrieve/noiseChunkPenalty.ts`。 |
+| **如何避免误伤** | 对 Q8 同族“真实定义块”（参数对齐 + TRUE/FALSE + 在线/离线值比较 + 同步提示 + 解释句式）做白名单豁免；且仅在 `qualityScore` 不高时才加 penalty。 |
+| **验证** | `src/lib/modules/retrieve/noiseChunkPenalty.test.ts`：目录/表头识别 + “定义段压过表头/目录”排序行为。 |
+| **非目标** | 不做 parse 级目录清洗；不做 chunk boundary 第二条规则；不做通用表格结构化。 |
+
 ---
 
 ## 4. 验收方案

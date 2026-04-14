@@ -1,7 +1,7 @@
 # Sprint 5.3c 真实 PDF 抽样
 
 - **目录**：`/Users/guangyaosun/Desktop/和利时DCS操作手册`
-- **分册数**：7，**合并 chunk**：7274
+- **分册数**：7，**合并 chunk**：7260
 - **规则抽检**：pass **5**/6，partial **1**/6（验收 ≥4 pass：**满足**）
 
 ## Q1 / Q8 是否改善（相对 5.3b）
@@ -24,4 +24,4 @@
 | C | `cleanPdfText` 末尾 `normalizePdfTechnicalTokens`（TRUE/FALSE 归一） |
 
 ---
-生成时间：2026-04-13T14:17:06.142Z
+生成时间：2026-04-14T09:14:31.413Z

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-13T14:17:06.141Z",
+  "generated_at": "2026-04-14T09:14:31.412Z",
   "sprint": "5.3c",
   "pkrag_realpdf_dir": "/Users/guangyaosun/Desktop/和利时DCS操作手册",
   "pdf_files_loaded": [
@@ -11,7 +11,7 @@
     "HOLLiAS_MACS_V6.5用户手册6_现场操作.pdf",
     "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf"
   ],
-  "total_chunks": 7274,
+  "total_chunks": 7260,
   "changes": [
     "retrieval: applySprint53cRetrievalBias after 5.3a bias + inject",
     "inject: 真实手册1「软件使用步骤」主链路块（全库查找 + 跨 chunk 评分）；参数对齐定义块（手册7）",
@@ -39,8 +39,8 @@
           "section": "第13章 常见问题"
         }
       ],
-      "direct_answer": "本节仅对 HOLLiAS MACS V6.5 的使用步骤做个简略介绍，以便读者深刻理解后面各章的内容，详细 操作方法将在其它章节逐一介绍。\n\n组态流程\n\n（\n\n） 软件准备\n\n在工程师站上安装 HOLLiAS MACSV6.5 软件。\n\n（\n\n） 创建工程 在工程总控中选择【文件】菜单的【新建工程】项，在弹出的\n\n“ 新建工程向导\n\n” 中按步骤填写相关信息， 直至完成。在随后弹出的\n\n“ 组态向导\n\n” 中设置操作站用户并分配历史站。\n\n（\n\n） 操作站组态 添加操作站并编辑该站的详细信息（例如修改网络地址、定义操作站角色等）。\n\n（\n\n） 控制站组态 在工程总控中添加控制站，在 AutoThink\n\n（ CCS-AutoThink/Safe-AtutoThink ）软件中添加 IO 设备和相 应的数据库点。\n\n（\n\n） 算法组态 用 AutoThink\n\n（ CCS-AutoThink/Safe-AtutoThink ）软件进行算法组态并编译。\n\n（\n\n） 图形组态 使用图形编辑软件创建流程图和参数列表。\n\n（\n\n） 报表组态 创建报表和打印计划。\n（ CCS-AutoThink/Safe-AtutoThink ）软件中添加 IO 设备和相 应的数据库点。\n\n（\n\n） 算法组态 用 AutoThink\n\n（ CCS-AutoThink/Safe-AtutoThink ）软件进行算法组态并编译。\n\n（\n\n） 图形组态 使用图形编辑软件创建流程图和参数列表。\n\n（\n\n） 报表组态 创建报表和打印计划。\n\n（\n\n） 用户组态 用来添加用户、定义其级别和对应的权限。\n\n（\n\n） 操作组态 进行与操作相关的组态，例如启动图形组态、自定义专用键盘的功能键和设置用户权限。\n\n（\n\n） 编译 把组态好的工程编译成相应的下装文件，并生成控制器算法。如果组态有错误，系统会提示用户。\n\n（\n\n） 下装 执行此命令后，系统将自动把生成的算法和下装文件拷贝到各个操作站上，并将相应的算法程序和工 程文件下装到控制器中。\n\n（\n\n） 运行 退出工程总控，启动操作员在线进行监控。 主要依据《HOLLiAS_MACS_V6.5用户手册1_软件安装》。 更新于 2026/4/13。",
-      "model_answer": "Direct answer\n本节仅对 HOLLiAS MACS V6.5 的使用步骤做个简略介绍，以便读者深刻理解后面各章的内容，详细 操作方法将在其它章节逐一介绍。\n\n组态流程\n\n（\n\n） 软件准备\n\n在工程师站上安装 HOLLiAS MACSV6.5 软件。\n\n（\n\n） 创建工程 在工程总控中选择【文件】菜单的【新建工程】项，在弹出的\n\n“ 新建工程向导\n\n” 中按步骤填写相关信息， 直至完成。在随后弹出的\n\n“ 组态向导\n\n” 中设置操作站用户并分配历史站。\n\n（\n\n） 操作站组态 添加操作站并编辑该站的详细信息（例如修改网络地址、定义操作站角色等）。\n\n（\n\n） 控制站组态 在工程总控中添加控制站，在 AutoThink\n\n（ CCS-AutoThink/Safe-AtutoThink ）软件中添加 IO 设备和相 应的数据库点。\n\n（\n\n） 算法组态 用 AutoThink\n\n（ CCS-AutoThink/Safe-AtutoThink ）软件进行算法组态并编译。\n\n（\n\n） 图形组态 使用图形编辑软件创建流程图和参数列表。\n\n（\n\n） 报表组态 创建报表和打印计划。\n（ CCS-AutoThink/Safe-AtutoThink ）软件中添加 IO 设备和相 应的数据库点。\n\n（\n\n） 算法组态 用 AutoThink\n\n（ CCS-AutoThink/Safe-AtutoThink ）软件进行算法组态并编译。\n\n（\n\n） 图形组态 使用图形编辑软件创建流程图和参数列表。\n\n（\n\n） 报表组态 创建报表和打印计划。\n\n（\n\n） 用户组态 用来添加用户、定义其级别和对应的权限。\n\n（\n\n） 操作组态 进行与操作相关的组态，例如启动图形组态、自定义专用键盘的功能键和设置用户权限。\n\n（\n\n） 编译 把组态好的工程编译成相应的下装文件，并生成控制器算法。如果组态有错误，系统会提示用户。\n\n（\n\n） 下装 执行此命令后，系统将自动把生成的算法和下装文件拷贝到各个操作站上，并将相应的算法程序和工 程文件下装到控制器中。\n\n（\n\n） 运行 退出工程总控，启动操作员在线进行监控。 主要依据《HOLLiAS_MACS_V6.5用户手册1_软件安装》。 更新于 2026/4/13。\n\nKey supporting points\n1. 的使用步骤做个简略介绍，以便读者深刻理解后面各章的内容，详细 操作方法将在其它章节逐一介绍。 [HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf | chunk 56]\n2. ） 创建工程 在工程总控中选择【文件】菜单的【新建工程】项，在弹出的 [HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf | chunk 56]\n3. ） 操作组态 进行与操作相关的组态，例如启动图形组态、自定义专用键盘的功能键和设置用户权限。 [HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf | chunk 56]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "direct_answer": "本节仅对 HOLLiAS MACS V6.5 的使用步骤做个简略介绍，以便读者深刻理解后面各章的内容，详细 操作方法将在其它章节逐一介绍。\n\n组态流程\n\n（\n\n） 软件准备\n\n在工程师站上安装 HOLLiAS MACSV6.5 软件。\n\n（\n\n） 创建工程 在工程总控中选择【文件】菜单的【新建工程】项，在弹出的\n\n“ 新建工程向导\n\n” 中按步骤填写相关信息， 直至完成。在随后弹出的\n\n“ 组态向导\n\n” 中设置操作站用户并分配历史站。\n\n（\n\n） 操作站组态 添加操作站并编辑该站的详细信息（例如修改网络地址、定义操作站角色等）。\n\n（\n\n） 控制站组态 在工程总控中添加控制站，在 AutoThink\n\n（ CCS-AutoThink/Safe-AtutoThink ）软件中添加 IO 设备和相 应的数据库点。\n\n（\n\n） 算法组态 用 AutoThink\n\n（ CCS-AutoThink/Safe-AtutoThink ）软件进行算法组态并编译。\n\n（\n\n） 图形组态 使用图形编辑软件创建流程图和参数列表。\n\n（\n\n） 报表组态 创建报表和打印计划。\n（ CCS-AutoThink/Safe-AtutoThink ）软件中添加 IO 设备和相 应的数据库点。\n\n（\n\n） 算法组态 用 AutoThink\n\n（ CCS-AutoThink/Safe-AtutoThink ）软件进行算法组态并编译。\n\n（\n\n） 图形组态 使用图形编辑软件创建流程图和参数列表。\n\n（\n\n） 报表组态 创建报表和打印计划。\n\n（\n\n） 用户组态 用来添加用户、定义其级别和对应的权限。\n\n（\n\n） 操作组态 进行与操作相关的组态，例如启动图形组态、自定义专用键盘的功能键和设置用户权限。\n\n（\n\n） 编译 把组态好的工程编译成相应的下装文件，并生成控制器算法。如果组态有错误，系统会提示用户。\n\n（\n\n） 下装 执行此命令后，系统将自动把生成的算法和下装文件拷贝到各个操作站上，并将相应的算法程序和工 程文件下装到控制器中。\n\n（\n\n） 运行 退出工程总控，启动操作员在线进行监控。 主要依据《HOLLiAS_MACS_V6.5用户手册1_软件安装》。 更新于 2026/4/14。",
+      "model_answer": "Direct answer\n本节仅对 HOLLiAS MACS V6.5 的使用步骤做个简略介绍，以便读者深刻理解后面各章的内容，详细 操作方法将在其它章节逐一介绍。\n\n组态流程\n\n（\n\n） 软件准备\n\n在工程师站上安装 HOLLiAS MACSV6.5 软件。\n\n（\n\n） 创建工程 在工程总控中选择【文件】菜单的【新建工程】项，在弹出的\n\n“ 新建工程向导\n\n” 中按步骤填写相关信息， 直至完成。在随后弹出的\n\n“ 组态向导\n\n” 中设置操作站用户并分配历史站。\n\n（\n\n） 操作站组态 添加操作站并编辑该站的详细信息（例如修改网络地址、定义操作站角色等）。\n\n（\n\n） 控制站组态 在工程总控中添加控制站，在 AutoThink\n\n（ CCS-AutoThink/Safe-AtutoThink ）软件中添加 IO 设备和相 应的数据库点。\n\n（\n\n） 算法组态 用 AutoThink\n\n（ CCS-AutoThink/Safe-AtutoThink ）软件进行算法组态并编译。\n\n（\n\n） 图形组态 使用图形编辑软件创建流程图和参数列表。\n\n（\n\n） 报表组态 创建报表和打印计划。\n（ CCS-AutoThink/Safe-AtutoThink ）软件中添加 IO 设备和相 应的数据库点。\n\n（\n\n） 算法组态 用 AutoThink\n\n（ CCS-AutoThink/Safe-AtutoThink ）软件进行算法组态并编译。\n\n（\n\n） 图形组态 使用图形编辑软件创建流程图和参数列表。\n\n（\n\n） 报表组态 创建报表和打印计划。\n\n（\n\n） 用户组态 用来添加用户、定义其级别和对应的权限。\n\n（\n\n） 操作组态 进行与操作相关的组态，例如启动图形组态、自定义专用键盘的功能键和设置用户权限。\n\n（\n\n） 编译 把组态好的工程编译成相应的下装文件，并生成控制器算法。如果组态有错误，系统会提示用户。\n\n（\n\n） 下装 执行此命令后，系统将自动把生成的算法和下装文件拷贝到各个操作站上，并将相应的算法程序和工 程文件下装到控制器中。\n\n（\n\n） 运行 退出工程总控，启动操作员在线进行监控。 主要依据《HOLLiAS_MACS_V6.5用户手册1_软件安装》。 更新于 2026/4/14。\n\nKey supporting points\n1. 的使用步骤做个简略介绍，以便读者深刻理解后面各章的内容，详细 操作方法将在其它章节逐一介绍。 [HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf | chunk 56]\n2. ） 创建工程 在工程总控中选择【文件】菜单的【新建工程】项，在弹出的 [HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf | chunk 56]\n3. ） 操作组态 进行与操作相关的组态，例如启动图形组态、自定义专用键盘的功能键和设置用户权限。 [HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf | chunk 56]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
       "model_citations": [
         {
           "chunkId": "6cfffcb9bcbbcc5e",
@@ -68,13 +68,13 @@
         "vectorRecallBackend": "memory",
         "runtime": "eval",
         "vectorShortlistCount": 24,
-        "candidateChunkCount": 7274,
+        "candidateChunkCount": 7260,
         "searchTopK": 6,
         "topResults": [
           {
             "chunkId": "6cfffcb9bcbbcc5e",
             "fileName": "HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf",
-            "score": 23.534534255355783,
+            "score": 23.527962083994783,
             "lexicalScore": 1.2,
             "semanticScore": 1.1,
             "rerankScore": 1.35,
@@ -84,28 +84,28 @@
           {
             "chunkId": "43597892d66a3b84",
             "fileName": "HOLLiAS_MACS_V6.5用户手册6_现场操作.pdf",
-            "score": 10.717123353466926,
-            "lexicalScore": 25.606498210119902,
+            "score": 10.713721020462225,
+            "lexicalScore": 25.598459688182736,
             "semanticScore": 0.9741117484572823,
             "rerankScore": 1.637,
             "qualityScore": -0.262941176470588,
             "sectionTitle": "6.16 Q：操作员在线显示的测点质量位状态含义是什么"
           },
           {
-            "chunkId": "9496a431f0542e54",
+            "chunkId": "c568e231da244a5f",
             "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
-            "score": 4.756015209275464,
-            "lexicalScore": 23.652986677365934,
+            "score": 4.752051982718797,
+            "lexicalScore": 23.643517493870494,
             "semanticScore": 1.5769825696787918,
             "rerankScore": 1.9937908049626893,
             "qualityScore": 0.5672413793103451,
             "sectionTitle": "第13章 常见问题"
           },
           {
-            "chunkId": "136569ecf19ea2fa",
+            "chunkId": "22ebf41ebd16dfaf",
             "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
-            "score": 4.647993923377744,
-            "lexicalScore": 23.652986677365934,
+            "score": 4.644030696821076,
+            "lexicalScore": 23.643517493870494,
             "semanticScore": 1.4670711829175898,
             "rerankScore": 1.9640526993319605,
             "qualityScore": 0.368987341772152,
@@ -114,8 +114,8 @@
           {
             "chunkId": "1612c740d21757a9",
             "fileName": "HOLLiAS_MACS_V6.5用户手册5_图形编辑.pdf",
-            "score": -4.945465744644217,
-            "lexicalScore": 35.645094445238186,
+            "score": -4.952037916005217,
+            "lexicalScore": 35.62948852518912,
             "semanticScore": 1.4385872949353296,
             "rerankScore": 2.4398979551694486,
             "qualityScore": 0.7242622950819673,
@@ -124,8 +124,8 @@
           {
             "chunkId": "218e192d716763f4",
             "fileName": "HOLLiAS_MACS_V6.5用户手册5_图形编辑.pdf",
-            "score": -6.997196619342541,
-            "lexicalScore": 38.59685659038702,
+            "score": -7.0045356140777475,
+            "lexicalScore": 38.57942490039936,
             "semanticScore": 1.8984334028929934,
             "rerankScore": 1.810015733352009,
             "qualityScore": -0.07999999999999996,
@@ -213,16 +213,16 @@
           "section": "第13章 常见问题"
         }
       ],
-      "direct_answer": "2 Q：编译和下装的顺序是什么？ 先编译后下装。 主要依据《HOLLiAS_MACS_V6.5用户手册3_工程总控》。 更新于 2026/4/13。",
-      "model_answer": "Direct answer\n2 Q：编译和下装的顺序是什么？ 先编译后下装。 主要依据《HOLLiAS_MACS_V6.5用户手册3_工程总控》。 更新于 2026/4/13。\n\nKey supporting points\n1. 第13章 常见问题: HOLLiAS_MACS_V6.5用户手册3_工程总控 contains relevant material for this answer. [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.229 | para 2522-2528]\n2. 第13章 常见问题: HOLLiAS_MACS_V6.5用户手册3_工程总控 contains relevant material for this answer. [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.229 | para 2523-2532]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "direct_answer": "2 Q：编译和下装的顺序是什么？ 先编译后下装。 主要依据《HOLLiAS_MACS_V6.5用户手册3_工程总控》。 更新于 2026/4/14。",
+      "model_answer": "Direct answer\n2 Q：编译和下装的顺序是什么？ 先编译后下装。 主要依据《HOLLiAS_MACS_V6.5用户手册3_工程总控》。 更新于 2026/4/14。\n\nKey supporting points\n1. 第13章 常见问题: HOLLiAS_MACS_V6.5用户手册3_工程总控 contains relevant material for this answer. [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.229 | para 2522-2528]\n2. 第13章 常见问题: HOLLiAS_MACS_V6.5用户手册3_工程总控 contains relevant material for this answer. [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.229 | para 2523-2532]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
       "model_citations": [
         {
-          "chunkId": "9496a431f0542e54",
+          "chunkId": "c568e231da244a5f",
           "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
           "snippet": "2 Q：编译和下装的顺序是什么？ 先编译后下装。 先编译后下装。"
         },
         {
-          "chunkId": "d3fad7a997a836bf",
+          "chunkId": "0e3856a9bdfa3e03",
           "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
           "snippet": "2 Q：编译和下装的顺序是什么？ 先编译后下装。 先编译后下装。"
         }
@@ -245,24 +245,24 @@
         "vectorRecallBackend": "memory",
         "runtime": "eval",
         "vectorShortlistCount": 24,
-        "candidateChunkCount": 206,
+        "candidateChunkCount": 205,
         "searchTopK": 6,
         "topResults": [
           {
-            "chunkId": "9496a431f0542e54",
+            "chunkId": "c568e231da244a5f",
             "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
-            "score": 24.86196198021895,
-            "lexicalScore": 50.46469903248663,
+            "score": 24.833664508025663,
+            "lexicalScore": 50.39729681098734,
             "semanticScore": 2.4086238366437525,
             "rerankScore": 8.666087717772733,
             "qualityScore": 0.5672413793103451,
             "sectionTitle": "第13章 常见问题"
           },
           {
-            "chunkId": "d3fad7a997a836bf",
+            "chunkId": "0e3856a9bdfa3e03",
             "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
-            "score": 24.793450430258126,
-            "lexicalScore": 50.46469903248663,
+            "score": 24.76515295806484,
+            "lexicalScore": 50.39729681098734,
             "semanticScore": 2.543621898101337,
             "rerankScore": 8.621706639081308,
             "qualityScore": 0.27136752136752157,
@@ -270,8 +270,8 @@
           }
         ],
         "answerCitationChunkIds": [
-          "9496a431f0542e54",
-          "d3fad7a997a836bf"
+          "c568e231da244a5f",
+          "0e3856a9bdfa3e03"
         ],
         "answerFlags": {
           "refusal": false,
@@ -330,21 +330,26 @@
           "section": "1.6 术语"
         },
         {
-          "file": "HOLLiAS_MACS_V6.5用户手册4_算法组态.pdf",
-          "section": "5.18.1 配置"
+          "file": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
+          "section": "5.2.9.7 工作模式"
         },
         {
           "file": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
-          "section": "6.2.6.2 引脚"
+          "section": "5.2.9.4 详细说明"
         }
       ],
       "direct_answer": "定义：参数对齐 该属性设为TRUE的参数，在工程进行下装时，系统会将它的在线值和离线值进行对比，如果两个值不 一致，系统会给出提示，由用户选择是否进行同步；如果为FALSE，则不进行值比较。\n\n易混淆项：不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈（若资料提及）。",
       "model_answer": "Direct answer\n定义：参数对齐 该属性设为TRUE的参数，在工程进行下装时，系统会将它的在线值和离线值进行对比，如果两个值不 一致，系统会给出提示，由用户选择是否进行同步；如果为FALSE，则不进行值比较。\n\n易混淆项：不要将其理解为自动覆盖在线值，也不要与泛泛的“数据同步”或编译选项混为一谈（若资料提及）。\n\nKey supporting points\n1. 拥有工程师权限的用户可以离线或在线修改这些参数值，从而影 参数对齐 该属性设为TRUE的参数，在工程进行下装时，系统会将它的在线值和离线值进行对比，如果两个值不 一致，系统会给出提示，由用户选择是否进行同步；如果为FALSE，则不进行值比较。 [HOLLiAS_MACS_V6.5用户手册7_功能块.pdf | chunk 21]\n2. 比值控制系统 用以实现两个或两个以上物料保持一定比例关系的控制系统。 [HOLLiAS_MACS_V6.5用户手册7_功能块.pdf | chunk 21]\n3. 超时报警 是指在带有设备运行状态反馈的情况下，控制输出指令发出后的一段指定时间后，系统不能得到相应的 运行状态反馈，此时算法块认为操作现场设备动作超时，发出报警并做出相应的保护。 [HOLLiAS_MACS_V6.5用户手册7_功能块.pdf | chunk 21]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
       "model_citations": [
         {
-          "chunkId": "828135ce3ff1d6ee",
+          "chunkId": "11fd66504fdd1f75",
           "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
-          "snippet": "比值控制系统 用以实现两个或两个以上物料保持一定比例关系的控制系统。\n\n参数 数据逻辑组的名称，如SP和AV。拥有工程师权限的用户可以离线或在线修改这些参数值，从而影 参数对齐 该属性设为TRUE的参数，在工程进行下装时，系统会将它的在线值和离线值进行对比，如果两个值不 一致，系统会给出提示，由用户选择是否进行同步；如果为FALSE，则不进行值比较。\n\n超时报警 是指在带有设备运行状态反馈的情况下，控制输出指令发出后的一段指定时间后，系统不能得到相应的 运行状态反馈，此时算法块认为操作现场设备动作超时，发出报警并做出相应的保护。"
+          "snippet": "比值控制系统 用以实现两个或两个以上物料保持一定比例关系的控制系统。\n\n参数 数据逻辑组的名称，如SP和AV。拥有工程师权限的用户可以离线或在线修改这些参数值，从而影 参数对齐 该属性设为TRUE的参数，在工程进行下装时，系统会将它的在线值和离线值进行对比，如果两个值不 一致，系统会给出提示，由用户选择是否进行同步；如果为FALSE，则不进行值比较。 超时报警 是指在带有设备运行状态反馈的情况下，控制输出指令发出后的一段指定时间后，系统不能得到相应的 运行状态反馈，此时算法块认为操作现场设备动作超时，发出报警并做出相应的保护。"
+        },
+        {
+          "chunkId": "6dc7993b99114573",
+          "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
+          "snippet": "可以实现各种模式间的无扰动切换。 多种控制方式可供选择，如积分分离、死区控制、不完全微分等。"
         }
       ],
       "verdict": "pass",
@@ -365,13 +370,13 @@
         "vectorRecallBackend": "memory",
         "runtime": "eval",
         "vectorShortlistCount": 24,
-        "candidateChunkCount": 325,
+        "candidateChunkCount": 344,
         "searchTopK": 6,
         "topResults": [
           {
-            "chunkId": "828135ce3ff1d6ee",
+            "chunkId": "11fd66504fdd1f75",
             "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
-            "score": 26.588693785244583,
+            "score": 26.127910457014828,
             "lexicalScore": 1.2,
             "semanticScore": 1.1,
             "rerankScore": 1.35,
@@ -379,40 +384,40 @@
             "sectionTitle": "1.6 术语"
           },
           {
-            "chunkId": "70243874ff3062df",
+            "chunkId": "6dc7993b99114573",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
+            "score": 22.347910457014827,
+            "lexicalScore": 46.985930620340376,
+            "semanticScore": 1.515382889509878,
+            "rerankScore": 2.783243119266055,
+            "qualityScore": 1.8449541284403672,
+            "sectionTitle": "5.2.9.7 工作模式"
+          },
+          {
+            "chunkId": "133bb37bf0c82c0a",
+            "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
+            "score": 22.257960666764447,
+            "lexicalScore": 46.985930620340376,
+            "semanticScore": 1.2626167655477762,
+            "rerankScore": 2.7785813397129187,
+            "qualityScore": 1.8138755980861245,
+            "sectionTitle": "5.2.9.4 详细说明"
+          },
+          {
+            "chunkId": "3142c6bda28bc609",
             "fileName": "HOLLiAS_MACS_V6.5用户手册4_算法组态.pdf",
-            "score": 21.908693785244584,
-            "lexicalScore": 48.935193978900635,
-            "semanticScore": 1.3361694873205652,
-            "rerankScore": 2.421864992981538,
-            "qualityScore": 1.2000000000000002,
+            "score": 21.016201067047845,
+            "lexicalScore": 48.827355602897875,
+            "semanticScore": 2.1675201285281225,
+            "rerankScore": 2.4675614872174387,
+            "qualityScore": 1.4500000000000002,
             "sectionTitle": "5.18.1 配置"
           },
           {
-            "chunkId": "7a4f31ff3927e655",
-            "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
-            "score": 19.941663461174212,
-            "lexicalScore": 46.3154535537564,
-            "semanticScore": 1.4349317388051217,
-            "rerankScore": 2.122980597610729,
-            "qualityScore": -1.070300751879699,
-            "sectionTitle": "6.2.6.2 引脚"
-          },
-          {
-            "chunkId": "466cfbb8e082459a",
-            "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
-            "score": 19.40675257363981,
-            "lexicalScore": 40.401567998226035,
-            "semanticScore": 2.0020616962149216,
-            "rerankScore": 2.296399875223937,
-            "qualityScore": 1.1993693693693697,
-            "sectionTitle": "4.5.6.4 详细说明"
-          },
-          {
-            "chunkId": "6b522a690613d897",
+            "chunkId": "c89441738e260e77",
             "fileName": "HOLLiAS_MACS_V6.5用户手册4_算法组态.pdf",
-            "score": 18.478057713961284,
-            "lexicalScore": 39.941567998226034,
+            "score": 18.723517487467493,
+            "lexicalScore": 40.52593062034038,
             "semanticScore": 1.6953021939527453,
             "rerankScore": 3.1052999999999997,
             "qualityScore": 1.4500000000000002,
@@ -420,7 +425,8 @@
           }
         ],
         "answerCitationChunkIds": [
-          "828135ce3ff1d6ee"
+          "11fd66504fdd1f75",
+          "6dc7993b99114573"
         ],
         "answerFlags": {
           "refusal": false,
@@ -466,12 +472,12 @@
       "model_answer": "Direct answer\n总述：域间访问通过工程总控中的域间引用表完成配置；不能把“网络互通”等同为已完成域间访问。\n\n步骤\n\n1. 在工程总控打开域间引用表，填写他域点名/项名以及本域点名/项名。\n2. 每个引用组最多允许 3000 个引用点；他域点名和本域点名需为全局变量且数据类型一致。\n3. 若本域点为控制站点，EW 项需置 TRUE。\n4. 配置完成后编译并下装本域工程。\n\n注意\n\n- 不能认为仅网络互通即可；需按表完成映射并完成本域下装。\n\nKey supporting points\n1. 对于同一个项目下的不同域（工程）， MACS 软件提供了 种域间访问方法： □ 域间引用表：实现不同工程间的数据访问。 [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.231-232 | para 2568-2583]\n2. □ 可访问的工程：在一个操作员站上查看多个工程。 [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.231-232 | para 2568-2583]\n3. : 只要在本域画面中组态了他域的域号和点名，就可以在本域操作员在线直接查 看他域测点数值。 [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.232 | para 2582-2588]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
       "model_citations": [
         {
-          "chunkId": "80f0085b5258f9eb",
+          "chunkId": "4b731290449bf18b",
           "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
           "snippet": "对于同一个项目下的不同域（工程）， MACS 软件提供了 种域间访问方法： □ 域间引用表：实现不同工程间的数据访问。"
         },
         {
-          "chunkId": "2ca0259d7c5a0c81",
+          "chunkId": "31171e4165df9c55",
           "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
           "snippet": "对于同一个项目下的不同域（工程）， MACS 软件提供了 种域间访问方法： □ 域间引用表：实现不同工程间的数据访问。"
         }
@@ -498,19 +504,19 @@
         "searchTopK": 6,
         "topResults": [
           {
-            "chunkId": "80f0085b5258f9eb",
+            "chunkId": "4b731290449bf18b",
             "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
-            "score": 16.39646247932706,
-            "lexicalScore": 33.496275974902176,
+            "score": 16.413531783765634,
+            "lexicalScore": 33.53690508679091,
             "semanticScore": 1.2317096429951506,
             "rerankScore": 4.915070730700669,
             "qualityScore": 0.5622834645669293,
             "sectionTitle": "13.6 Q：模拟量历史库容量超过24M时工程总控编译失败"
           },
           {
-            "chunkId": "2ca0259d7c5a0c81",
+            "chunkId": "31171e4165df9c55",
             "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
-            "score": 7.2289772411447375,
+            "score": 7.2289823185900435,
             "lexicalScore": 13.059655208047902,
             "semanticScore": 1.0707917445243587,
             "rerankScore": 3.3657282110156292,
@@ -519,8 +525,8 @@
           }
         ],
         "answerCitationChunkIds": [
-          "80f0085b5258f9eb",
-          "2ca0259d7c5a0c81"
+          "4b731290449bf18b",
+          "31171e4165df9c55"
         ],
         "answerFlags": {
           "refusal": false,
@@ -577,16 +583,16 @@
           "section": "3.8.3.2 引脚"
         }
       ],
-      "direct_answer": "这个问题更适合参考“10.3 查找”整节，而不只是其中某一个子步骤。分组功能可实现将同一局域网中的计算机分成不同的组，不同组之间的操作相互独立、互不影响。 可重点按这些子步骤查看：第11章 分组功能。 相关内容更新于 2026/4/13。",
-      "model_answer": "Direct answer\n这个问题更适合参考“10.3 查找”整节，而不只是其中某一个子步骤。分组功能可实现将同一局域网中的计算机分成不同的组，不同组之间的操作相互独立、互不影响。 可重点按这些子步骤查看：第11章 分组功能。 相关内容更新于 2026/4/13。\n\nKey supporting points\n1. 提示：  真实控制器不支持该功能，只有 HiaSimuRTS 支持。 [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.212-213 | para 2409-2418]\n2. 设置时需保证组号设置后工程师站、操作站、历史站的 IP 地 址与计算机的 IP 地址一致，否则无法通信。 [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.212-213 | para 2409-2418]\n3.  设置时需保证以下所有的组态均一致，才可正常通信。 [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.212-213 | para 2409-2418]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
+      "direct_answer": "这个问题更适合参考“10.3 查找”整节，而不只是其中某一个子步骤。分组功能可实现将同一局域网中的计算机分成不同的组，不同组之间的操作相互独立、互不影响。 可重点按这些子步骤查看：第11章 分组功能。 相关内容更新于 2026/4/14。",
+      "model_answer": "Direct answer\n这个问题更适合参考“10.3 查找”整节，而不只是其中某一个子步骤。分组功能可实现将同一局域网中的计算机分成不同的组，不同组之间的操作相互独立、互不影响。 可重点按这些子步骤查看：第11章 分组功能。 相关内容更新于 2026/4/14。\n\nKey supporting points\n1. 提示：  真实控制器不支持该功能，只有 HiaSimuRTS 支持。 [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.212-213 | para 2409-2418]\n2. 设置时需保证组号设置后工程师站、操作站、历史站的 IP 地 址与计算机的 IP 地址一致，否则无法通信。 [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.212-213 | para 2409-2418]\n3.  设置时需保证以下所有的组态均一致，才可正常通信。 [HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf | p.212-213 | para 2409-2418]\n\nEvidence base: this answer is currently grounded in a single document.\n\nCitations are listed separately below for inspection.",
       "model_citations": [
         {
-          "chunkId": "74353d2a5c35c06c",
+          "chunkId": "48b2f15f77e74839",
           "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
           "snippet": "分组功能可实现将同一局域网中的计算机分成不同的组，不同组之间的操作相互独立、互不影响。"
         },
         {
-          "chunkId": "395d9c22e4a8883e",
+          "chunkId": "14acae90f94b42d1",
           "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
           "snippet": "提示：  真实控制器不支持该功能，只有 HiaSimuRTS 支持。"
         }
@@ -608,24 +614,24 @@
         "vectorRecallBackend": "memory",
         "runtime": "eval",
         "vectorShortlistCount": 24,
-        "candidateChunkCount": 2555,
+        "candidateChunkCount": 2554,
         "searchTopK": 6,
         "topResults": [
           {
-            "chunkId": "74353d2a5c35c06c",
+            "chunkId": "48b2f15f77e74839",
             "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
-            "score": 23.896276777745403,
-            "lexicalScore": 53.4136001628798,
+            "score": 23.897429033262423,
+            "lexicalScore": 53.41633770730626,
             "semanticScore": 1.184809380813972,
             "rerankScore": 2.7941723749451053,
             "qualityScore": 1.0595890410958906,
             "sectionTitle": "10.3 查找"
           },
           {
-            "chunkId": "395d9c22e4a8883e",
+            "chunkId": "14acae90f94b42d1",
             "fileName": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf",
-            "score": 23.013982661462038,
-            "lexicalScore": 51.61693150362551,
+            "score": 23.014581661017093,
+            "lexicalScore": 51.61835177195204,
             "semanticScore": 1.844928511721903,
             "rerankScore": 1.4667919511685226,
             "qualityScore": 0.9410404624277457,
@@ -634,8 +640,8 @@
           {
             "chunkId": "51cc6c4e511ee353",
             "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
-            "score": 15.252588255669474,
-            "lexicalScore": 33.60391735187491,
+            "score": 15.25089513175873,
+            "lexicalScore": 33.59996256661387,
             "semanticScore": 0.8383085839903095,
             "rerankScore": 2.1532445451067224,
             "qualityScore": -0.40111420612813353,
@@ -644,8 +650,8 @@
           {
             "chunkId": "37967fce3c866921",
             "fileName": "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
-            "score": 14.77896198802483,
-            "lexicalScore": 33.14391735187491,
+            "score": 14.777268864114088,
+            "lexicalScore": 33.13996256661387,
             "semanticScore": 0.7806535094195135,
             "rerankScore": 1.5207445451067223,
             "qualityScore": -0.5006329113924048,
@@ -654,18 +660,18 @@
           {
             "chunkId": "da8b6d26b835a4a7",
             "fileName": "HOLLiAS_MACS_V6.5用户手册6_现场操作.pdf",
-            "score": 13.026706799417518,
-            "lexicalScore": 27.42179399478482,
+            "score": 13.026920189755964,
+            "lexicalScore": 27.422319808110974,
             "semanticScore": 1.2305771001354155,
             "rerankScore": 2.8806306977740617,
             "qualityScore": 1.4500000000000002,
             "sectionTitle": "3.9.6.3 解除报警隐藏"
           },
           {
-            "chunkId": "332f24abd61612f6",
+            "chunkId": "bf891a3512c1c8e7",
             "fileName": "HOLLiAS_MACS_V6.5用户手册4_算法组态.pdf",
-            "score": 12.719217355240442,
-            "lexicalScore": 28.870489733605638,
+            "score": 12.719679494963822,
+            "lexicalScore": 28.87156320924998,
             "semanticScore": 0.8506738756540295,
             "rerankScore": 0.6174783039102458,
             "qualityScore": 0.5691536050156742,
@@ -673,8 +679,8 @@
           }
         ],
         "answerCitationChunkIds": [
-          "74353d2a5c35c06c",
-          "395d9c22e4a8883e"
+          "48b2f15f77e74839",
+          "14acae90f94b42d1"
         ],
         "answerFlags": {
           "refusal": false,
@@ -773,14 +779,14 @@
         "vectorRecallBackend": "memory",
         "runtime": "eval",
         "vectorShortlistCount": 24,
-        "candidateChunkCount": 843,
+        "candidateChunkCount": 848,
         "searchTopK": 6,
         "topResults": [
           {
             "chunkId": "3ba345dce5811dfb",
             "fileName": "HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf",
-            "score": 58.87060819252432,
-            "lexicalScore": 129.19542614268553,
+            "score": 58.87454306126034,
+            "lexicalScore": 129.2047948777713,
             "semanticScore": 2.515060601068934,
             "rerankScore": 6.645223118449302,
             "qualityScore": 0.9026804123711343,
@@ -789,8 +795,8 @@
           {
             "chunkId": "cc0a1b17f087a924",
             "fileName": "HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf",
-            "score": 58.43214701784208,
-            "lexicalScore": 127.25256013601148,
+            "score": 58.4339531440585,
+            "lexicalScore": 127.25686043652676,
             "semanticScore": 3.194713316989205,
             "rerankScore": 6.712321056593631,
             "qualityScore": 1.3500000000000003,
