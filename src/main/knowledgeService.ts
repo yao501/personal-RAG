@@ -195,7 +195,13 @@ export class KnowledgeService {
   private beginLibraryTask(kind: LibraryTaskKind): { taskId: string; finish: () => void } {
     if (this.activeLibraryTask) {
       const label = this.activeLibraryTask.kind === "import" ? "导入文件" : "重建索引";
-      throw new Error(`当前正在执行${label}任务，请等待完成后再试。`);
+      throw createImportError({
+        code: "task_busy",
+        stage: "preflight",
+        message: `当前正在执行${label}任务，请等待完成后再试。`,
+        suggestion: "请等待当前资料库任务完成，再重新执行操作。",
+        retryable: true
+      });
     }
 
     const taskId = this.createTaskId(kind);
@@ -213,7 +219,13 @@ export class KnowledgeService {
   private ensureLibraryTaskIdle(): void {
     if (this.activeLibraryTask) {
       const label = this.activeLibraryTask.kind === "import" ? "导入文件" : "重建索引";
-      throw new Error(`当前正在执行${label}任务，请稍后再试。`);
+      throw createImportError({
+        code: "task_busy",
+        stage: "preflight",
+        message: `当前正在执行${label}任务，请稍后再试。`,
+        suggestion: "请等待当前资料库任务完成，再重新执行操作。",
+        retryable: true
+      });
     }
   }
 
@@ -282,6 +294,8 @@ export class KnowledgeService {
     const imported: DocumentRecord[] = [];
     const skipped: string[] = [];
     const skippedDetails: ImportIssueDetail[] = [];
+    let failedCount = 0;
+    let skippedCount = 0;
     const { taskId } = task;
 
     try {
@@ -317,18 +331,20 @@ export class KnowledgeService {
 
           if (canSkipUnchanged && existing) {
             skipped.push(filePath);
+            skippedCount += 1;
+            const skippedIssue = toImportIssueDetail(
+              filePath,
+              "skipped",
+              createImportError({
+                code: "unchanged_skipped",
+                stage: "preflight",
+                message: "文件未变化，已跳过重复导入。",
+                suggestion: "如果你已经修改过切片或检索配置，请使用重建索引。",
+                retryable: false
+              })
+            );
             skippedDetails.push(
-              toImportIssueDetail(
-                filePath,
-                "skipped",
-                createImportError({
-                  code: "unchanged_skipped",
-                  stage: "preflight",
-                  message: "文件未变化，已跳过重复导入。",
-                  suggestion: "如果你已经修改过切片或检索配置，请使用重建索引。",
-                  retryable: false
-                })
-              )
+              skippedIssue
             );
             this.emitTaskProgress(emitProgress, {
               taskId,
@@ -338,10 +354,11 @@ export class KnowledgeService {
               current: index + 1,
               total: filePaths.length,
               currentFile: filePath,
-              processed: imported.length + skipped.length,
+              processed: imported.length + failedCount + skippedCount,
               succeeded: imported.length,
-              failed: skipped.length,
-              skipped: skipped.length
+              failed: failedCount,
+              skipped: skippedCount,
+              issue: skippedIssue
             });
             continue;
           }
@@ -354,10 +371,10 @@ export class KnowledgeService {
             current: index,
             total: filePaths.length,
             currentFile: filePath,
-            processed: imported.length + skipped.length,
+            processed: imported.length + failedCount + skippedCount,
             succeeded: imported.length,
-            failed: skipped.length,
-            skipped: skipped.length
+            failed: failedCount,
+            skipped: skippedCount
           });
           const parsed = await parseDocument(filePath);
           if (isEffectivelyEmptyContent(parsed.content)) {
@@ -379,10 +396,10 @@ export class KnowledgeService {
             current: index,
             total: filePaths.length,
             currentFile: filePath,
-            processed: imported.length + skipped.length,
+            processed: imported.length + failedCount + skippedCount,
             succeeded: imported.length,
-            failed: skipped.length,
-            skipped: skipped.length
+            failed: failedCount,
+            skipped: skippedCount
           });
           const baseChunks = chunkText(documentId, parsed.content, { ...settings, documentTitle: title, pageSpans: parsed.pageSpans });
           if (baseChunks.length === 0) {
@@ -403,10 +420,10 @@ export class KnowledgeService {
             current: index,
             total: filePaths.length,
             currentFile: filePath,
-            processed: imported.length + skipped.length,
+            processed: imported.length + failedCount + skippedCount,
             succeeded: imported.length,
-            failed: skipped.length,
-            skipped: skipped.length
+            failed: failedCount,
+            skipped: skippedCount
           });
           const chunks = await this.attachEmbeddings(baseChunks);
 
@@ -435,15 +452,17 @@ export class KnowledgeService {
             current: index + 1,
             total: filePaths.length,
             currentFile: filePath,
-            processed: imported.length + skipped.length,
+            processed: imported.length + failedCount + skippedCount,
             succeeded: imported.length,
-            failed: skipped.length,
-            skipped: skipped.length
+            failed: failedCount,
+            skipped: skippedCount
           });
         } catch (error) {
           const normalizedError = normalizeImportError(error, filePath, "unknown");
+          const failedIssue = toImportIssueDetail(filePath, "failed", normalizedError);
           skipped.push(filePath);
-          skippedDetails.push(toImportIssueDetail(filePath, "failed", normalizedError));
+          failedCount += 1;
+          skippedDetails.push(failedIssue);
           this.emitTaskProgress(emitProgress, {
             taskId,
             kind: "import",
@@ -452,10 +471,11 @@ export class KnowledgeService {
             current: index + 1,
             total: filePaths.length,
             currentFile: filePath,
-            processed: imported.length + skipped.length,
+            processed: imported.length + failedCount + skippedCount,
             succeeded: imported.length,
-            failed: skipped.length,
-            skipped: skipped.length
+            failed: failedCount,
+            skipped: skippedCount,
+            issue: failedIssue
           });
         }
       }
@@ -468,10 +488,10 @@ export class KnowledgeService {
         current: filePaths.length,
         total: filePaths.length,
         currentFile: null,
-        processed: imported.length + skipped.length,
+        processed: imported.length + failedCount + skippedCount,
         succeeded: imported.length,
-        failed: skipped.length,
-        skipped: skipped.length
+        failed: failedCount,
+        skipped: skippedCount
       });
       await this.rebuildLanceIndex(this.store.listDocuments(), this.store.listChunks());
       this.emitTaskProgress(emitProgress, {
@@ -482,10 +502,10 @@ export class KnowledgeService {
         current: filePaths.length,
         total: filePaths.length,
         currentFile: null,
-        processed: imported.length + skipped.length,
+        processed: imported.length + failedCount + skippedCount,
         succeeded: imported.length,
-        failed: skipped.length,
-        skipped: skipped.length
+        failed: failedCount,
+        skipped: skippedCount
       });
       return { imported, skipped, skippedDetails };
     } catch (error) {
@@ -497,10 +517,10 @@ export class KnowledgeService {
         current: filePaths.length,
         total: filePaths.length,
         currentFile: null,
-        processed: imported.length + skipped.length,
+        processed: imported.length + failedCount + skippedCount,
         succeeded: imported.length,
-        failed: skipped.length,
-        skipped: skipped.length
+        failed: failedCount,
+        skipped: skippedCount
       });
       throw error;
     } finally {
@@ -655,6 +675,7 @@ export class KnowledgeService {
           });
         } catch (error) {
           const normalizedError = normalizeImportError(error, document.filePath, "unknown");
+          const failedIssue = toImportIssueDetail(document.filePath, "failed", normalizedError);
           failed += 1;
           this.emitTaskProgress(emitProgress, {
             taskId,
@@ -667,7 +688,8 @@ export class KnowledgeService {
             processed: succeeded + failed + skipped,
             succeeded,
             failed,
-            skipped
+            skipped,
+            issue: failedIssue
           });
         }
       }

@@ -104,9 +104,9 @@ Why this is next:
 
 Scope:
 
-- define standard error codes
-- map each import/index failure stage to stable error codes
-- unify how errors appear in UI, logs, and diagnostics
+- define standard error codes (**foundation in place; continue expanding for new real-world failures**)
+- map each import/index failure stage to stable error codes (**foundation in place for preflight/parsing/chunking/embedding/indexing/storage**)
+- unify how errors appear in UI, logs, and diagnostics (**IPC envelope, task issue panel, and support bundle recent errors are in place**)
 - add stronger pre-import checks
 - improve per-file retry and repair flows
 - deepen library consistency checks

@@ -20,6 +20,7 @@ import { isAllowedAppNavigation } from "./security";
 import { IpcForbiddenError, toRendererErrorInfo } from "./ipcErrors";
 import { recordIpcFailure } from "./diagnosticsBuffer";
 import { exportSupportBundleZip } from "./supportBundle";
+import { createImportError, isImportPipelineError } from "./importErrors";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rendererUrl = process.env.ELECTRON_RENDERER_URL;
@@ -126,8 +127,18 @@ function registerIpcHandlers(): void {
         mainWindow?.webContents.send("library:task-progress", progress);
       });
     } catch (error) {
+      if (isImportPipelineError(error)) {
+        throw error;
+      }
+
       const message = error instanceof Error ? error.message : "Unknown file picker error";
-      throw new Error(`Failed to import files: ${message}`);
+      throw createImportError({
+        code: "file_picker_failed",
+        stage: "preflight",
+        message: `文件选择器打开失败：${message}`,
+        suggestion: "请重试一次；如果仍失败，请检查 macOS 文件访问权限并导出诊断包。",
+        retryable: true
+      });
     }
   });
 

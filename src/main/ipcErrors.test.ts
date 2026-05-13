@@ -6,19 +6,19 @@ import { IpcForbiddenError, toRendererErrorInfo } from "./ipcErrors";
 describe("toRendererErrorInfo", () => {
   it("maps ImportPipelineError fields through", () => {
     const err = createImportError({
-      code: "empty_content",
-      stage: "parsing",
-      message: "no content",
-      suggestion: "fix source",
-      retryable: false
+      code: "task_busy",
+      stage: "preflight",
+      message: "task already running",
+      suggestion: "wait and retry",
+      retryable: true
     });
 
     const info = toRendererErrorInfo("files:import", err);
-    expect(info.code).toBe("empty_content");
-    expect(info.stage).toBe("parsing");
-    expect(info.message).toBe("no content");
-    expect(info.suggestion).toBe("fix source");
-    expect(info.retryable).toBe(false);
+    expect(info.code).toBe("task_busy");
+    expect(info.stage).toBe("preflight");
+    expect(info.message).toBe("task already running");
+    expect(info.suggestion).toBe("wait and retry");
+    expect(info.retryable).toBe(true);
     expect(info.details?.channel).toBe("files:import");
   });
 
@@ -44,4 +44,3 @@ describe("toRendererErrorInfo", () => {
     expect(info.message).toBe("boom");
   });
 });
-

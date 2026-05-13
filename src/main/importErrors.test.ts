@@ -47,4 +47,11 @@ describe("importErrors", () => {
     expect(normalizeImportError(new Error("embedding model unavailable"), "/tmp/a.pdf", "unknown").code).toBe("embedding_failed");
     expect(normalizeImportError(new Error("lance vector index rebuild failed"), "/tmp/a.pdf", "unknown").code).toBe("vector_index_failed");
   });
+
+  it("maps file picker failures to a stable preflight code", () => {
+    const normalized = normalizeImportError(new Error("showOpenDialog failed"), "/tmp/a.pdf", "unknown");
+    expect(normalized.code).toBe("file_picker_failed");
+    expect(normalized.stage).toBe("preflight");
+    expect(normalized.retryable).toBe(true);
+  });
 });

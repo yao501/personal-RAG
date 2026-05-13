@@ -394,6 +394,7 @@ export function App() {
     () => recentTaskSkippedDetails.filter((item) => item.disposition === "skipped"),
     [recentTaskSkippedDetails]
   );
+  const canRetryRecentFailedImports = recentFailedImports.length > 0 && libraryTaskProgress?.kind !== "reindex";
 
   useEffect(() => {
     void refreshSnapshot();
@@ -404,7 +405,35 @@ export function App() {
     return api.onLibraryTaskProgress((progress) => {
       setLibraryTaskProgress(progress);
       setStatus(progress.message);
-      if (progress.phase !== "completed") {
+
+      if (progress.phase === "preparing") {
+        setRecentTaskSkippedDetails([]);
+      }
+
+      if (progress.issue) {
+        setRecentTaskSkippedDetails((current) => {
+          const exists = current.some((item) =>
+            item.filePath === progress.issue?.filePath &&
+            item.disposition === progress.issue.disposition &&
+            item.code === progress.issue.code &&
+            item.reason === progress.issue.reason
+          );
+          return exists ? current : [...current, progress.issue as ImportIssueDetail];
+        });
+      }
+
+      if (progress.phase === "completed" && progress.failed > 0) {
+        const label = progress.kind === "import" ? "导入" : "重建索引";
+        setErrorMessage(`${label}完成，但有 ${progress.failed} 个文件失败。请查看最近任务记录，或导出支持包。`);
+        return;
+      }
+
+      if (progress.phase === "failed" && progress.issue?.disposition === "failed") {
+        setErrorMessage(formatImportIssueSummary(progress.issue));
+        return;
+      }
+
+      if (progress.phase !== "completed" && progress.failed === 0) {
         setErrorMessage("");
       }
     });
@@ -1304,14 +1333,16 @@ export function App() {
           )}
           {(recentFailedImports.length > 0 || recentSkippedImports.length > 0) && (
             <div className="task-issues">
-              <p className="eyebrow">最近导入记录</p>
+              <p className="eyebrow">最近任务记录</p>
               {recentFailedImports.length > 0 && (
                 <>
-                  <div className="log-actions">
-                    <button type="button" className="secondary" disabled={libraryTaskBusy} onClick={() => void handleRetryFailedImports()}>
-                      重试失败文件
-                    </button>
-                  </div>
+                  {canRetryRecentFailedImports && (
+                    <div className="log-actions">
+                      <button type="button" className="secondary" disabled={libraryTaskBusy} onClick={() => void handleRetryFailedImports()}>
+                        重试失败文件
+                      </button>
+                    </div>
+                  )}
                   {recentFailedImports.slice(0, 3).map((item) => (
                     <p key={`${item.filePath}-${item.reason}`} className="error-text">
                       {item.filePath}: {formatImportIssueSummary(item)}

@@ -71,6 +71,16 @@ export function normalizeImportError(error: unknown, filePath: string, stage: Ap
     });
   }
 
+  if (error instanceof Error && /file picker|showOpenDialog|open dialog/i.test(error.message)) {
+    return createImportError({
+      code: "file_picker_failed",
+      stage: "preflight",
+      message: `文件选择器打开失败：${fileName}`,
+      suggestion: "请重试一次；如果仍失败，请检查 macOS 文件访问权限并导出诊断包。",
+      retryable: true
+    });
+  }
+
   if (error instanceof Error && /password|encrypted|cipher/i.test(error.message)) {
     return createImportError({
       code: "pdf_unreadable",

@@ -48,6 +48,7 @@ Implemented:
 - settings for chunk controls
 - recent query log capture for real-user eval feedback loops
 - import and reindex task progress with stage-level feedback plus skipped-file reasons
+- import and reindex task progress can carry structured issue details, so failed files remain visible after the task finishes
 - incremental reindex that skips unchanged documents when chunk settings and source timestamps have not changed
 - library health inspection for missing files, stale sources, index drift, and missing embeddings
 - retry flow for failed imports
@@ -61,7 +62,7 @@ Still next:
 
 - expand eval benchmark coverage and regression comparisons beyond the Sprint 3 smoke set (`docs/EVAL_GUIDE.md`)
 - Apple signing / notarization / stapling and optional CI release uploads (release **packaging** foundation is in `docs/RELEASE.md`; install notes in `docs/INSTALLATION.md`)
-- deeper import/reindex error codes + UI refinement as diagnostics surface grows
+- continued refinement of import/reindex error coverage as new failure modes appear in real deployments
 
 ## Project structure
 
@@ -166,6 +167,7 @@ Notes:
 - Answer generation is citation-first and grounded in retrieved chunks, with sentence-level evidence selection plus page/paragraph and sentence anchors to make citations easier to inspect.
 - Real query logs are persisted locally so future retrieval changes can be compared against both curated eval datasets and actual user questions, then promoted into benchmark drafts from the desktop app.
 - Import and reindex now expose stage-level progress plus structured failure reasons, which makes large-library maintenance much safer for end users.
+- Busy-task and file-picker failures use stable structured error codes, and reindex failures surface in the same task issue panel as import failures.
 - Reindex is now incremental-aware, so unchanged documents are skipped when their source timestamp and indexing signature still match, which reduces maintenance cost for larger libraries.
 - The app now includes a library-health layer that can detect missing source files, stale source updates, index-config drift, and missing embeddings so maintenance problems are visible before retrieval quality degrades.
 - Health issues can now be repaired selectively, so documents that need reindexing can be fixed without rebuilding the whole library.

@@ -165,6 +165,8 @@ export type AppErrorCode =
   | "sqlite_write_failed"
   | "state_sync_failed"
   | "unchanged_skipped"
+  | "task_busy"
+  | "file_picker_failed"
   | "unknown_import_error";
 
 export type AppErrorStage =
@@ -237,6 +239,7 @@ export interface LibraryTaskProgress {
   failed: number;
   skipped: number;
   done: boolean;
+  issue?: ImportIssueDetail | null;
 }
 
 export type LibraryHealthIssueKind =
