@@ -17,6 +17,7 @@ interface DbRowMap {
     answerJson: string;
     citationsJson: string;
     topResultsJson: string;
+    retrievalDebugJson: string | null;
     createdAt: string;
     feedbackStatus: QueryLogFeedbackStatus;
     feedbackNote: string | null;
@@ -105,6 +106,7 @@ export class AppStore {
         answerJson TEXT NOT NULL,
         citationsJson TEXT NOT NULL,
         topResultsJson TEXT NOT NULL,
+        retrievalDebugJson TEXT,
         createdAt TEXT NOT NULL,
         feedbackStatus TEXT NOT NULL DEFAULT 'pending',
         feedbackNote TEXT
@@ -124,8 +126,9 @@ export class AppStore {
     this.ensureColumn("chunks", "paragraphEnd", "INTEGER");
     this.ensureColumn("chunks", "locatorLabel", "TEXT");
     this.ensureColumn("chunks", "embedding", "TEXT");
+    this.ensureColumn("query_logs", "retrievalDebugJson", "TEXT");
 
-    this.db.pragma("user_version = 1");
+    this.db.pragma("user_version = 2");
   }
 
   getDatabasePragmas(): { user_version: number; journal_mode: string; page_size: number } {
@@ -139,7 +142,7 @@ export class AppStore {
     };
   }
 
-  private ensureColumn(tableName: "documents" | "chunks", columnName: string, definition: string): void {
+  private ensureColumn(tableName: "documents" | "chunks" | "query_logs", columnName: string, definition: string): void {
     const columns = this.db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name: string }>;
     if (!columns.some((column) => column.name === columnName)) {
       this.db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
@@ -254,7 +257,7 @@ export class AppStore {
   listQueryLogs(limit = 50): QueryLogRecord[] {
     const rows = this.db
       .prepare(
-        `SELECT id, sessionId, question, answerJson, citationsJson, topResultsJson, createdAt, feedbackStatus, feedbackNote
+        `SELECT id, sessionId, question, answerJson, citationsJson, topResultsJson, retrievalDebugJson, createdAt, feedbackStatus, feedbackNote
          FROM query_logs
          ORDER BY createdAt DESC
          LIMIT ?`
@@ -268,6 +271,7 @@ export class AppStore {
       answer: JSON.parse(row.answerJson),
       citations: JSON.parse(row.citationsJson),
       topResults: JSON.parse(row.topResultsJson),
+      retrievalDebug: row.retrievalDebugJson ? JSON.parse(row.retrievalDebugJson) : null,
       createdAt: row.createdAt,
       feedbackStatus: row.feedbackStatus,
       feedbackNote: row.feedbackNote
@@ -291,8 +295,8 @@ export class AppStore {
   saveQueryLog(log: QueryLogRecord): void {
     this.db
       .prepare(
-        `INSERT INTO query_logs (id, sessionId, question, answerJson, citationsJson, topResultsJson, createdAt, feedbackStatus, feedbackNote)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO query_logs (id, sessionId, question, answerJson, citationsJson, topResultsJson, retrievalDebugJson, createdAt, feedbackStatus, feedbackNote)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         log.id,
@@ -301,6 +305,7 @@ export class AppStore {
         JSON.stringify(log.answer),
         JSON.stringify(log.citations),
         JSON.stringify(log.topResults),
+        log.retrievalDebug ? JSON.stringify(log.retrievalDebug) : null,
         log.createdAt,
         log.feedbackStatus,
         log.feedbackNote

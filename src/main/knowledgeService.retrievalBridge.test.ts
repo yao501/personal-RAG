@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { KnowledgeService } from "./knowledgeService";
 import type { AppStore } from "./store";
-import type { ChatAnswer, ChunkRecord, DocumentRecord, SearchResult } from "../lib/shared/types";
+import type { ChatAnswer, ChunkRecord, DocumentRecord, QueryLogRecord, SearchResult } from "../lib/shared/types";
 
 vi.mock("../lib/modules/embed/localEmbedder", () => {
   return {
@@ -80,6 +80,7 @@ function baseResult(overrides: Partial<SearchResult>): SearchResult {
 
 describe("KnowledgeService.askQuestion retrieval bridge (P0-B B1/B2/B3)", () => {
   it("applies sprint53c bias in desktop path using queryRetrievalType + documentCount", async () => {
+    const savedQueryLogs: QueryLogRecord[] = [];
     const store: Pick<
       AppStore,
       "listDocuments" | "listChunks" | "getSettings" | "createChatSession" | "listChatTurns" | "saveChatTurn" | "saveQueryLog"
@@ -123,7 +124,9 @@ describe("KnowledgeService.askQuestion retrieval bridge (P0-B B1/B2/B3)", () => 
       createChatSession: (row: any) => row,
       listChatTurns: () => [],
       saveChatTurn: () => {},
-      saveQueryLog: () => {}
+      saveQueryLog: (log: QueryLogRecord) => {
+        savedQueryLogs.push(log);
+      }
     };
 
     const svc = new KnowledgeService(store as unknown as AppStore);
@@ -139,5 +142,13 @@ describe("KnowledgeService.askQuestion retrieval bridge (P0-B B1/B2/B3)", () => 
     await svc.askQuestion("s1", "从安装到投运完整步骤是什么？");
 
     expect(lastAnswerResults?.[0]?.fileName).toContain("用户手册1_软件安装");
+    const savedQueryLog = savedQueryLogs[0];
+    expect(savedQueryLog?.retrievalDebug).toMatchObject({
+      kind: "pkrag.retrieval",
+      runtime: "desktop",
+      vectorRecallBackend: "lancedb",
+      queryRetrievalType: "procedural_full_flow",
+      candidateChunkCount: 0
+    });
   });
 });

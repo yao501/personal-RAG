@@ -248,11 +248,10 @@ Important:
 
 ### P1.2 Retrieval debug panel
 
-Status: **first in-app version implemented** — Settings exposes recent-query debug details from persisted query logs: query type, intent hints, effective/expanded tokens, answer flags, citation-hit count, and top-result score breakdowns.
+Status: **first in-app version implemented** — Settings exposes recent-query debug details from persisted query logs: query type, intent hints, effective/expanded tokens, answer flags, citation-hit count, vector shortlist count, candidate chunk count, and top-result score breakdowns.
 
 Remaining scope:
 
-- persist vector shortlist / candidate counts alongside query logs
 - show filtering or candidate-selection reasons when available
 - export a single query debug snapshot
 

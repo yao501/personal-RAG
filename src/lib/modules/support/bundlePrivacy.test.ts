@@ -55,6 +55,7 @@ describe("bundlePrivacy", () => {
       },
       citations: [],
       topResults: [],
+      retrievalDebug: null,
       createdAt: "2020-01-01",
       feedbackStatus: "pending",
       feedbackNote: null

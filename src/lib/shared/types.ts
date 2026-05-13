@@ -96,6 +96,37 @@ export interface ChatAnswer {
 
 export type QueryLogFeedbackStatus = "pending" | "benchmark_candidate" | "promoted" | "ignored";
 
+export interface QueryLogRetrievalDebug {
+  schemaVersion: number;
+  kind: "pkrag.retrieval";
+  question: string;
+  vectorRecallBackend: "lancedb" | "memory";
+  runtime: "desktop" | "eval";
+  effectiveQueryTokens: string[];
+  expandedTokens: string[];
+  intentPrimary: string;
+  intentWantsSteps: boolean;
+  queryRetrievalType: string;
+  vectorShortlistCount: number;
+  candidateChunkCount: number;
+  searchTopK: number;
+  topResults: Array<{
+    chunkId: string;
+    fileName: string;
+    score: number;
+    lexicalScore: number;
+    semanticScore: number;
+    rerankScore: number;
+    qualityScore: number;
+    sectionTitle: string | null;
+  }>;
+  answerCitationChunkIds: string[];
+  answerFlags: {
+    refusal: boolean;
+    cautiousProcedural: boolean;
+  };
+}
+
 export interface EvalCaseDraft {
   id: string;
   sourceLogId: string;
@@ -116,6 +147,7 @@ export interface QueryLogRecord {
   answer: ChatAnswer;
   citations: Citation[];
   topResults: SearchResult[];
+  retrievalDebug: QueryLogRetrievalDebug | null;
   createdAt: string;
   feedbackStatus: QueryLogFeedbackStatus;
   feedbackNote: string | null;

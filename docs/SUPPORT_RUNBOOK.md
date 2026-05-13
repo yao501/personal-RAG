@@ -33,7 +33,7 @@ The support bundle helps triage desktop issues (import/reindex failures, health 
 | `settings_safe.json` | Chunk size/overlap and optional library path (may be redacted). |
 | `library_health.json` | Full library health report (same shape as in-app health check). |
 | `documents_summary.json` | Per-document metadata: ids, titles, types, chunk counts, paths (paths redacted when anonymize is on). **No document body text.** |
-| `query_logs_meta.json` | Recent query logs as **metadata only** (counts, timestamps, short preview or redacted text). **No answers, citations, or retrieval payloads.** |
+| `query_logs_meta.json` | Recent query logs as **metadata only** (counts, timestamps, short preview or redacted text). **No answers, citations, retrieval debug snapshots, or retrieval payloads.** |
 | `library_tasks_recent.json` | Recent import/reindex task progress snapshots (ring buffer). `currentFile` and structured issue `filePath` may be redacted. |
 | `ipc_errors_recent.json` | Recent structured IPC failures (channel, code, stage, message, suggestion). `details` omitted when anonymize is on. |
 | `chat_sessions_summary.json` | Session counts and titles (titles redacted when anonymize is on). **No chat turns or answers.** |
@@ -45,6 +45,7 @@ The bundle **never** includes:
 - Raw imported **document text** (`documents.content` in SQLite).
 - **Chunk bodies** or **embedding vectors**.
 - Full **chat answers**, **citations JSON**, or **top-k retrieval JSON** from query logs.
+- Persisted per-query **retrieval debug snapshots** (`query_logs.retrievalDebugJson`).
 - API keys or tokens (the app does not store provider secrets in SQLite for this workflow).
 
 ## Privacy and anonymize mode

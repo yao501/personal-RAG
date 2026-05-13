@@ -35,6 +35,7 @@ describe("queryLogDrafts", () => {
         }
       ],
       topResults: [],
+      retrievalDebug: null,
       createdAt: "2026-04-09T00:00:00.000Z",
       feedbackStatus: "benchmark_candidate",
       feedbackNote: null

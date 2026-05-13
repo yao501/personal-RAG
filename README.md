@@ -55,7 +55,7 @@ Implemented:
 - duplicate import skip for unchanged files
 - targeted repair flow for only the documents that need reindexing
 - local diagnostics in `Settings` for app version, data directory, and database path
-- in-app retrieval debug panel for recent query logs, including intent hints, token expansion, answer flags, and top-result score breakdowns
+- in-app retrieval debug panel for recent query logs, including persisted pipeline counts, intent hints, token expansion, answer flags, and top-result score breakdowns
 - reindex support
 - **Support bundle export** from `Settings`：导出 ZIP（JSON + 说明文本），默认不包含原文与 chunk 正文；可选匿名化路径与提问预览（详见 `docs/SUPPORT_RUNBOOK.md`）
 
@@ -168,7 +168,7 @@ Notes:
 - Retrieval combines lexical match, metadata boosts, local embeddings, LanceDB candidate recall, and intent-aware reranking so the stack stays local while improving recall quality.
 - Answer generation is citation-first and grounded in retrieved chunks, with sentence-level evidence selection plus page/paragraph and sentence anchors to make citations easier to inspect.
 - Real query logs are persisted locally so future retrieval changes can be compared against both curated eval datasets and actual user questions, then promoted into benchmark drafts from the desktop app.
-- Recent query logs now expose a local retrieval debug panel, making top-result scores, citation hits, query type, and refusal/cautious answer flags inspectable before tuning retrieval behavior.
+- Recent query logs now persist a local retrieval debug snapshot, making vector shortlist count, candidate count, top-result scores, citation hits, query type, and refusal/cautious answer flags inspectable before tuning retrieval behavior.
 - Import and reindex now expose stage-level progress plus structured failure reasons, which makes large-library maintenance much safer for end users.
 - Busy-task and file-picker failures use stable structured error codes, and reindex failures surface in the same task issue panel as import failures.
 - Reindex is now incremental-aware, so unchanged documents are skipped when their source timestamp and indexing signature still match, which reduces maintenance cost for larger libraries.

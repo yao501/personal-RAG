@@ -825,17 +825,14 @@ export class KnowledgeService {
       documentCount: documents.length
     });
     const answer = answerQuestion(question, results);
+    const retrievalDebug = buildRetrievalDebugPayload(question, vectorChunkIds, candidateChunks.length, results, answer, {
+      searchLimit: 6,
+      vectorRecallBackend: "lancedb",
+      runtime: "desktop",
+      queryRetrievalType
+    });
     if (process.env.PKRAG_RETRIEVAL_DEBUG === "1") {
-      console.log(
-        JSON.stringify(
-          buildRetrievalDebugPayload(question, vectorChunkIds, candidateChunks.length, results, answer, {
-            searchLimit: 6,
-            vectorRecallBackend: "lancedb",
-            runtime: "desktop",
-            queryRetrievalType
-          })
-        )
-      );
+      console.log(JSON.stringify(retrievalDebug));
     }
     const turn: ChatTurn = {
       id: createStableId(`chat-turn:${sessionId}:${question}:${Date.now()}`),
@@ -855,6 +852,7 @@ export class KnowledgeService {
       answer,
       citations: answer.citations,
       topResults: results,
+      retrievalDebug,
       createdAt: turn.createdAt,
       feedbackStatus: "pending",
       feedbackNote: null

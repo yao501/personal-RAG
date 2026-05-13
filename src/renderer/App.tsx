@@ -307,7 +307,7 @@ export function App() {
     [queryLogs, selectedDebugLogId]
   );
   const selectedDebugHints = useMemo(
-    () => (selectedDebugLog ? buildLoggedQueryDebugHints(selectedDebugLog.question) : null),
+    () => selectedDebugLog?.retrievalDebug ?? (selectedDebugLog ? buildLoggedQueryDebugHints(selectedDebugLog.question) : null),
     [selectedDebugLog]
   );
   const selectedDebugCitationChunkIds = useMemo(
@@ -2036,7 +2036,10 @@ export function App() {
                     <div>
                       <p className="eyebrow">检索结果</p>
                       <strong>{selectedDebugLog.topResults.length} 条 top results</strong>
-                      <p className="muted">命中 citation chunk：{selectedDebugLog.topResults.filter((result) => selectedDebugCitationChunkIds.has(result.chunkId)).length}</p>
+                      <p className="muted">
+                        命中 citation chunk：{selectedDebugLog.topResults.filter((result) => selectedDebugCitationChunkIds.has(result.chunkId)).length}
+                        {selectedDebugLog.retrievalDebug ? ` · vector ${selectedDebugLog.retrievalDebug.vectorShortlistCount} · candidate ${selectedDebugLog.retrievalDebug.candidateChunkCount}` : ""}
+                      </p>
                     </div>
                   </div>
                   <div className="debug-token-row">
