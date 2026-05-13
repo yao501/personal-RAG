@@ -6,6 +6,7 @@ release
 *.log
 coverage
 data
+*.tsbuildinfo
 
 # Generated RAG eval reports (keep directory in repo via .gitkeep)
 reports/rag-eval/*.md
@@ -13,3 +14,7 @@ reports/rag-eval/*.md
 # Local real-library eval artifacts can include absolute paths and source snippets.
 evals/raw/
 evals/results/*.json
+evals/results/*.md
+
+# Local assistant/project memory notes are machine-specific and may include paths.
+memory/
