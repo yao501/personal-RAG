@@ -241,7 +241,7 @@ Payload **`schemaVersion` is 3** (`RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION`). Fie
 - `answerCitationChunkIds`
 - `answerFlags.refusal` / `answerFlags.cautiousProcedural`
 
-This is **not** a polished UI; it is for local debugging only.
+The desktop app also exposes a first-pass **Settings → 最近真实提问 → 检索调试** panel based on persisted query logs. It shows query type, intent hints, token expansion, answer flags, citation-hit count, and score breakdowns for the stored top results. The env-var JSON log remains more complete for vector shortlist and candidate-count diagnostics.
 
 ### Baseline comparability
 

@@ -21,8 +21,11 @@
     "src/lib/shared/**/*.ts",
     "src/lib/eval/queryLogDrafts.ts",
     "src/lib/modules/citation/**/*.ts",
+    "src/lib/modules/answer/cautiousMarkers.ts",
     "src/lib/modules/retrieve/queryFeatures.ts",
     "src/lib/modules/retrieve/queryIntent.ts",
+    "src/lib/modules/retrieve/queryRetrievalType.ts",
+    "src/lib/modules/retrieve/fullWorkflowBias.ts",
     "src/lib/modules/retrieve/tokenize.ts"
   ]
 }

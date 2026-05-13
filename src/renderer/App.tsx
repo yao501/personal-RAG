@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { renderEvalCaseDraft } from "../lib/eval/queryLogDrafts";
 import { extractSectionRootLabel } from "../lib/modules/citation/sectionRoot";
+import { detectQueryIntent } from "../lib/modules/retrieve/queryIntent";
+import { expandQueryTokens } from "../lib/modules/retrieve/queryFeatures";
+import { resolveQueryRetrievalType } from "../lib/modules/retrieve/queryRetrievalType";
+import { isCautiousProceduralAnswer } from "../lib/modules/answer/cautiousMarkers";
 import type {
   AppInfo,
   AppSettings,
@@ -208,6 +212,39 @@ function formatRendererError(info: RendererErrorInfo): string {
   return `${bits.join(" ")}${retryable}${suggestion}`;
 }
 
+function detectLoggedRefusal(answer: ChatAnswer): boolean {
+  if (answer.citations.length > 0) {
+    return false;
+  }
+  return (
+    /could not find grounded evidence/i.test(answer.directAnswer) ||
+    /没有找到足够可靠的依据/i.test(answer.directAnswer) ||
+    /I could not find grounded evidence/i.test(answer.directAnswer)
+  );
+}
+
+function formatDebugScore(value: number): string {
+  return Number.isFinite(value) ? value.toFixed(2) : "0.00";
+}
+
+function buildLoggedQueryDebugHints(question: string): {
+  effectiveQueryTokens: string[];
+  expandedTokens: string[];
+  intentPrimary: string;
+  intentWantsSteps: boolean;
+  queryRetrievalType: string;
+} {
+  const intent = detectQueryIntent(question);
+  const expandedTokens = expandQueryTokens(question, intent);
+  return {
+    effectiveQueryTokens: [...new Set([...intent.queryTokens, ...expandedTokens])],
+    expandedTokens,
+    intentPrimary: intent.primary,
+    intentWantsSteps: intent.wantsSteps,
+    queryRetrievalType: resolveQueryRetrievalType(question)
+  };
+}
+
 export function App() {
   const [screen, setScreen] = useState<Screen>("library");
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
@@ -248,6 +285,7 @@ export function App() {
   const [isDetailQuestionLoading, setIsDetailQuestionLoading] = useState(false);
   const [supportBundleAnonymize, setSupportBundleAnonymize] = useState(true);
   const [supportBundleFeedback, setSupportBundleFeedback] = useState("");
+  const [selectedDebugLogId, setSelectedDebugLogId] = useState<string | null>(null);
 
   const filteredDocuments = useMemo(() => {
     const keyword = libraryQuery.trim().toLowerCase();
@@ -263,6 +301,18 @@ export function App() {
   const selectedTurn = useMemo(
     () => chatTurns.find((turn) => turn.id === selectedTurnId) ?? null,
     [chatTurns, selectedTurnId]
+  );
+  const selectedDebugLog = useMemo(
+    () => queryLogs.find((log) => log.id === selectedDebugLogId) ?? queryLogs[0] ?? null,
+    [queryLogs, selectedDebugLogId]
+  );
+  const selectedDebugHints = useMemo(
+    () => (selectedDebugLog ? buildLoggedQueryDebugHints(selectedDebugLog.question) : null),
+    [selectedDebugLog]
+  );
+  const selectedDebugCitationChunkIds = useMemo(
+    () => new Set(selectedDebugLog?.citations.map((citation) => citation.chunkId) ?? []),
+    [selectedDebugLog]
   );
   const currentDetailQuestion = useMemo(
     () => selectedTurn?.question?.trim() || lastAskedQuestion.trim(),
@@ -1958,6 +2008,71 @@ export function App() {
             </div>
             <div className="chunk-list">
               {queryLogs.length === 0 && <p className="muted">还没有真实提问日志。进入聊天页提问后，这里会自动沉淀检索与 citation 快照。</p>}
+              {selectedDebugLog && selectedDebugHints && (
+                <section className="retrieval-debug-panel">
+                  <div className="panel-header compact-header">
+                    <div>
+                      <p className="eyebrow">检索调试</p>
+                      <strong>{selectedDebugLog.question}</strong>
+                    </div>
+                    <span>{new Date(selectedDebugLog.createdAt).toLocaleString()}</span>
+                  </div>
+                  <div className="debug-summary-grid">
+                    <div>
+                      <p className="eyebrow">查询画像</p>
+                      <strong>{selectedDebugHints.queryRetrievalType}</strong>
+                      <p className="muted">
+                        intent: {selectedDebugHints.intentPrimary}
+                        {selectedDebugHints.intentWantsSteps ? " · wants steps" : ""}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="eyebrow">回答状态</p>
+                      <strong>{detectLoggedRefusal(selectedDebugLog.answer) ? "拒答" : "有依据回答"}</strong>
+                      <p className="muted">
+                        {isCautiousProceduralAnswer(selectedDebugLog.answer) ? "谨慎流程模板" : "常规合成"} · citation {selectedDebugLog.citations.length}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="eyebrow">检索结果</p>
+                      <strong>{selectedDebugLog.topResults.length} 条 top results</strong>
+                      <p className="muted">命中 citation chunk：{selectedDebugLog.topResults.filter((result) => selectedDebugCitationChunkIds.has(result.chunkId)).length}</p>
+                    </div>
+                  </div>
+                  <div className="debug-token-row">
+                    <span>有效词：{selectedDebugHints.effectiveQueryTokens.slice(0, 18).join(" / ") || "无"}</span>
+                    {selectedDebugHints.expandedTokens.length > 0 && (
+                      <span>扩展词：{selectedDebugHints.expandedTokens.slice(0, 14).join(" / ")}</span>
+                    )}
+                  </div>
+                  <div className="debug-result-list">
+                    {selectedDebugLog.topResults.slice(0, 6).map((result, index) => {
+                      const citationHit = selectedDebugCitationChunkIds.has(result.chunkId);
+                      return (
+                        <article key={`${selectedDebugLog.id}-${result.chunkId}`} className={`debug-result-card ${citationHit ? "debug-result-cited" : ""}`}>
+                          <header>
+                            <strong>#{index + 1} {result.documentTitle}</strong>
+                            <span>{citationHit ? "已引用" : "未引用"}</span>
+                          </header>
+                          <div className="citation-meta">
+                            <span>{result.fileName}</span>
+                            <span>{result.sectionTitle ?? "通用内容"}</span>
+                            {result.locatorLabel && <span>{result.locatorLabel}</span>}
+                          </div>
+                          <div className="debug-score-grid">
+                            <span>总分 {formatDebugScore(result.score)}</span>
+                            <span>词法 {formatDebugScore(result.lexicalScore)}</span>
+                            <span>语义 {formatDebugScore(result.semanticScore)}</span>
+                            <span>重排 {formatDebugScore(result.rerankScore)}</span>
+                            <span>质量 {formatDebugScore(result.qualityScore)}</span>
+                          </div>
+                          <p>{normalizeInlineText(result.evidenceText ?? result.snippet)}</p>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
               {queryLogs.map((log) => (
                 <article key={log.id} className="chunk-card">
                   <header>
@@ -1978,6 +2093,9 @@ export function App() {
                     </button>
                     <button type="button" className="secondary" onClick={() => void handleUpdateQueryLogStatus(log.id, "ignored")}>
                       忽略
+                    </button>
+                    <button type="button" className="secondary" onClick={() => setSelectedDebugLogId(log.id)}>
+                      查看检索调试
                     </button>
                   </div>
                   {log.citations[0] && (

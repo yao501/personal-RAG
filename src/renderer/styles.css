@@ -608,6 +608,75 @@ select {
   border-top: 1px dashed var(--line);
 }
 
+.retrieval-debug-panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(18, 91, 80, 0.22);
+  background: rgba(18, 91, 80, 0.06);
+}
+
+.debug-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.debug-summary-grid > div,
+.debug-result-card {
+  background: var(--panel-strong);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.debug-token-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.debug-token-row span,
+.debug-score-grid span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(18, 91, 80, 0.09);
+  color: var(--accent);
+  font-size: 0.88rem;
+}
+
+.debug-result-list {
+  display: grid;
+  gap: 10px;
+}
+
+.debug-result-card {
+  display: grid;
+  gap: 8px;
+}
+
+.debug-result-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.debug-result-card p {
+  line-height: 1.55;
+}
+
+.debug-result-cited {
+  border-color: rgba(18, 91, 80, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(18, 91, 80, 0.12);
+}
+
+.debug-score-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -645,5 +714,9 @@ p {
   .detail-open-actions {
     justify-items: stretch;
     justify-content: stretch;
+  }
+
+  .debug-summary-grid {
+    grid-template-columns: 1fr;
   }
 }

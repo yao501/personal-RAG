@@ -225,7 +225,7 @@ Acceptance:
 
 ### P1.1 Retrieval quality improvements
 
-Status (Sprint 5 + 5.1 + 5.2): **eval–desktop retrieval shape aligned**, **tuned cautious-procedural thresholds**, **benchmark intent groups + failure buckets + `expectedAnswerMode`**, **`PKRAG_RETRIEVAL_DEBUG` schema v2** (`vectorRecallBackend` / `runtime` + tokens + flags; eval runner can emit the same shape per case). Full in-app retrieval debug panel remains **P1.2**.
+Status (Sprint 5 + 5.1 + 5.2): **eval–desktop retrieval shape aligned**, **tuned cautious-procedural thresholds**, **benchmark intent groups + failure buckets + `expectedAnswerMode`**, **`PKRAG_RETRIEVAL_DEBUG` schema v2** (`vectorRecallBackend` / `runtime` + tokens + flags; eval runner can emit the same shape per case).
 
 Keep the current route:
 
@@ -248,14 +248,13 @@ Important:
 
 ### P1.2 Retrieval debug panel
 
-This is very worthwhile once P0.4 starts landing.
+Status: **first in-app version implemented** — Settings exposes recent-query debug details from persisted query logs: query type, intent hints, effective/expanded tokens, answer flags, citation-hit count, and top-result score breakdowns.
 
-Scope:
+Remaining scope:
 
-- show normalized query / rewrite
-- show lexical, vector, rerank scores
-- show filtering reasons
-- export a query debug snapshot
+- persist vector shortlist / candidate counts alongside query logs
+- show filtering or candidate-selection reasons when available
+- export a single query debug snapshot
 
 This will make retrieval iteration much faster and safer.
 
