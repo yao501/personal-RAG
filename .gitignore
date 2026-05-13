@@ -10,6 +10,7 @@ data
 
 # Generated RAG eval reports (keep directory in repo via .gitkeep)
 reports/rag-eval/*.md
+reports/rag-eval/*.json
 
 # Local real-library eval artifacts can include absolute paths and source snippets.
 evals/raw/

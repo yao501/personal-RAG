@@ -7,6 +7,11 @@ This document describes the **local-first** benchmark format and how to run the 
 - Before or after changing chunking, retrieval, reranking, or answer assembly.
 - To compare two branches or commits using the same benchmark file and the same runner.
 
+`npm run eval:rag` writes both:
+
+- a human-readable Markdown report under `reports/rag-eval/eval-<timestamp>.md`
+- a machine-readable JSON summary under `reports/rag-eval/eval-<timestamp>.json` for CI or branch-to-branch comparison
+
 ### Real-library regression track (P0-A)
 
 - **Plan and scope:** [`docs/P0-A_REAL_QUERY_EXPANSION_PLAN.md`](P0-A_REAL_QUERY_EXPANSION_PLAN.md) — small, anonymized real questions; no benchmark inflation in early rounds.

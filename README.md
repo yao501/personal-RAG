@@ -130,6 +130,7 @@ npm run eval:rag
 ```
 
 Writes a timestamped Markdown report under `reports/rag-eval/`. Benchmark format, metrics, and limitations: [docs/EVAL_GUIDE.md](docs/EVAL_GUIDE.md).
+The same run also writes a timestamped JSON summary for CI-friendly comparison.
 
 Sprint 5.x: the default benchmark path hydrates embeddings and runs the same **query embedding → top-24 vector shortlist → lexical merge → `searchChunks`** shape as the desktop app (LanceDB is replaced by in-memory cosine ranking in the script). Set **`PKRAG_RETRIEVAL_DEBUG=1`** for **schemaVersion 2** JSON: `vectorRecallBackend` (`lancedb` in the app, `memory` in `eval:rag`), `runtime` (`desktop` vs `eval`), tokens, scores, citation ids, refusal/cautious flags (`docs/EVAL_GUIDE.md`). Benchmark cases can carry **`expectedAnswerMode`** / **`sourceType`** metadata for regression reports.
 

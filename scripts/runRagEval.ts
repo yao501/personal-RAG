@@ -10,6 +10,7 @@ import { ragEvalDatasets } from "./ragEval.config";
 import {
   loadBenchmarkJsonFile,
   materializeBenchmarkLibrary,
+  renderBenchmarkJsonReport,
   renderBenchmarkMarkdownReport,
   runBenchmarkCases,
   writeReportToFile
@@ -102,6 +103,7 @@ async function runBenchmarkMode(benchmarkPath: string): Promise<void> {
   const generatedAt = new Date().toISOString();
   const stamp = generatedAt.replace(/[:.]/g, "-");
   const reportPath = path.join(repoRoot, "reports", "rag-eval", `eval-${stamp}.md`);
+  const jsonReportPath = path.join(repoRoot, "reports", "rag-eval", `eval-${stamp}.json`);
 
   const markdown = renderBenchmarkMarkdownReport({
     benchmarkId: config.id,
@@ -110,8 +112,16 @@ async function runBenchmarkMode(benchmarkPath: string): Promise<void> {
     caseResults,
     generatedAt
   });
+  const json = renderBenchmarkJsonReport({
+    benchmarkId: config.id,
+    benchmarkPath: resolved,
+    config,
+    caseResults,
+    generatedAt
+  });
 
   writeReportToFile(markdown, reportPath);
+  writeReportToFile(json, jsonReportPath);
 
   console.log(`\nBenchmark: ${config.id}`);
   console.log(config.description ?? "");
@@ -119,6 +129,7 @@ async function runBenchmarkMode(benchmarkPath: string): Promise<void> {
   console.log(`Mean recall@k: ${summary.meanRecallAtK.toFixed(3)} | Doc hit rate: ${summary.docHitRate.toFixed(3)}`);
   console.log(`mustRefuse correct: ${summary.mustRefuseCorrect}/${summary.mustRefuseCases}`);
   console.log(`\nReport written: ${reportPath}`);
+  console.log(`JSON written: ${jsonReportPath}`);
 
   for (const row of caseResults.filter((item) => !item.passed)) {
     console.log(`\nFAIL ${row.case.id} :: ${row.case.question}`);

@@ -226,6 +226,49 @@ export function renderBenchmarkMarkdownReport(options: {
   return lines.join("\n");
 }
 
+export function renderBenchmarkJsonReport(options: {
+  benchmarkId: string;
+  benchmarkPath: string;
+  config: BenchmarkFileV1;
+  caseResults: BenchmarkCaseEvalResult[];
+  generatedAt: string;
+}): string {
+  const summary = summarizeBenchmarkResults(options.caseResults);
+  const failureBuckets = summarizeFailureBuckets(options.caseResults);
+  const payload = {
+    reportSchemaVersion: 1,
+    generatedAt: options.generatedAt,
+    benchmark: {
+      id: options.benchmarkId,
+      path: options.benchmarkPath,
+      description: options.config.description ?? null,
+      schemaVersion: options.config.schemaVersion,
+      retrievalTopK: options.config.retrievalTopK ?? DEFAULT_RETRIEVAL_LIMIT,
+      embeddingHydration: options.config.embeddingHydration !== false,
+      caseCount: options.config.cases.length,
+      documentCount: options.config.documents.length
+    },
+    summary,
+    failureBuckets,
+    cases: options.caseResults.map((row) => ({
+      id: row.case.id,
+      intentGroup: row.case.intentGroup ?? null,
+      sourceType: row.case.sourceType ?? "fixture",
+      expectedAnswerMode: row.case.expectedAnswerMode ?? null,
+      mustRefuse: row.case.mustRefuse,
+      passed: row.passed,
+      failureCategory: row.failureCategory,
+      failureReasons: row.failureReasons,
+      retrieval: row.retrieval,
+      answerMetrics: row.answerMetrics,
+      citationCount: row.answer.citations.length,
+      topResultCount: row.results.length
+    }))
+  };
+
+  return `${JSON.stringify(payload, null, 2)}\n`;
+}
+
 export function writeReportToFile(content: string, reportPath: string): void {
   fs.mkdirSync(path.dirname(reportPath), { recursive: true });
   fs.writeFileSync(reportPath, content, "utf8");
