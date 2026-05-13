@@ -14,6 +14,13 @@
 - 示例：ADD/SUB/MUL/DIV、PVU/PVL、SWITCH/ORSEL/MULDIV 等术语嵌入检索失效
 - 手册7 均分仅 0.33（6题中 3 fail / 2 partial / 1 pass）
 
+**2026-05-13 局部缓解**:
+- 已增加 DCS 术语 query expansion，覆盖 ADD/SUB/MUL/DIV、PVU/PVL、ENGU/ENGL、Deadband、SWITCH/ORSEL/MULDIV/SUMMER、MOT/VAL 等缩写。
+- 已增加 DCS 技术参数表证据门控：当问题和证据同时出现精确技术缩写，且命中参数表/点详细面板等表格形态时，不再仅因 `qualityScore` 偏低拒答。
+- 已增加高级运算功能块摘要抽取：当检索证据包含 SWITCH/ORSEL/MULDIV/SUMMER_CTRL 的章节与功能句时，保留英文块名并输出对应中文功能说明。
+- 已增加旁路（Bypass）直答抽取：保留 `Bypass/BYPASS/CTRBP` 锚点，并从 PIDA 控制旁路证据中说明启用条件、输出确定方式和调试维护场景。
+- 手册7 Phase B 小回归从 `P:2 Pa:1 F:2 / 0.50` 提升到 `P:5 Pa:0 F:0 / 1.00`，M7-2、M7-4、M7-5 均已通过。
+
 **计划**: 升级到 `Xenova/bge-small-zh-v1.5`（512维，中文优化 BAAI）
 - 状态：代码已切换（`src/lib/modules/embed/localEmbedder.ts`），模型文件下载中
 - 注意：维度变化（384→512），存量 embedding 数据需重建
@@ -43,6 +50,11 @@
 - `pdf-parse` 库对中文 PDF 抽取存在 TT undefined function 警告
 - 部分表格数据以碎片化文本出现，缺少结构信息
 - 无 TOC ghost text 问题（当前正则过滤有效）
+
+### 2.5 手册7高级运算功能块正文抽取仍依赖 sectionPath
+- M7-4（SWITCH/ORSEL/MULDIV/SUMMER_CTRL）已通过，但当前修复依赖 `sectionPath` 中保留的功能块英文名与正文中的中文功能句共同出现。
+- PDF 解析仍会把部分功能块正文挂到相邻小节（如“串级模式”）下；本轮通过 answer 层的证据抽取缓解了英文块名丢失问题，没有彻底修复章节归属。
+- 下一步若继续提升，应从 PDF 解析、功能块标题/表格归属、章节正文抽取治理入手。
 
 ---
 
@@ -80,3 +92,5 @@
 | 2026-05-12 | 嵌入模型切换 | `localEmbedder.ts` | 代码已改，模型下载中 |
 | 2026-05-12 | 表格行过滤 | `chunkText.ts` `isPlainHeading` | 已部署 |
 | 2026-05-12 | 噪音章节过滤 | `chunkText.ts` `buildUnits` | 已部署 |
+| 2026-05-13 | DCS 术语扩展、技术参数表证据门控、高级运算块摘要抽取 | `queryFeatures.ts` `answerQuestion.ts` | 已部署，M7-2/M7-4 通过 |
+| 2026-05-14 | Bypass/旁路直答抽取 | `queryFeatures.ts` `answerQuestion.ts` | 已部署，M7-5 通过；Phase B 5/5 |

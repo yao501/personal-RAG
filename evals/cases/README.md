@@ -45,3 +45,11 @@
   - 形式：`[{ label, shape }]`
   - `shape` 与 `expected_shape` 同结构（`must_contain_all` / `must_contain_any` / `must_not_contain`）
   - runner 判定：`expected_shape` 不满足但任一 `acceptable_variants[*].shape` 满足 → **pass**（并在结果 JSON 里标注 `accepted_by_variant: true` 与 `accepted_variant_label`）
+
+## P0-B Manual 7 Phase B（已固化：功能块专题）
+
+- **cases 文件**：`evals/cases/p0b-manual7-phaseb.json`
+- **runner**：`scripts/p0bPhaseBOnly.ts --spec evals/cases/p0b-manual7-phaseb.json`
+- **数据源**：`PKRAG_REALPDF_DIR` 指向真实 PDF 目录，runner 只加载手册7功能块。
+- **覆盖范围**：M7-2 ~ M7-6，包括 PID 参数、跟踪/自动、高级运算块、Bypass 旁路、MOTCTRL/VALCTRL。
+- **当前基线**：2026-05-14 为 `P:5 Pa:0 F:0`，均分 `1.00`。

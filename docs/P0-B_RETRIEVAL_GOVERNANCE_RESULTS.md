@@ -188,6 +188,33 @@ Round 2 (PARTIAL):
 
 ---
 
+## 7.1 后续小步补丁：DCS 功能块术语与参数表证据（2026-05-13）
+
+**范围**: 只处理手册7功能块专题中可验证的术语召回与参数表拒答问题，不扩大为新的大规模 P0-B 重构。
+
+**已落地**:
+- 在 `queryFeatures.ts` 增加 DCS 术语扩展：ADD/SUB/MUL/DIV、PVU/PVL、ENGU/ENGL、Deadband、SWITCH/ORSEL/MULDIV/SUMMER、MOT/VAL、MOTCTRL/VALCTRL。
+- 在 `answerQuestion.ts` 增加 DCS 技术参数表证据门控：当问题与证据精确匹配技术缩写，且证据具备参数表/点详细面板形态时，允许低 `qualityScore` 的表格块作为可靠证据。
+- 在 `answerQuestion.ts` 增加高级运算功能块摘要抽取：当证据中包含 SWITCH/ORSEL/MULDIV/SUMMER_CTRL 的章节锚点与中文功能句时，保留英文块名并输出对应功能说明。
+- 在 `answerQuestion.ts` 增加旁路（Bypass）直答抽取：保留 `Bypass/BYPASS/CTRBP` 锚点，并从 PIDA 控制旁路证据中说明启用条件、输出确定方式和调试维护场景。
+- 同步增加 answer/retrieval 单测，防止无关低质量块被误救。
+
+**验证结果**:
+
+| 验证项 | 结果 |
+|--------|------|
+| `npm test -- src/lib/modules/answer/answerQuestion.test.ts src/lib/modules/retrieve/queryFeatures.test.ts src/lib/modules/retrieve/searchIndex.test.ts` | ✅ 38 tests passed |
+| `npm test` | ✅ 109 tests passed |
+| `npm run build` | ✅ passed |
+| `scripts/p0bPhaseBOnly.ts`（手册7 M7-2~M7-6，lexical fallback） | ✅ P:5 Pa:0 F:0，均分 1.00 |
+| M7-2：PVU/PVL/ENGU/ENGL | ✅ Fail → Pass |
+| M7-4：SWITCH/ORSEL/MULDIV/SUMMER_CTRL | ✅ Fail → Pass |
+| M7-5：旁路/Bypass | ✅ Partial → Pass |
+
+**剩余判断**: 手册7 Phase B 小集已阶段性收口（5/5）。后续不建议继续在 answer 层无限追加模板；更高价值的下一步是把这些真实题固化进正式回归集，并治理 PDF 章节归属/表格抽取，减少对 answer 层专项抽取的依赖。
+
+---
+
 ## 8. 相关文件
 
 | 类型 | 路径 |
@@ -196,6 +223,8 @@ Round 2 (PARTIAL):
 | 改动代码 | `src/lib/modules/retrieve/queryFeatures.ts` |
 | 改动代码 | `src/lib/modules/retrieve/rankingSignals.ts` |
 | 改动代码 | `src/lib/modules/answer/answerQuestion.ts` |
+| 测试更新 | `src/lib/modules/retrieve/queryFeatures.test.ts` |
+| 测试更新 | `src/lib/modules/retrieve/searchIndex.test.ts` |
 | 测试更新 | `src/lib/modules/answer/answerQuestion.test.ts` |
 | 诊断脚本 | `scripts/p0bDiagnosticRetrieval.ts` |
 | 诊断脚本 | `scripts/p0bDiagnosticSimulation.ts` |

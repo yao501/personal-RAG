@@ -75,6 +75,21 @@ export PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册"
 - 结果 JSON：`evals/results/real-regression-run-<YYYY-MM-DD>-<seq>.json`
 - 可读 summary：`evals/results/real-regression-summary-<YYYY-MM-DD>-<seq>.md`
 
+### P0-B Manual 7 Phase B：功能块专题回归
+
+本组固化手册7功能块专题 M7-2 ~ M7-6，覆盖 PID 参数、PID 跟踪/自动、高级运算块、旁路 Bypass、MOTCTRL/VALCTRL。
+
+- **cases**：`evals/cases/p0b-manual7-phaseb.json`
+- **runner**：`scripts/p0bPhaseBOnly.ts`
+- **当前基线**：2026-05-14，`P:5 Pa:0 F:0`，均分 `1.00`
+
+运行：
+
+```bash
+export PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册"
+./node_modules/.bin/vite-node scripts/p0bPhaseBOnly.ts --spec evals/cases/p0b-manual7-phaseb.json
+```
+
 ## Benchmark format (`schemaVersion: 1`)
 
 Benchmarks are JSON files (single object). See `benchmarks/benchmark.v1.json`.

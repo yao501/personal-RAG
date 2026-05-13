@@ -1,0 +1,90 @@
+{
+  "id": "p0b-manual7-phaseb",
+  "branch": "P0-B-manual7-phaseb",
+  "round": 1,
+  "description": "手册7功能块专题 Phase B 固化回归：覆盖 M7-2~M7-6，验证 PID 参数、模式条件、高级运算块、旁路、MOTCTRL/VALCTRL。",
+  "created": "2026-05-14T00:00:00+08:00",
+  "owner": "project",
+  "knowledge_base": "和利时 HOLLiAS MACS V6.5 用户手册7 功能块",
+  "runner": "scripts/p0bPhaseBOnly.ts",
+  "source": {
+    "kind": "realpdf",
+    "env": "PKRAG_REALPDF_DIR",
+    "volume_filter": "^HOLLiAS_MACS_V6\\.5用户手册7_.+\\.pdf$"
+  },
+  "baseline": {
+    "date": "2026-05-14",
+    "verdict": "P:5 Pa:0 F:0",
+    "average_score": 1.0,
+    "notes": "Uses memory/lexical fallback when local Ollama embeddings are unavailable."
+  },
+  "cases": [
+    {
+      "id": "M7-2",
+      "type": "参数约束型",
+      "volume": "手册7_功能块",
+      "question": "MACS V6.5 PID 功能块中，PVU/PVL 和 ENGU/ENGL 参数分别表示什么？它们之间的关系是什么？死区（Deadband）参数的作用和设置范围是什么？",
+      "rationale": "测试手册7 PID功能块关键参数的召回：PVU/PVL 是过程量量程上下限，ENGU/ENGL 是工程量或输出量程上下限，死区用于抑制小幅波动。",
+      "source_hint": "手册7_功能块 第5章 控制运算 — PID 功能块参数表",
+      "expected_shape": {
+        "must_contain_all": ["PVU", "PVL", "ENGU", "ENGL", "PID"],
+        "must_contain_any": ["上限", "下限", "范围", "量程", "约束"],
+        "must_not_contain": []
+      },
+      "keywords": ["PVU", "PVL", "ENGU", "ENGL", "PID"]
+    },
+    {
+      "id": "M7-3",
+      "type": "操作条件型",
+      "volume": "手册7_功能块",
+      "question": "MACS V6.5 PID 功能块的跟踪模式（Tracking）和自动模式（Auto）有什么区别？什么条件下 PID 会进入跟踪模式？跟踪模式下 PID 的输出值由什么决定？",
+      "rationale": "测试手册7 PID跟踪模式的召回：跟踪模式下 PID 停止自动计算，输出由跟踪输入决定；常用于串级控制的副环。",
+      "source_hint": "手册7_功能块 第5章 控制运算 — PID 跟踪/自动模式",
+      "expected_shape": {
+        "must_contain_all": ["跟踪", "自动", "PID", "输出"],
+        "must_not_contain": []
+      },
+      "keywords": ["跟踪", "自动", "PID", "输出"]
+    },
+    {
+      "id": "M7-4",
+      "type": "定义型",
+      "volume": "手册7_功能块",
+      "question": "MACS V6.5 高级运算功能块中，SWITCH（选择开关）、ORSEL（或选择）、MULDIV（乘除运算）、SUMMER_CTRL（累加器控制）分别有什么功能？各适用于什么场景？",
+      "rationale": "测试手册7第4章高级运算功能块召回，尤其要保留英文功能块名和对应中文功能句。",
+      "source_hint": "手册7_功能块 第4章 高级运算",
+      "expected_shape": {
+        "must_contain_all": ["SWITCH", "ORSEL", "MULDIV", "SUMMER"],
+        "must_not_contain": []
+      },
+      "keywords": ["SWITCH", "ORSEL", "MULDIV", "SUMMER"]
+    },
+    {
+      "id": "M7-5",
+      "type": "操作条件型",
+      "volume": "手册7_功能块",
+      "question": "MACS V6.5 功能块中，旁路（Bypass）功能的作用是什么？哪些功能块支持旁路功能？启用旁路后，功能块的输出值如何确定？旁路功能在调试和维护中有什么用途？",
+      "rationale": "测试手册7旁路功能召回：需要保留 Bypass 英文锚点，说明启用条件、输出确定方式和调试维护场景。",
+      "source_hint": "手册7_功能块 — 选择功能块旁路 / PIDA 控制旁路",
+      "expected_shape": {
+        "must_contain_all": ["旁路", "Bypass", "功能块", "输出"],
+        "must_contain_any": ["场景", "适用", "调试", "维护", "条件"],
+        "must_not_contain": []
+      },
+      "keywords": ["旁路", "Bypass", "功能块", "输出"]
+    },
+    {
+      "id": "M7-6",
+      "type": "定义型",
+      "volume": "手册7_功能块",
+      "question": "MACS V6.5 控制运算中，MOTCTRL（马达控制）和 VALCTRL（阀门控制）功能块各自的作用是什么？它们分别有哪些关键参数？如何配置电机或阀门的反馈信号？",
+      "rationale": "测试手册7 MOTCTRL/VALCTRL 功能块召回。v1.5 完善 MOT2 说明，v1.6 新增 MOTCTRL 和 VALCTRL。",
+      "source_hint": "手册7_功能块 第5章 控制运算 — MOTCTRL/VALCTRL",
+      "expected_shape": {
+        "must_contain_all": ["MOTCTRL", "VALCTRL", "马达", "阀门"],
+        "must_not_contain": []
+      },
+      "keywords": ["MOTCTRL", "VALCTRL", "马达", "阀门"]
+    }
+  ]
+}

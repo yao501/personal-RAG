@@ -113,6 +113,94 @@ export function isGoalQuestion(query: string): boolean {
   return /(目标|目的|想达到什么|要达到什么)/.test(query);
 }
 
+interface QueryExpansionRule {
+  matches: RegExp[];
+  expansions: string[];
+}
+
+const DCS_TERM_EXPANSION_RULES: QueryExpansionRule[] = [
+  {
+    matches: [/\b(?:add|sub|mul|div|sqrt)\b/i, /基本运算|算术运算|四则运算/],
+    expansions: [
+      "基本运算",
+      "加法",
+      "减法",
+      "乘法",
+      "除法",
+      "开方",
+      "加法运算",
+      "减法运算",
+      "乘法运算",
+      "除法运算",
+      "算术运算"
+    ]
+  },
+  {
+    matches: [/\b(?:pvu|pvl)\b/i],
+    expansions: ["PID", "过程量", "过程量上限", "过程量下限", "量程上限", "量程下限", "测量值", "输入量程"]
+  },
+  {
+    matches: [/\b(?:engu|engl)\b/i],
+    expansions: ["PID", "工程量", "工程量上限", "工程量下限", "工程单位", "输出量程", "量程转换"]
+  },
+  {
+    matches: [/\bdeadband\b/i, /死区/],
+    expansions: ["死区", "偏差", "波动", "抑制", "控制精度", "PID"]
+  },
+  {
+    matches: [/\bbypass\b/i, /旁路/],
+    expansions: ["Bypass", "BYPASS", "旁路", "控制旁路", "输入旁路", "CTRBP", "BYPASS1", "BYPASS2", "调试", "维护"]
+  },
+  {
+    matches: [/\bswitch\b/i, /选择开关/],
+    expansions: ["信号选择开关", "选择开关", "开关选择", "条件选择", "切换", "选择功能块"]
+  },
+  {
+    matches: [/\borsel\b/i, /或选择|超驰选择/],
+    expansions: ["超驰选择", "或选择", "高选", "低选", "OR选择", "逻辑或", "选择输出", "选择功能块"]
+  },
+  {
+    matches: [/\bmuldiv\b/i, /乘除运算|乘除/],
+    expansions: ["乘除", "乘除运算", "乘法", "除法", "比例因子", "偏置", "高级运算"]
+  },
+  {
+    matches: [/\bsummer(?:_ctrl)?\b/i, /累加器|RC求和|求和/],
+    expansions: ["RC求和", "累加", "累加器", "求和", "加和", "高级运算"]
+  },
+  {
+    matches: [/\bmot[1-4d]?\b/i, /MOT\s*系列/i],
+    expansions: ["符号库", "马达", "电机", "风机", "马达符号", "电机符号", "MOTCTRL"]
+  },
+  {
+    matches: [/\bval[1-3]?\b/i, /VAL\s*系列/i],
+    expansions: ["符号库", "阀门", "阀", "阀门符号", "调节阀", "VALCTRL"]
+  },
+  {
+    matches: [/\b(?:motctrl|valctrl)\b/i],
+    expansions: ["控制运算", "马达控制", "阀门控制", "反馈信号", "电机反馈", "阀门反馈"]
+  }
+];
+
+function pushUnique(target: string[], values: string[]): void {
+  for (const value of values) {
+    if (!target.includes(value)) {
+      target.push(value);
+    }
+  }
+}
+
+function expandDcsTechnicalTerms(query: string): string[] {
+  const expansions: string[] = [];
+
+  for (const rule of DCS_TERM_EXPANSION_RULES) {
+    if (rule.matches.some((pattern) => pattern.test(query))) {
+      pushUnique(expansions, rule.expansions);
+    }
+  }
+
+  return expansions;
+}
+
 export function expandQueryTokens(query: string, intent: QueryIntent): string[] {
   const expansions: string[] = [];
 
@@ -160,6 +248,8 @@ export function expandQueryTokens(query: string, intent: QueryIntent): string[] 
   if (/组态/i.test(query)) {
     expansions.push("工程组态", "算法组态", "硬件配置", "图形编辑");
   }
+
+  pushUnique(expansions, expandDcsTechnicalTerms(query));
 
   return expansions;
 }

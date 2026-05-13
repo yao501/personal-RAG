@@ -71,16 +71,85 @@ function chooseQ6EvidenceResults(question: string, results: SearchResult[]): Sea
   return picked;
 }
 
+const DCS_TECHNICAL_IDENTIFIERS = [
+  "pvu",
+  "pvl",
+  "engu",
+  "engl",
+  "pid",
+  "deadband",
+  "add",
+  "sub",
+  "mul",
+  "div",
+  "sqrt",
+  "switch",
+  "orsel",
+  "muldiv",
+  "summer",
+  "summer_ctrl",
+  "mot",
+  "motctrl",
+  "val",
+  "valctrl"
+];
+
+function extractDcsTechnicalIdentifiers(text: string): string[] {
+  const normalized = text.toLowerCase();
+  return DCS_TECHNICAL_IDENTIFIERS.filter((identifier) => {
+    const escaped = identifier.replace(/_/g, "[-_\\s]?");
+    return new RegExp(`\\b${escaped}\\b`, "i").test(normalized);
+  });
+}
+
+function isDcsTechnicalTableEvidence(question: string, result: SearchResult): boolean {
+  const queryIdentifiers = extractDcsTechnicalIdentifiers(question);
+  if (queryIdentifiers.length === 0) {
+    return false;
+  }
+
+  const evidenceBundle = [
+    result.documentTitle,
+    result.sectionTitle ?? "",
+    result.sectionPath ?? "",
+    result.evidenceText ?? "",
+    result.snippet,
+    result.text
+  ].join("\n");
+  const evidenceIdentifiers = extractDcsTechnicalIdentifiers(evidenceBundle);
+  const exactMatches = queryIdentifiers.filter((identifier) => evidenceIdentifiers.includes(identifier));
+
+  if (exactMatches.length === 0) {
+    return false;
+  }
+
+  const asksParameterTable =
+    /参数|量程|上限|下限|工程量|过程量|死区|功能|功能块|符号|阀门|马达|电机|选择|运算/.test(question);
+  const hasTechnicalTableShape =
+    /(?:参数|名称|说明|缺省|默认|范围|上限|下限|工程量|过程量|量程|功能块|符号库|点详细面板)/.test(evidenceBundle) ||
+    exactMatches.length >= 2;
+  const strongRetrievalSignal =
+    result.score >= 0.8 &&
+    (result.lexicalScore >= 1.2 || result.rerankScore >= 0.85 || exactMatches.length >= 2);
+
+  return asksParameterTable && hasTechnicalTableShape && strongRetrievalSignal;
+}
+
+function qualityUsableForEvidence(question: string, result: SearchResult): boolean {
+  return result.qualityScore >= -0.25 || isDcsTechnicalTableEvidence(question, result);
+}
+
 function hasReliableEvidence(question: string, results: SearchResult[]): boolean {
   const candidates = results.slice(0, 3);
   const usableIdx = candidates.findIndex((r) => {
-    if (r.qualityScore < -0.25) return false;
+    const technicalTableEvidence = isDcsTechnicalTableEvidence(question, r);
+    if (r.qualityScore < -0.25 && !technicalTableEvidence) return false;
     if (r.score < 0.8) return false;
     if (r.lexicalScore < 0.3 && r.semanticScore < 0.4 && r.rerankScore < 0.7) return false;
     const topText = `${r.documentTitle}\n${r.sectionTitle ?? ""}\n${r.sectionPath ?? ""}\n${r.text}`;
     const sentenceLike = (topText.match(/[。!?.!?]/g) ?? []).length;
     const codeDensity = ((topText.match(/[A-Z0-9-]/g) ?? []).length / Math.max(1, topText.length));
-    return !(sentenceLike === 0 && codeDensity > 0.18);
+    return technicalTableEvidence || !(sentenceLike === 0 && codeDensity > 0.18);
   });
   return usableIdx >= 0;
 }
@@ -245,6 +314,10 @@ function hasProceduralStructuredIntent(question: string): boolean {
 }
 
 function needsProceduralEvidenceCaution(question: string, results: SearchResult[]): boolean {
+  if (results.some((result) => isDcsTechnicalTableEvidence(question, result))) {
+    return false;
+  }
+
   if (evidenceCoverageHighEnough(question, results)) {
     return false;
   }
@@ -339,7 +412,7 @@ function bestMatchingSentence(text: string, question: string): string | null {
   return candidates[0]?.sentence ?? null;
 }
 
-function selectEvidenceResults(results: SearchResult[]): SearchResult[] {
+function selectEvidenceResults(question: string, results: SearchResult[]): SearchResult[] {
   const isNoiseSection = (r: SearchResult) => {
     const meta = [r.sectionTitle, r.sectionPath].filter(Boolean).join(" ").toLowerCase();
     return /文档用途|阅读对象|文档更新|全局变量|名词缩写|版权声明/.test(meta) &&
@@ -347,7 +420,7 @@ function selectEvidenceResults(results: SearchResult[]): SearchResult[] {
   };
 
   // 优先使用非噪声的第一个结果
-  const usableIdx = results.findIndex((r) => !isNoiseSection(r) && r.qualityScore >= -0.25);
+  const usableIdx = results.findIndex((r) => !isNoiseSection(r) && qualityUsableForEvidence(question, r));
   if (usableIdx > 0 && usableIdx <= 2) {
     // 跳过前 usableIdx 个噪声结果
     const top = results[usableIdx];
@@ -378,7 +451,7 @@ function selectEvidenceResults(results: SearchResult[]): SearchResult[] {
       return false;
     }
 
-    if (result.qualityScore < Math.min(0.2, topQuality - 0.35)) {
+    if (result.qualityScore < Math.min(0.2, topQuality - 0.35) && !isDcsTechnicalTableEvidence(question, result)) {
       return false;
     }
 
@@ -1429,6 +1502,282 @@ function selectSupportingSentences(results: SearchResult[], question: string): s
     .map((item) => `${item.sentence} ${formatReferenceTag(item)}`);
 }
 
+function lineContainsIdentifier(line: string, identifier: string): boolean {
+  const escaped = identifier.replace(/_/g, "[-_\\s]?");
+  return new RegExp(`\\b${escaped}\\b`, "i").test(line);
+}
+
+function extractDcsTableRows(question: string, pool: SearchResult[]): { identifier: string; row: string; result: SearchResult }[] {
+  const queryIdentifiers = extractDcsTechnicalIdentifiers(question);
+  const rows: { identifier: string; row: string; result: SearchResult }[] = [];
+  const seen = new Set<string>();
+
+  for (const result of pool.slice(0, 8)) {
+    if (!isDcsTechnicalTableEvidence(question, result)) {
+      continue;
+    }
+
+    const text = [result.text, result.fullText, result.snippet, result.evidenceText ?? ""].join("\n");
+    const lines = text
+      .split(/\n+/)
+      .map((line) => normalizeSentence(line))
+      .filter((line) => line.length >= 3);
+
+    for (const identifier of queryIdentifiers) {
+      const matchingLine = lines.find((line) => lineContainsIdentifier(line, identifier));
+      if (!matchingLine) {
+        continue;
+      }
+
+      const key = `${identifier}:${matchingLine.toLowerCase()}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      rows.push({ identifier, row: matchingLine, result });
+      seen.add(key);
+    }
+  }
+
+  return rows;
+}
+
+function describeIdentifierFromRows(identifier: string, rowText: string): string | null {
+  const escaped = identifier.replace(/_/g, "[-_\\s]?");
+  const canonical = identifier.toUpperCase();
+  const before = new RegExp(`([\\p{Script=Han}A-Za-z0-9_（）()/]{2,18})\\s+${escaped}\\b`, "iu").exec(rowText)?.[1];
+  const after = new RegExp(`\\b${escaped}\\b\\s*[:：]?\\s*([\\p{Script=Han}A-Za-z0-9_（）()/]{2,18})`, "iu").exec(rowText)?.[1];
+  const label = (before ?? after)?.trim();
+
+  if (!label) {
+    return null;
+  }
+
+  return `${canonical} 为 ${label}`;
+}
+
+function tryDcsTechnicalTableDirectAnswer(question: string, pool: SearchResult[]): string | null {
+  const rows = extractDcsTableRows(question, pool);
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const rowText = rows.map(({ row }) => row).join("\n");
+  const parts: string[] = [];
+  const hasPid = /\bpid\b/i.test(question) || /\bpid\b/i.test(rowText);
+
+  if (hasPid && /pvu|pvl/i.test(question) && /engu|engl/i.test(question)) {
+    const rangeDescriptions = ["pvu", "pvl", "engu", "engl"]
+      .map((identifier) => describeIdentifierFromRows(identifier, rowText))
+      .filter(Boolean);
+
+    if (rangeDescriptions.length >= 2) {
+      parts.push(
+        `PID 功能块参数表中，${rangeDescriptions.join("，")}。因此 PVU/PVL 对应 PV 或过程量的量程上下限，ENGU/ENGL 对应工程量或输出量程的上下限。`
+      );
+    }
+  }
+
+  if (/deadband|死区/i.test(question)) {
+    const deadband = rows.find(({ identifier }) => identifier === "deadband")?.row;
+    if (deadband) {
+      parts.push(`Deadband 是死区相关参数：${deadband}。具体数值约束应以引用参数表中的范围/缺省列为准。`);
+    }
+  }
+
+  if (parts.length === 0) {
+    parts.push(`检索到的技术参数表条目包括：${dedupePreservingOrder(rows.map(({ row }) => row)).join("；")}。`);
+  }
+
+  const cited = rows[0]?.result;
+  const citationNote = cited ? ` 主要依据《${cited.documentTitle}》的「${cited.sectionTitle ?? "相关参数表"}」。` : "";
+  return `${parts.join(" ")}${citationNote}`.trim();
+}
+
+interface DcsAdvancedBlockRule {
+  id: string;
+  label: string;
+  titlePattern: RegExp;
+  descriptionPattern: RegExp;
+  fallbackPattern: RegExp;
+}
+
+const DCS_ADVANCED_BLOCK_RULES: DcsAdvancedBlockRule[] = [
+  {
+    id: "SWITCH",
+    label: "SWITCH（信号选择开关）",
+    titlePattern: /\bSWITCH\b|信号选择开关|选择开关/i,
+    descriptionPattern: /信号选择开关\s*([\s\S]{12,180}?输出一路信号。?)/,
+    fallbackPattern: /S1~S4|X1~X4|被选参数号|选择.*输出|输出一路信号/
+  },
+  {
+    id: "ORSEL",
+    label: "ORSEL（超驰选择）",
+    titlePattern: /\bORSEL\b|超驰选择|或选择/i,
+    descriptionPattern: /超驰选择\s*([\s\S]{12,180}?输出一路信号。?)/,
+    fallbackPattern: /高选|低选|超驰|四路输入|分析计算|输出一路信号/
+  },
+  {
+    id: "MULDIV",
+    label: "MULDIV（乘除）",
+    titlePattern: /\bMULDIV\b|乘除/i,
+    descriptionPattern: /乘除\s*([\s\S]{12,180}?输出一路信号。?)/,
+    fallbackPattern: /比例因子|偏置|X1~X3|K1~K3|输出值|计算值/
+  },
+  {
+    id: "SUMMER",
+    label: "SUMMER_CTRL（RC求和）",
+    titlePattern: /\bSUMMER(?:_CTRL)?\b|RC求和|累加器|求和/i,
+    descriptionPattern: /RC求和\s*([\s\S]{12,180}?输出一路信号。?)/,
+    fallbackPattern: /四路输入|比例因|输入个数|求和|输出一路信号/
+  }
+];
+
+function isDcsAdvancedBlockQuestion(question: string): boolean {
+  if (!/高级运算|功能块|功能|场景|适用/.test(question)) {
+    return false;
+  }
+
+  const mentioned = DCS_ADVANCED_BLOCK_RULES.filter((rule) => rule.titlePattern.test(question));
+  return mentioned.length >= 2;
+}
+
+function cleanDcsBlockDescription(text: string): string {
+  return normalizeSentence(text)
+    .replace(/\s+/g, " ")
+    .replace(/根 据/g, "根据")
+    .replace(/比 例/g, "比例")
+    .trim();
+}
+
+function extractDcsAdvancedBlockDescription(rule: DcsAdvancedBlockRule, result: SearchResult): string | null {
+  const text = result.text;
+  const match = rule.descriptionPattern.exec(text);
+  if (match?.[1]) {
+    return cleanDcsBlockDescription(match[1]);
+  }
+
+  if (rule.id === "MULDIV") {
+    const calculationHints = splitIntoCandidateLines(text)
+      .map((line) => cleanDcsBlockDescription(line))
+      .filter((line) => /输出值|比例因子|输入.*当前值|偏置/.test(line))
+      .slice(0, 5);
+    if (calculationHints.length >= 2) {
+      return `根据输入值、比例因子和偏置计算输出；${calculationHints.join("；")}`;
+    }
+  }
+
+  const fallback = splitIntoCandidateLines(text)
+    .map((line) => cleanDcsBlockDescription(line))
+    .find((line) => line.length >= 18 && rule.fallbackPattern.test(line));
+  if (fallback) {
+    return fallback;
+  }
+
+  if (rule.titlePattern.test([result.sectionTitle, result.sectionPath].filter(Boolean).join(" "))) {
+    return cleanDcsBlockDescription(result.evidenceText ?? result.snippet);
+  }
+
+  return null;
+}
+
+function tryDcsAdvancedFunctionBlockDirectAnswer(question: string, pool: SearchResult[]): string | null {
+  if (!isDcsAdvancedBlockQuestion(question)) {
+    return null;
+  }
+
+  const lines: string[] = [];
+  const usedResults: SearchResult[] = [];
+
+  for (const rule of DCS_ADVANCED_BLOCK_RULES) {
+    if (!rule.titlePattern.test(question)) {
+      continue;
+    }
+
+    const result = pool.find((candidate) =>
+      rule.titlePattern.test([
+        candidate.sectionTitle ?? "",
+        candidate.sectionPath ?? "",
+        candidate.text
+      ].join("\n"))
+    );
+    if (!result) {
+      continue;
+    }
+
+    const description = extractDcsAdvancedBlockDescription(rule, result);
+    if (!description) {
+      continue;
+    }
+
+    lines.push(`${rule.label}: ${description}`);
+    usedResults.push(result);
+  }
+
+  if (lines.length < 2) {
+    return null;
+  }
+
+  const docs = dedupePreservingOrder(usedResults.map((result) => `《${result.documentTitle}》`));
+  const evidenceNote = docs.length > 0 ? ` 主要依据${docs.join("、")}中的高级运算功能块章节。` : "";
+  return `${lines.join("\n")}${evidenceNote}`;
+}
+
+function isDcsBypassQuestion(question: string): boolean {
+  return /旁路|bypass/i.test(question) && /功能块|输出|调试|维护|作用|支持/.test(question);
+}
+
+function tryDcsBypassDirectAnswer(question: string, pool: SearchResult[]): string | null {
+  if (!isDcsBypassQuestion(question)) {
+    return null;
+  }
+
+  const bypassResults = pool.filter((result) =>
+    /旁路|bypass|CTRBP|BYPASS/i.test([
+      result.sectionTitle ?? "",
+      result.sectionPath ?? "",
+      result.evidenceText ?? "",
+      result.snippet,
+      result.text
+    ].join("\n"))
+  );
+
+  if (bypassResults.length === 0) {
+    return null;
+  }
+
+  const bundle = bypassResults.map((result) => result.text).join("\n");
+  const lines: string[] = [];
+  lines.push("旁路（Bypass）用于在特定运行或调试场景下跳过部分输入或控制运算，让功能块按旁路后的信号路径确定输出。");
+
+  if (/控制旁路|CTRBP|串级副调|PIDA/.test(bundle)) {
+    lines.push(
+      "PIDA 的控制旁路适用于串级副调 PID：证据说明它会将比例、积分、微分运算旁路，来自串级主调的 SP 经量程转换后输出。"
+    );
+    if (/CTRBP|MODE=2|串级模式/.test(bundle)) {
+      lines.push(
+        "启用条件是控制旁路参数 CTRBP 打开且 PIDA 处于串级模式（MODE=2）；此时 PIDA 不执行 PID 相关运算，输出按旁路公式计算后再限幅限速输出。"
+      );
+    }
+    if (/非串级模式|自动退出|输出无扰/.test(bundle)) {
+      lines.push("当 PIDA 切换到非串级模式时会自动退出控制计算旁路，退出后输出保持无扰。");
+    }
+  }
+
+  if (/BYPASS|输入旁路|不参与运算|OP （输出值）赋值/.test(bundle)) {
+    lines.push(
+      "ORSEL 等选择类功能块还出现输入旁路参数：当 BYPASS 与对应输入旁路开关同时为 TRUE 时，该路输入被旁路，不参与运算；被旁路输入可跟踪 OP（输出值）。"
+    );
+  }
+
+  if (/调试|维护/.test(question)) {
+    lines.push("适用场景上，它主要用于调试、维护或串级控制切换时临时隔离某一路输入/运算，减少对现场输出的扰动。");
+  }
+
+  const cited = bypassResults[0];
+  lines.push(`主要依据《${cited.documentTitle}》的「${cited.sectionTitle ?? "旁路相关章节"}」。`);
+  return lines.join("\n");
+}
+
 function buildDirectAnswer(question: string, results: SearchResult[], retrievalPool: SearchResult[]): string {
   const top = results[0];
   if (!top) {
@@ -1436,6 +1785,21 @@ function buildDirectAnswer(question: string, results: SearchResult[], retrievalP
   }
 
   const pool = retrievalPool.length > 0 ? retrievalPool : results;
+
+  const dcsBypass = tryDcsBypassDirectAnswer(question, pool);
+  if (dcsBypass) {
+    return dcsBypass;
+  }
+
+  const dcsAdvancedFunctionBlocks = tryDcsAdvancedFunctionBlockDirectAnswer(question, pool);
+  if (dcsAdvancedFunctionBlocks) {
+    return dcsAdvancedFunctionBlocks;
+  }
+
+  const dcsTechnicalTable = tryDcsTechnicalTableDirectAnswer(question, pool);
+  if (dcsTechnicalTable) {
+    return dcsTechnicalTable;
+  }
 
   // P0-A: 下装目标站回答补丁 (需在 Q6 两阶段补丁之前，避免误触发)
   const deployTargets = tryDeployTargetsDirectAnswer(question, pool);
@@ -1568,7 +1932,7 @@ export function answerQuestion(question: string, results: SearchResult[]): ChatA
 
   const q6Results = chooseQ6EvidenceResults(question, results);
   const proceduralResults = chooseProceduralEvidenceResults(question, results);
-  const evidenceResults = selectEvidenceResults(results);
+  const evidenceResults = selectEvidenceResults(question, results);
 
   const finalResults =
     q6Results.length >= 1

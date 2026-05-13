@@ -124,6 +124,176 @@ describe("answerQuestion", () => {
     expect(answer.citations).toHaveLength(0);
   });
 
+  it("allows low-quality DCS parameter-table chunks when exact technical identifiers match", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-pid",
+        fileName: "hollias_manual7_function_block.pdf",
+        documentTitle: "第7册 功能块",
+        chunkId: "pid-table",
+        snippet: "PID 参数表：PVU 为 PV 量程上限，PVL 为 PV 量程下限，ENGU 为工程量上限，ENGL 为工程量下限。",
+        score: 1.4,
+        chunkIndex: 88,
+        sectionTitle: "5.1.5.11 点详细面板",
+        sectionPath: "第5章 控制运算 > PID > 点详细面板",
+        sourceUpdatedAt: "2026-04-16T00:00:00.000Z",
+        importedAt: "2026-04-16T00:00:00.000Z",
+        text: "参数 名称 说明\nPVU PV量程上限\nPVL PV量程下限\nENGU 输出量程上限\nENGL 输出量程下限\nDeadband 死区",
+        lexicalScore: 2.4,
+        semanticScore: 0.1,
+        freshnessScore: 0.4,
+        rerankScore: 0.2,
+        qualityScore: -0.6,
+        fullText: "参数 名称 说明\nPVU PV量程上限\nPVL PV量程下限\nENGU 输出量程上限\nENGL 输出量程下限\nDeadband 死区"
+      }
+    ];
+
+    const answer = answerQuestion("PID 功能块中 PVU/PVL 和 ENGU/ENGL 参数分别表示什么？", results);
+
+    expect(answer.directAnswer).not.toContain("I could not find grounded evidence");
+    expect(answer.directAnswer).toContain("PVU");
+    expect(answer.directAnswer).toContain("ENGU");
+    expect(answer.citations.map((citation) => citation.chunkId)).toEqual(["pid-table"]);
+  });
+
+  it("does not let the DCS table allowance rescue unrelated low-quality chunks", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-noise",
+        fileName: "hollias_manual7_function_block.pdf",
+        documentTitle: "第7册 功能块",
+        chunkId: "noise",
+        snippet: "文档更新记录和阅读对象说明。",
+        score: 1.4,
+        chunkIndex: 2,
+        sectionTitle: "文档更新记录",
+        sectionPath: "关于本文档 > 文档更新记录",
+        sourceUpdatedAt: "2026-04-16T00:00:00.000Z",
+        importedAt: "2026-04-16T00:00:00.000Z",
+        text: "本文档适用于工程人员阅读，包含版本修订历史和阅读对象说明。",
+        lexicalScore: 2.4,
+        semanticScore: 0.1,
+        freshnessScore: 0.4,
+        rerankScore: 0.2,
+        qualityScore: -0.6,
+        fullText: "本文档适用于工程人员阅读，包含版本修订历史和阅读对象说明。"
+      }
+    ];
+
+    const answer = answerQuestion("PID 功能块中 PVU/PVL 和 ENGU/ENGL 参数分别表示什么？", results);
+
+    expect(answer.directAnswer).toContain("I could not find grounded evidence");
+    expect(answer.citations).toHaveLength(0);
+  });
+
+  it("summarizes DCS advanced operation blocks with their identifiers instead of procedural section boilerplate", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-fb",
+        fileName: "hollias_manual7_function_block.pdf",
+        documentTitle: "第7册 功能块",
+        chunkId: "switch-orsel",
+        snippet: "超驰选择：根据四路输入信号的状态、输入值进行分析计算，然后输出一路信号。",
+        score: 44,
+        chunkIndex: 421,
+        sectionTitle: "3.21.3.2 串级模式",
+        sectionPath: "第4章 高级运算 > 4.3 信号处理 > 4.3.21 SWITCH（信号选择开关） > 3.21.3.2 串级模式 > 4.3.22 ORSEL（超驰选择） > 4.3.22.1 功能",
+        sourceUpdatedAt: "2026-04-16T00:00:00.000Z",
+        importedAt: "2026-04-16T00:00:00.000Z",
+        text: [
+          "在 EQB 运算模式下，由程序通过 S1~S4 的状态选择 X1~X4 的值输出至 OP（输出值）。",
+          "超驰选择",
+          "在两种不同的运算模式（EQA（高选）/EQB（低选））以及两种不同的操作模式下，根据四路输入信号的状态、输入值进行分析计算，然后输出一路信号。"
+        ].join("\n\n"),
+        lexicalScore: 20,
+        semanticScore: 0.4,
+        freshnessScore: 0.4,
+        rerankScore: 1.1,
+        qualityScore: -0.5,
+        fullText: [
+          "在 EQB 运算模式下，由程序通过 S1~S4 的状态选择 X1~X4 的值输出至 OP（输出值）。",
+          "超驰选择",
+          "在两种不同的运算模式（EQA（高选）/EQB（低选））以及两种不同的操作模式下，根据四路输入信号的状态、输入值进行分析计算，然后输出一路信号。"
+        ].join("\n\n")
+      },
+      {
+        documentId: "doc-fb",
+        fileName: "hollias_manual7_function_block.pdf",
+        documentTitle: "第7册 功能块",
+        chunkId: "muldiv-summer",
+        snippet: "RC求和：根据四路输入信号的值以及比例因子，输出一路信号。",
+        score: 43,
+        chunkIndex: 534,
+        sectionTitle: "5.11.3.2 串级模式",
+        sectionPath: "第4章 高级运算 > 4.5 统计计算 > 4.5.11 MULDIV（乘除） > 5.11.3.2 串级模式 > 4.5.12 SUMMER_CTRL（RC求和） > 4.5.12.1 功能",
+        sourceUpdatedAt: "2026-04-16T00:00:00.000Z",
+        importedAt: "2026-04-16T00:00:00.000Z",
+        text: [
+          "式中：CV 为输出值，K 为总体比例因子，K1~K3 为输入 X1~X3 的比例因子，B 为总偏置。",
+          "RC求和",
+          "在五种不同的运算模式（EQA~EQE）以及两种不同的操作模式下，根据四路输入信号的值以及比例因子，输出一路信号。"
+        ].join("\n\n"),
+        lexicalScore: 20,
+        semanticScore: 0.4,
+        freshnessScore: 0.4,
+        rerankScore: 1.1,
+        qualityScore: -0.5,
+        fullText: [
+          "式中：CV 为输出值，K 为总体比例因子，K1~K3 为输入 X1~X3 的比例因子，B 为总偏置。",
+          "RC求和",
+          "在五种不同的运算模式（EQA~EQE）以及两种不同的操作模式下，根据四路输入信号的值以及比例因子，输出一路信号。"
+        ].join("\n\n")
+      }
+    ];
+
+    const answer = answerQuestion(
+      "SWITCH、ORSEL、MULDIV、SUMMER_CTRL 分别有什么功能？各适用于什么场景？",
+      results
+    );
+
+    expect(answer.directAnswer).toContain("SWITCH");
+    expect(answer.directAnswer).toContain("ORSEL");
+    expect(answer.directAnswer).toContain("MULDIV");
+    expect(answer.directAnswer).toContain("SUMMER_CTRL");
+    expect(answer.directAnswer).not.toContain("这个问题更适合参考");
+  });
+
+  it("answers DCS Bypass questions with the English anchor, output rule, and maintenance scenario", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-fb",
+        fileName: "hollias_manual7_function_block.pdf",
+        documentTitle: "第7册 功能块",
+        chunkId: "control-bypass",
+        snippet: "控制旁路功能应用在串级副调 PID 中，主要作用是将串级副调 PID 的比例、积分、微分运算旁路。",
+        score: 37,
+        chunkIndex: 788,
+        sectionTitle: "5.1.3.11 控制旁路",
+        sectionPath: "第5章 控制运算 > PIDA > 5.1.3.11 控制旁路",
+        sourceUpdatedAt: "2026-04-16T00:00:00.000Z",
+        importedAt: "2026-04-16T00:00:00.000Z",
+        text: "控制旁路功能应用在串级副调 PID 中，主要作用是将串级副调 PID 的比例、积分、微分运算旁路，来自串级主调的 SP 经量程转换后输出。如果控制旁路 CTRBP 打开且 PIDA 在串级模式下（MODE=2），PIDA 不执行比例积分微分相关运算，PIDA 功能块的输出按照公式计算，进行限幅限速后输出。当 PIDA 模式切换到非串级模式时，自动退出控制计算旁路，在退出控制计算旁路功能后，PIDA 的输出无扰。",
+        lexicalScore: 10,
+        semanticScore: 0.6,
+        freshnessScore: 0.4,
+        rerankScore: 1.6,
+        qualityScore: 0.2,
+        fullText: "控制旁路功能应用在串级副调 PID 中，主要作用是将串级副调 PID 的比例、积分、微分运算旁路，来自串级主调的 SP 经量程转换后输出。如果控制旁路 CTRBP 打开且 PIDA 在串级模式下（MODE=2），PIDA 不执行比例积分微分相关运算，PIDA 功能块的输出按照公式计算，进行限幅限速后输出。当 PIDA 模式切换到非串级模式时，自动退出控制计算旁路，在退出控制计算旁路功能后，PIDA 的输出无扰。"
+      }
+    ];
+
+    const answer = answerQuestion(
+      "旁路（Bypass）功能的作用是什么？启用旁路后输出值如何确定？旁路功能在调试和维护中有什么用途？",
+      results
+    );
+
+    expect(answer.directAnswer).toContain("Bypass");
+    expect(answer.directAnswer).toContain("功能块");
+    expect(answer.directAnswer).toContain("输出");
+    expect(answer.directAnswer).toContain("适用场景");
+    expect(answer.directAnswer).not.toContain("这个问题更适合参考");
+  });
+
   it("keeps only the strongest evidence citations when weaker chunks trail far behind", () => {
     const results: SearchResult[] = [
       {

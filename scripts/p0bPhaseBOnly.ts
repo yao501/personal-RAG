@@ -1,6 +1,10 @@
 /**
  * 临时脚本：仅跑 Phase B (手册7 功能块 M7-2 ~ M7-6)
  * 复用 p0bFullCoverageEval.ts 的 judge 和 runOne 逻辑
+ *
+ * Usage:
+ *   PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" ./node_modules/.bin/vite-node scripts/p0bPhaseBOnly.ts
+ *   PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" ./node_modules/.bin/vite-node scripts/p0bPhaseBOnly.ts --spec evals/cases/p0b-manual7-phaseb.json
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -29,6 +33,35 @@ interface JudgeResult {
   missed: string[];
   fail_modes: string[];
   fail_stage_hint: FailStage | null;
+}
+
+interface PhaseBCaseSpec {
+  id: string;
+  type: "定义型" | "参数约束型" | "操作条件型";
+  question: string;
+  keywords: string[];
+}
+
+interface PhaseBSpec {
+  id: string;
+  description?: string;
+  cases: PhaseBCaseSpec[];
+}
+
+function resolveSpecPath(argv: string[]): string {
+  const i = argv.indexOf("--spec");
+  const specArg = i >= 0 ? argv[i + 1] : null;
+  const specPath = specArg ?? "evals/cases/p0b-manual7-phaseb.json";
+  return path.isAbsolute(specPath) ? specPath : path.join(repoRoot, specPath);
+}
+
+function loadPhaseBSpec(argv: string[]): PhaseBSpec {
+  const specPath = resolveSpecPath(argv);
+  const spec = JSON.parse(fs.readFileSync(specPath, "utf8")) as PhaseBSpec;
+  if (!Array.isArray(spec.cases) || spec.cases.length === 0) {
+    throw new Error(`Invalid Phase B spec: ${specPath}`);
+  }
+  return spec;
 }
 
 function need(cond: boolean, matched: string[], missed: string[], ok: string, bad: string) {
@@ -128,26 +161,7 @@ async function runOne(id: string, question: string, documents: DocumentRecord[],
   };
 }
 
-// 手册7 6题 (从 M7-2 开始，M7-1 已跑)
-const GROUP_B_M7 = [
-  { id: "M7-2", type: "参数约束型" as const,
-    question: "MACS V6.5 PID 功能块中，PVU/PVL 和 ENGU/ENGL 参数分别表示什么？它们之间的关系是什么？死区（Deadband）参数的作用和设置范围是什么？",
-    keywords: ["PVU", "PVL", "ENGU", "ENGL", "PID"] },
-  { id: "M7-3", type: "操作条件型" as const,
-    question: "MACS V6.5 PID 功能块的跟踪模式（Tracking）和自动模式（Auto）有什么区别？什么条件下 PID 会进入跟踪模式？跟踪模式下 PID 的输出值由什么决定？",
-    keywords: ["跟踪", "自动", "PID", "输出"] },
-  { id: "M7-4", type: "定义型" as const,
-    question: "MACS V6.5 高级运算功能块中，SWITCH（选择开关）、ORSEL（或选择）、MULDIV（乘除运算）、SUMMER_CTRL（累加器控制）分别有什么功能？各适用于什么场景？",
-    keywords: ["SWITCH", "ORSEL", "MULDIV", "SUMMER"] },
-  { id: "M7-5", type: "操作条件型" as const,
-    question: "MACS V6.5 功能块中，旁路（Bypass）功能的作用是什么？哪些功能块支持旁路功能？启用旁路后，功能块的输出值如何确定？旁路功能在调试和维护中有什么用途？",
-    keywords: ["旁路", "Bypass", "功能块", "输出"] },
-  { id: "M7-6", type: "定义型" as const,
-    question: "MACS V6.5 控制运算中，MOTCTRL（马达控制）和 VALCTRL（阀门控制）功能块各自的作用是什么？它们分别有哪些关键参数？如何配置电机或阀门的反馈信号？",
-    keywords: ["MOTCTRL", "VALCTRL", "马达", "阀门"] },
-];
-
-function getJudge(def: typeof GROUP_B_M7[0]): (direct: string, full: string) => JudgeResult {
+function getJudge(def: PhaseBCaseSpec): (direct: string, full: string) => JudgeResult {
   const kw = def.keywords;
   switch (def.type) {
     case "定义型": return (d, f) => judgeDefinition(def.id, d, f, kw);
@@ -157,6 +171,7 @@ function getJudge(def: typeof GROUP_B_M7[0]): (direct: string, full: string) => 
 }
 
 async function main() {
+  const spec = loadPhaseBSpec(process.argv.slice(2));
   const dir = process.env.PKRAG_REALPDF_DIR?.trim();
   if (!dir || !fs.existsSync(dir)) { console.error("请设置 PKRAG_REALPDF_DIR"); process.exit(1); }
 
@@ -166,7 +181,7 @@ async function main() {
   const dateStr = now.toISOString().slice(0, 10);
 
   console.log(`\n${"█".repeat(60)}`);
-  console.log(`█  Phase B 补跑: 手册7 功能块专题 (M7-2 ~ M7-6)`);
+  console.log(`█  Phase B 补跑: ${spec.id} (${spec.cases.map((c) => c.id).join(", ")})`);
   console.log(`${"█".repeat(60)}`);
 
   const volFilterB = /^HOLLiAS_MACS_V6\.5用户手册7_.+\.pdf$/i;
@@ -176,7 +191,7 @@ async function main() {
 
   const allResults: Record<string, unknown>[] = [];
 
-  for (const def of GROUP_B_M7) {
+  for (const def of spec.cases) {
     console.log(`\n${"=".repeat(50)}`);
     console.log(`🔍 ${def.id} [${def.type}]: ${def.question.slice(0, 80)}...`);
     console.log(`${"=".repeat(50)}`);
@@ -207,7 +222,7 @@ async function main() {
     const emoji = j.verdict === "pass" ? "✅" : j.verdict === "partial" ? "⚠️" : "❌";
     console.log(`  ${emoji} ${j.verdict.toUpperCase()} | +${j.matched.join(", ")} | -${j.missed.join(", ")} | ${(elapsed / 1000).toFixed(0)}s`);
 
-    const seq = String(GROUP_B_M7.findIndex((d) => d.id === def.id) + 2).padStart(2, "0");
+    const seq = String(spec.cases.findIndex((d) => d.id === def.id) + 2).padStart(2, "0");
     fs.writeFileSync(path.join(resultsDir, `p0b-full-coverage-run-${dateStr}-B${seq}.json`), JSON.stringify(result, null, 2), "utf-8");
     if (global.gc) global.gc();
   }
@@ -217,7 +232,7 @@ async function main() {
   const partial = allResults.filter(r => r.judge_verdict === "partial").length;
   const fail = allResults.filter(r => r.judge_verdict === "fail").length;
   const avg = allResults.reduce((s, r) => s + (r.judge_score as number), 0) / allResults.length;
-  console.log(`\n📊 Phase B (M7-2~M7-6): P:${pass} Pa:${partial} F:${fail} | 均分 ${avg.toFixed(2)}`);
+  console.log(`\n📊 Phase B (${spec.cases[0]?.id}~${spec.cases.at(-1)?.id}): P:${pass} Pa:${partial} F:${fail} | 均分 ${avg.toFixed(2)}`);
 
   // Append to summary file
   const summaryPath = path.join(resultsDir, `p0b-phaseb-bge-m3-${dateStr}.json`);

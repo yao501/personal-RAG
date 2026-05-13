@@ -734,4 +734,104 @@ describe("searchChunks", () => {
     expect(results[0]?.chunkId).toBe("title-only-hit");
     expect(results[0]?.lexicalScore).toBeGreaterThan(0);
   });
+
+  it("uses DCS acronym expansion to retrieve PID range explanations without exact acronym text", () => {
+    const documents: DocumentRecord[] = [
+      {
+        id: "doc-1",
+        filePath: "/tmp/function-blocks.pdf",
+        fileName: "function-blocks.pdf",
+        title: "HOLLiAS MACS V6.5 用户手册7 功能块",
+        fileType: "pdf",
+        content: "",
+        importedAt: "2026-04-01T00:00:00.000Z",
+        updatedAt: "2026-04-01T00:00:00.000Z",
+        sourceCreatedAt: "2026-04-01T00:00:00.000Z",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        chunkCount: 2
+      }
+    ];
+
+    const chunks: ChunkRecord[] = [
+      {
+        id: "pid-range",
+        documentId: "doc-1",
+        text: "PID 参数中，过程量上限和过程量下限用于限定测量值输入量程；工程量上限和工程量下限用于完成工程单位量程转换。",
+        chunkIndex: 0,
+        startOffset: 0,
+        endOffset: 58,
+        tokenCount: 28,
+        sectionTitle: "PID 参数说明",
+        sectionPath: "功能块 > 控制运算 > PID 参数说明",
+        headingTrail: "功能块 > 控制运算 > PID 参数说明"
+      },
+      {
+        id: "pid-noise",
+        documentId: "doc-1",
+        text: "PID 控制器支持自动模式和手动模式，本段仅说明模式切换按钮。",
+        chunkIndex: 1,
+        startOffset: 59,
+        endOffset: 92,
+        tokenCount: 18,
+        sectionTitle: "PID 模式",
+        sectionPath: "功能块 > 控制运算 > PID 模式",
+        headingTrail: "功能块 > 控制运算 > PID 模式"
+      }
+    ];
+
+    const results = searchChunks("PVU/PVL 和 ENGU/ENGL 参数分别表示什么？", documents, chunks, 2);
+
+    expect(results[0]?.chunkId).toBe("pid-range");
+    expect(results[0]?.evidenceText).toContain("过程量上限");
+  });
+
+  it("uses DCS symbol library expansion to retrieve MOT and VAL equipment descriptions", () => {
+    const documents: DocumentRecord[] = [
+      {
+        id: "doc-1",
+        filePath: "/tmp/graphics.pdf",
+        fileName: "graphics.pdf",
+        title: "HOLLiAS MACS V6.5 用户手册5 图形编辑",
+        fileType: "pdf",
+        content: "",
+        importedAt: "2026-04-01T00:00:00.000Z",
+        updatedAt: "2026-04-01T00:00:00.000Z",
+        sourceCreatedAt: "2026-04-01T00:00:00.000Z",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        chunkCount: 2
+      }
+    ];
+
+    const chunks: ChunkRecord[] = [
+      {
+        id: "symbol-library",
+        documentId: "doc-1",
+        text: "符号库中，马达和电机类符号用于风机、泵等设备画面；阀门类符号用于调节阀、开关阀等对象。",
+        chunkIndex: 0,
+        startOffset: 0,
+        endOffset: 50,
+        tokenCount: 24,
+        sectionTitle: "符号库",
+        sectionPath: "图形编辑 > 符号库",
+        headingTrail: "图形编辑 > 符号库"
+      },
+      {
+        id: "interaction",
+        documentId: "doc-1",
+        text: "交互特性可设置鼠标左键抬起、键盘输入、弹出窗口等响应事件。",
+        chunkIndex: 1,
+        startOffset: 51,
+        endOffset: 86,
+        tokenCount: 18,
+        sectionTitle: "交互特性",
+        sectionPath: "图形编辑 > 交互特性",
+        headingTrail: "图形编辑 > 交互特性"
+      }
+    ];
+
+    const results = searchChunks("MOT 系列符号库和 VAL 系列符号库各有什么用途？", documents, chunks, 2);
+
+    expect(results[0]?.chunkId).toBe("symbol-library");
+    expect(results[0]?.evidenceText).toMatch(/马达|阀门/);
+  });
 });
