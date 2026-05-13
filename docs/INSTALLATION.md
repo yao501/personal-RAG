@@ -41,6 +41,12 @@ Use the release-oriented script (full TypeScript build + Electron packaging):
 npm run release:mac
 ```
 
+After packaging, inspect the local bundle:
+
+```bash
+npm run release:verify
+```
+
 Faster iteration without a full `tsc -b` pass (not recommended for “official” internal drops):
 
 ```bash

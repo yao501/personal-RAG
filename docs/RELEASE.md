@@ -56,8 +56,9 @@ Use this before sharing a build outside your own machine:
 3. **Clean install test (optional but valuable):** fresh `npm ci` or `npm install` on a clean clone.
 4. Run **`npm test`** — recommended before packaging; not enforced by the `release:mac` script.
 5. Run **`npm run release:mac`** and confirm the `.app` appears under `release/mac-arm64/`.
-6. **Smoke test** on a Mac: launch, import a small file, ask one question, open Settings, export support bundle if you need support-style diagnostics.
-7. **Archive** the `.app` (zip the bundle or copy the folder) with a filename that includes **version + date** for traceability.
+6. Run **`npm run release:verify`** to inspect the local signature, Gatekeeper assessment, and stapler status.
+7. **Smoke test** on a Mac: launch, import a small file, ask one question, open Settings, export support bundle if you need support-style diagnostics.
+8. **Archive** the `.app` (zip the bundle or copy the folder) with a filename that includes **version + date** for traceability.
 
 ## Explicitly deferred (not in Sprint 4)
 
@@ -110,6 +111,12 @@ security find-identity -v -p codesigning
 **本机自检**（签名前）：
 
 ```bash
+npm run release:sign-precheck
+```
+
+The script also accepts a custom app path when called directly:
+
+```bash
 ./scripts/release-macos-sign-precheck.sh "release/mac-arm64/个人知识库 RAG.app"
 ```
 
@@ -147,7 +154,7 @@ xcrun notarytool store-credentials "<PROFILE>" \
 2) Profile 可用性自检：
 
 ```bash
-./scripts/release-macos-notary-precheck.sh "<PROFILE>"
+npm run release:notary-precheck -- "<PROFILE>"
 ```
 
 3) 提交 notarize（建议先把 `.app` 打包成 zip 再提交）：
@@ -192,8 +199,8 @@ xcrun stapler validate -v "$APP"
 | Step | Command / entry（可直接复制） | Success signal (keyword) | In repo today? | Gap if not | Common failures (1–3) |
 |------|-------------------------------|--------------------------|----------------|------------|------------------------|
 | **1) build** | `npm test && npm run release:mac` | `release/mac-arm64/` 下出现 `.app`；日志含 `packaging platform=darwin arch=arm64` | **Yes** | — | `tsc -b` 失败；native deps rebuild 失败（`better-sqlite3`） |
-| **2) sign** | ① 查看签名：`codesign -dvvv "release/mac-arm64/个人知识库 RAG.app" 2>&1 \| grep -E "Authority=|TeamIdentifier=|Identifier="` ② 验证：`codesign --verify --deep --strict --verbose=2 "release/mac-arm64/个人知识库 RAG.app"` | `valid on disk`（验证）+ 有 `Authority=Developer ID Application`（签名链）+ `TeamIdentifier=<TEAMID>` | **Partial**（当前是 ad-hoc，`TeamIdentifier=not set`） | 缺 Developer ID 证书、（可选）entitlements 固化 | identity 不对；缺 hardened runtime/timestamp（notarize 时失败） |
-| **3) notarize** | 推荐（keychain profile）：`xcrun notarytool submit "release/mac-arm64/个人知识库 RAG.app" --keychain-profile "<PROFILE>" --wait` | `status: Accepted` | **No**（electron-builder 会跳过 notarize） | 缺 notarytool 凭证与配置（PROFILE） | `The binary is not signed`；`Invalid/expired credentials`；`The signature does not include a secure timestamp` |
+| **2) sign** | `npm run release:sign-precheck`（或手工 `codesign ...`） | `valid on disk`（验证）+ 有 `Authority=Developer ID Application`（签名链）+ `TeamIdentifier=<TEAMID>` | **Partial**（当前是 ad-hoc，`TeamIdentifier=not set`） | 缺 Developer ID 证书、（可选）entitlements 固化 | identity 不对；缺 hardened runtime/timestamp（notarize 时失败） |
+| **3) notarize** | 推荐（keychain profile）：`npm run release:notary-precheck -- "<PROFILE>"` 后再 `xcrun notarytool submit ... --wait` | `status: Accepted` | **No**（electron-builder 会跳过 notarize） | 缺 notarytool 凭证与配置（PROFILE） | `The binary is not signed`；`Invalid/expired credentials`；`The signature does not include a secure timestamp` |
 | **4) staple** | `xcrun stapler staple -v "release/mac-arm64/个人知识库 RAG.app"` | `The staple and validate action worked` | **No**（依赖 3） | 需 3 成功后再 stapling | `No staple found`（未公证/未等待完成） |
 | **5) verify** | ① Gatekeeper：`spctl --assess --verbose=4 --type execute "release/mac-arm64/个人知识库 RAG.app"` ② stapler validate：`xcrun stapler validate -v "release/mac-arm64/个人知识库 RAG.app"` | `accepted` / `source=Notarized Developer ID` | **No**（未作为门禁固化） | 缺 2–4 完整链 | 仅 ad-hoc 时 `spctl ... internal error` 属预期；未 notarize/staple 时 validate 会失败 |
 
