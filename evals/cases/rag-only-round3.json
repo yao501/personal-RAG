@@ -1,0 +1,56 @@
+{
+  "id": "p0a-rag-only-round3",
+  "scope": "RAG-only Round 3 (fixture-first): troubleshooting/service start questions + explicit entity preservation; allow minimal answer patch if needed",
+  "source": {
+    "kind": "fixture",
+    "fixture_documents": [
+      "benchmarks/fixtures/hollias_manual1_install.md",
+      "benchmarks/fixtures/hollias_manual3_engineering.md",
+      "benchmarks/fixtures/hollias_manual7_function_block.md"
+    ]
+  },
+  "cases": [
+    {
+      "id": "real-rag3-001-usersvr-service-wont-start-first-two-checks",
+      "question": "UserSvr 服务一直起不来，我第一步应该先查什么？请给出至少 2 个排查点，并明确你说的是 UserSvr。",
+      "rationale": "故障/服务启动（同族换说法，口语化）：要求显式点名 UserSvr + 至少 2 个检查点，避免答案跑偏到流程概览或只给一句空泛建议。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册1：安装故障 UserSvr 服务启动失败（依赖/注册/日志/事件）",
+      "expected_shape": {
+        "must_contain_all": ["UserSvr"],
+        "must_contain_any": ["依赖", "注册", "日志", "事件"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag3-002-usersvr-install-failed-what-to-check-first",
+      "question": "安装完提示 UserSvr 启动失败，这种情况最先应该检查哪两类东西？不要泛泛讲“重启试试”。",
+      "rationale": "第一步先查什么：要求至少两类具体检查点，并禁止过度空泛的“重启”式回答。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册1：UserSvr 服务启动失败（依赖/注册/日志/事件）",
+      "expected_shape": {
+        "must_contain_all": ["UserSvr"],
+        "must_contain_any": ["依赖", "注册", "日志", "事件"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag3-003-usersvr-vs-workflow-boundary-reminder",
+      "question": "我问的是 UserSvr 服务起不来（安装故障），不是“软件使用步骤”。请先给一句边界提醒，再给 2 个排查点。",
+      "rationale": "边界提醒类：测试答案是否能显式把“故障排查”与“全流程步骤”区分开，并且仍然给出可执行的排查点与服务名。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册1：UserSvr 故障；避免跑偏到 2.4 软件使用步骤",
+      "expected_shape": {
+        "must_contain_all": ["UserSvr"],
+        "must_contain_any": ["不要", "边界", "故障", "排查", "依赖", "注册", "日志"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    }
+  ]
+}

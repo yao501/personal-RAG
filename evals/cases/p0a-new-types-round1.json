@@ -1,0 +1,116 @@
+{
+  "branch": "P0-A-new-types",
+  "round": 1,
+  "description": "P0-A 支线A：新题型支线首轮评测 — 故障排查型+参数约束型+操作条件型，每类3题共9题",
+  "created": "2026-05-08T21:55:00+08:00",
+  "owner": "project",
+  "knowledge_base": "和利时 HOLLiAS MACS V6.5 操作手册 (7卷)",
+  "runner": "scripts/p0aNewTypesEval.ts",
+  "stop_conditions": {
+    "full_green_closeout": "首轮9/9全绿则直接收口",
+    "answer_issues": "存在partial/fail但主因是answer → 允许最小answer patch后复跑1轮",
+    "p0b_threshold": "stable + 非answer主因(retrieval/ranking/chunk/parse) + ≥2题同类复现 → 登记P0-B候选",
+    "max_rounds": "最多2轮，若仍有fail则分析主因并记录为已知限制"
+  },
+  "cases": [
+    {
+      "id": "N1",
+      "type": "故障排查型",
+      "question": "在 HOLLiAS MACS V6.5 进行工程编译时，如果出现'编译失败'的报错信息，可能是什么原因导致的？应该如何排查和处理？",
+      "rationale": "测试 answer 层在故障场景下是否引用常见问题章节（手册4 Ch16）而非输出通用编译流程。编译失败的可能原因：组态错误、总点数超授权、中间变量未声明",
+      "source_hint": "手册3_工程总控 Ch5 编译 + 手册4_算法组态 Ch16 常见问题",
+      "expected_shape": {
+        "must_contain_all": ["编译失败", "原因", "排查"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "N2",
+      "type": "故障排查型",
+      "question": "MACS V6.5 下装操作失败，系统提示'创建压缩文件失败，将导致OPS监视的逻辑与AT不一致，请检查工程文件权限'，这个错误如何排查和解决？",
+      "rationale": "测试 answer 层是否针对具体错误码给出解决方案，而不是笼统描述下装流程。手册4 Ch16.15.5 有明确的解决方案（检查工程文件夹权限）",
+      "source_hint": "手册4_算法组态 Ch16.15.5 常见问题 — 下装失败",
+      "expected_shape": {
+        "must_contain_all": ["下装失败", "创建压缩文件", "文件权限"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "N3",
+      "type": "故障排查型",
+      "question": "在 AutoThink 中执行在线操作时提示'通讯失败'，无法连接到控制器。有哪些可能的原因？应该如何逐步排查？",
+      "rationale": "测试 answer 层是否区分通讯失败的不同原因（网段连接、在线模式、仿真限制）并给出排查步骤",
+      "source_hint": "手册4_算法组态 Ch9 编译 + Ch10 下装（在线操作/通讯故障相关）",
+      "expected_shape": {
+        "must_contain_all": ["通讯失败", "连接", "排查"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "N4",
+      "type": "参数约束型",
+      "question": "MACS V6.5 一个现场控制站最多能支持多少个 I/O 点数？一个域最多能支持多少个控制站？不同型号控制器（K-CU01、K-CU02、K-CU03）的容量有什么区别？",
+      "rationale": "测试精确数字参数召回。手册3 Ch14.1 系统容量有具体的最大I/O点数和控制站数量限制",
+      "source_hint": "手册3_工程总控 Ch14.1 系统容量",
+      "expected_shape": {
+        "must_contain_all": ["I/O", "控制站", "容量", "K-CU"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "N5",
+      "type": "参数约束型",
+      "question": "MACS V6.5 算法组态中，变量和功能块的'参数对齐'属性设置为 TRUE 和 FALSE 分别有什么含义？基本类型变量和 FB 类型变量的参数对齐行为有什么不同？",
+      "rationale": "测试 TRUE/FALSE 条件分支展开和不同变量类型的区分。手册4 Ch6 变量中有参数对齐的完整说明",
+      "source_hint": "手册4_算法组态 Ch6 变量 — 参数对齐",
+      "expected_shape": {
+        "must_contain_all": ["参数对齐", "TRUE", "FALSE", "基本类型", "FB"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "N6",
+      "type": "参数约束型",
+      "question": "MACS V6.5 的工程加密功能启用后，对工程的编译、下装、在线修改分别有什么影响？加密的 POU 在打开时需要满足什么条件？",
+      "rationale": "测试加密相关的操作限制召回。手册4 Ch4.2 工程加密 + 手册6 现场操作 有加密相关约束",
+      "source_hint": "手册4_算法组态 Ch4.2 工程加密 + 手册6_现场操作",
+      "expected_shape": {
+        "must_contain_all": ["加密", "POU", "密码", "编译"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "N7",
+      "type": "操作条件型",
+      "question": "MACS V6.5 中，什么情况下需要进行全编译？全编译和增量编译各适用于什么场景？触发全编译的条件有哪些？",
+      "rationale": "测试全编译触发条件（首次编译、增删控制站、系统异常）的提取和两种编译方式的场景区分",
+      "source_hint": "手册3_工程总控 Ch5 编译 + 手册4_算法组态 Ch9 编译",
+      "expected_shape": {
+        "must_contain_all": ["全编译", "增量编译", "首次", "控制站"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "N8",
+      "type": "操作条件型",
+      "question": "MACS V6.5 增量编译的前提条件是什么？修改了哪些内容时会触发增量编译而不是全编译？增量编译相比全编译有什么优势和限制？",
+      "rationale": "测试增量编译的适用条件（无系统异常时建议增量编译）和与全编译的对比",
+      "source_hint": "手册3_工程总控 Ch5 编译 + 手册4_算法组态 Ch9 编译",
+      "expected_shape": {
+        "must_contain_all": ["增量编译", "前提", "修改", "全编译"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "N9",
+      "type": "操作条件型",
+      "question": "MACS V6.5 中，在线修改值和下装修改各适用于什么场景？如果在运行过程中修改了在线值，之后进行下装操作时这些在线值会怎样？参数对齐功能在这个场景中起什么作用？",
+      "rationale": "测试在线修改 vs 下装修改的场景区分，参数对齐对在线值影响的理解。手册6 现场操作 + 手册4 Ch6 变量 相关",
+      "source_hint": "手册6_现场操作 + 手册4_算法组态 Ch6 变量 — 参数对齐",
+      "expected_shape": {
+        "must_contain_all": ["在线修改", "下装", "参数对齐", "在线值"],
+        "must_not_contain": []
+      }
+    }
+  ]
+}

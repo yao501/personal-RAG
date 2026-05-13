@@ -1,0 +1,66 @@
+{
+  "id": "p0a-rag-only-round1",
+  "scope": "RAG-only Round 1 (skip notarization): cross-manual full workflow + order/boundary + definition/constraint + optional troubleshooting",
+  "source": {
+    "kind": "fixture",
+    "fixture_documents": [
+      "benchmarks/fixtures/hollias_manual1_install.md",
+      "benchmarks/fixtures/hollias_manual3_engineering.md",
+      "benchmarks/fixtures/hollias_manual7_function_block.md"
+    ]
+  },
+  "cases": [
+    {
+      "id": "real-rag-001-full-workflow-cross-manual",
+      "question": "HOLLiAS MACS V6.5 从安装到最终运行，完整使用步骤是什么？请按顺序列出关键阶段。",
+      "rationale": "跨分册主链/全流程：验证在多卷真实 PDF 下，回答能按顺序覆盖安装→组态→编译→下装→运行，并且主证据不落在图形/现场等噪声分册。",
+      "owner": "TBD",
+      "source_section_hint": "手册1/2（软件安装/快速入门）中的“软件使用步骤”主链段落；避免被无关分册抢占",
+      "expected_shape": {
+        "must_contain_all": ["安装", "组态", "编译", "下装", "运行"],
+        "must_contain_any": ["先", "然后", "最后", "依次", "步骤"],
+        "must_not_contain": []
+      },
+      "fail_stage": "retrieval"
+    },
+    {
+      "id": "real-rag-002-compile-download-boundary-non-q6",
+      "question": "工程总控侧的编译与下装一般按什么顺序执行？请明确是先编译还是先下装，并说明对象是工程总控/站侧。",
+      "rationale": "顺序/阶段边界（Q6 同源但避开 Q6 原问法）：检验“顺序 + 对象边界”是否能稳定出现在 answer，而不是模糊 FAQ。",
+      "owner": "TBD",
+      "source_section_hint": "手册3 工程总控 常见问题 / 编译下装相关章节",
+      "expected_shape": {
+        "must_contain_all": ["工程总控"],
+        "must_contain_any": ["先编译", "编译后", "再下装", "然后下装"],
+        "must_not_contain": ["先下装后编译"]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag-003-definition-constraint-boolean",
+      "question": "什么是参数对齐？当该属性为 TRUE 和 FALSE 时分别会发生什么？",
+      "rationale": "定义 + 约束项：验证定义问题在真实 PDF 下能同时覆盖 TRUE/FALSE 两分支，并给出有引用的关键点摘要。",
+      "owner": "TBD",
+      "source_section_hint": "手册7 功能块：术语定义 + TRUE/FALSE 分支说明",
+      "expected_shape": {
+        "must_contain_all": ["参数对齐"],
+        "must_contain_any": ["TRUE", "FALSE"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag-004-troubleshooting-service-start",
+      "question": "安装过程中提示 UserSvr 服务启动失败，应如何处理？",
+      "rationale": "故障/安装类：验证 troubleshooting 问法在真实 PDF 下能给出最小可执行建议并引用相关章节。",
+      "owner": "TBD",
+      "source_section_hint": "手册1 软件安装：UserSvr/UserReg 相关故障处理段落",
+      "expected_shape": {
+        "must_contain_any": ["UserSvr", "服务"],
+        "must_contain_all": [],
+        "must_not_contain": []
+      },
+      "fail_stage": "retrieval"
+    }
+  ]
+}

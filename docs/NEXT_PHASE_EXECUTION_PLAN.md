@@ -59,6 +59,14 @@
 | **建议产出** | 目录、`EVAL_GUIDE` 增补一节、首版 2～4 题。 |
 | **验收** | CI 或 `npm run` 一条命令；失败带 `fail_stage`: `retrieval` \| `answer` \| `rule_check`。 |
 
+> 进度：**P0-A Round 1 已启动（Q6 同类最小闭环）**，见 `docs/P0-A_Q6_ROUND1_PLAN.md` 与 `scripts/runRealRegressionQ6Round1.ts`。
+
+> 进度：**P0-A Q6 Round 2 已启动（控制器侧强约束问法）**，见 `docs/P0-A_Q6_ROUND2_PLAN.md` 与 `evals/cases/q6-round2.json`。
+
+> 进度：**P0-A Q6 Round 3 已启动（可接受答案形态收敛）**，见 `docs/P0-A_Q6_ROUND3_PLAN.md` 与 `evals/cases/q6-round3.json`。
+
+> 进度：**P0-A Q6 Answer Patch 1 已启动（仅 answer 层最小修补）**，见 `docs/P0-A_Q6_ANSWER_PATCH1_PLAN.md`。
+
 ---
 
 ## P0-B：retrieval / ranking 治理（主线中的主线）

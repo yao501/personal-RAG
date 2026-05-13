@@ -1,0 +1,50 @@
+{
+  "id": "p0a-q6-round2",
+  "scope": "Q6 同类（Round 2：控制器侧强约束问法；仅 answer-level 缺口）",
+  "source": {
+    "kind": "realpdf",
+    "env": "PKRAG_REALPDF_DIR",
+    "expected_files_regex": "^HOLLiAS_MACS_V6\\.5用户手册\\d+_.+\\.pdf$"
+  },
+  "cases": [
+    {
+      "id": "real-q6r2-001-controller-side-compile-vs-download-first",
+      "question": "只看控制器侧：下装前应该先做什么？请明确回答控制器算法工程是先编译还是先下装，并给出一句原因。不要泛泛引用“工程总控常见问题：先编译后下装”。",
+      "rationale": "强约束控制器侧视角 + 必须出现“控制器算法工程”与“先编译后下装”顺序表达，防止答案滑回工程总控 FAQ 式泛化。",
+      "owner": "TBD",
+      "source_section_hint": "控制器侧编译/下装顺序与对象边界相关段（可能跨分册）；若仍只命中手册3 FAQ，应在结果中记录为 answer 缺口",
+      "expected_shape": {
+        "must_contain_all": ["控制器", "算法工程"],
+        "must_contain_any": ["先编译", "先进行编译", "先完成编译"],
+        "must_not_contain": ["先下装后编译", "主要依据《HOLLiAS_MACS_V6.5用户手册3_工程总控》"]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-q6r2-002-two-stage-boundary-say-controller-then-engineering",
+      "question": "请把“编译/下装”分成两个阶段分别说明：先讲控制器侧要做什么，再讲工程总控/站侧要做什么。要求写清楚两个对象分别是什么，顺序不要混写。",
+      "rationale": "强约束结构化阶段边界（先控制器侧、再工程总控/站侧），必须同时出现两侧对象与顺序提示，避免只输出一句“先编译后下装”。",
+      "owner": "TBD",
+      "source_section_hint": "手册3 常见问题可提供站侧/工程总控 FAQ；控制器侧要点需从同族章节或其它分册补齐",
+      "expected_shape": {
+        "must_contain_all": ["控制器", "工程总控"],
+        "must_contain_any": ["先", "然后", "再"],
+        "must_not_contain": ["先下装后编译"]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-q6r2-003-confusion-guardrail-what-not-to-mix",
+      "question": "编译/下装最容易混淆的点是什么？请明确写出：哪些属于控制器侧（控制器算法工程），哪些属于工程总控/站侧（工程总控工程）。要求至少写出 1 条“不要混淆/不要把…写到…”的提醒。",
+      "rationale": "强约束易混提醒：必须显式给出 guardrail（不要混淆）并区分“控制器算法工程”与“工程总控工程”，用于钉死 answer-level 缺口。",
+      "owner": "TBD",
+      "source_section_hint": "工程对象边界与易混提醒（同族问法）；若缺失应在 summary 中稳定暴露",
+      "expected_shape": {
+        "must_contain_all": ["控制器", "算法工程", "工程总控"],
+        "must_contain_any": ["不要混淆", "不要把", "区别", "边界"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    }
+  ]
+}

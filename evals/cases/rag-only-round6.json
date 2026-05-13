@@ -1,0 +1,76 @@
+{
+  "id": "p0a-rag-only-round6",
+  "scope": "RAG-only Round 6 (fixture-first): stress-test answer-level guard for unknown services (must not overfit UserSvr) while preserving UserSvr positive path; include explicit denial and non-service interference",
+  "source": {
+    "kind": "fixture",
+    "fixture_documents": [
+      "benchmarks/fixtures/hollias_manual1_install.md",
+      "benchmarks/fixtures/hollias_manual3_engineering.md",
+      "benchmarks/fixtures/hollias_manual7_function_block.md"
+    ]
+  },
+  "cases": [
+    {
+      "id": "real-rag6-001-positive-usersvr-wont-start-first-check",
+      "question": "UserSvr 起不来，第一步应该先查什么？至少给 2 个优先检查点。",
+      "rationale": "正样本：用“起不来”口语变体继续验证 UserSvr 专属路径不被 Round 5 guard 误伤，且能给出 ≥2 个检查点（依赖/注册/日志/事件）。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册1：安装故障 UserSvr 服务启动失败（依赖/注册/日志/事件；必要时注册脚本）",
+      "expected_shape": {
+        "must_contain_all": ["UserSvr"],
+        "must_contain_any": ["依赖", "注册", "日志", "事件", "UserReg.bat", "UserUnReg.bat"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag6-002-negative-unknown-service-no-usersvr-token",
+      "question": "装完以后有个服务没起来，第一步先看啥？（我没看到服务名）",
+      "rationale": "负样本：完全不出现“UserSvr”字样。验证 guard 能在未知服务场景稳定输出“先确认服务名/对象”的通用排查结构，而不是套 UserSvr 专属模板。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "Round 6 负样本：语料仅有 UserSvr 示例，未知对象应先确认服务名/对象，再查依赖/注册/日志/事件。",
+      "expected_shape": {
+        "must_contain_all": ["服务名"],
+        "must_contain_any": ["确认", "依赖", "注册", "日志", "事件", "不要默认", "不要套用"],
+        "must_not_contain": [
+          "处理结论：若安装过程提示 UserSvr 服务启动失败",
+          "1. 安装完成后尝试手动启动 UserSvr 服务。"
+        ]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag6-003-deny-usersvr-explicitly-not-usersvr",
+      "question": "不是 UserSvr，是别的服务启动不了。不要默认按 UserSvr 算。第一步先查什么？",
+      "rationale": "否定/限制语义样本：显式出现“不是 UserSvr / 不要默认”。验证 Round 5 的否定语义 guard 稳定生效：不输出 UserSvr 专属模板，并给出“先确认服务名/对象”的通用首检清单。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "Round 6 否定语义：问题明确排除 UserSvr，应输出通用排查并提示先确认服务名。",
+      "expected_shape": {
+        "must_contain_all": ["不要默认"],
+        "must_contain_any": ["服务名", "确认", "依赖", "注册", "日志", "事件"],
+        "must_not_contain": [
+          "处理结论：若安装过程提示 UserSvr 服务启动失败",
+          "1. 安装完成后尝试手动启动 UserSvr 服务。"
+        ]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag6-004-interference-non-service-parameter-align-should-not-trigger-usersvr",
+      "question": "参数对齐到底有什么用？什么时候会提示同步？把 TRUE/FALSE 两种情况分别说明。",
+      "rationale": "干扰样本：明确是术语/参数定义类问题（非服务故障）。验证不会被故障模板抢答，且不应输出 UserSvr 专属脚本步骤。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册7：术语定义 参数对齐（TRUE/FALSE + 同步提示）",
+      "expected_shape": {
+        "must_contain_all": ["参数对齐"],
+        "must_contain_any": ["TRUE", "FALSE", "提示"],
+        "must_not_contain": ["UserSvr", "UserReg.bat", "UserUnReg.bat"]
+      },
+      "fail_stage": "answer"
+    }
+  ]
+}

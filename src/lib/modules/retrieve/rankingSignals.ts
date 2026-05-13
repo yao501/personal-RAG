@@ -175,7 +175,7 @@ export function intentSectionBoost(intent: QueryIntent, chunk: ChunkRecord, docu
     boost += 1.15;
   }
 
-  if (intent.wantsSteps && /步骤|流程|方法|配置|设置|安装|启用|禁用|通讯|通信|使用|procedure|steps|setup|install|configure/i.test(metadata)) {
+  if (intent.wantsSteps && /步骤|流程|方法|配置|设置|安装|启用|禁用|通讯|通信|使用|procedure|steps|setup|install|configure|仿真|下装|编译|组态/i.test(metadata)) {
     boost += 0.9;
   }
 
@@ -185,6 +185,16 @@ export function intentSectionBoost(intent: QueryIntent, chunk: ChunkRecord, docu
 
   if (intent.wantsLocation && /菜单|路径|界面|导航|章节|位置|menu|path|section|chapter/i.test(metadata)) {
     boost += 0.7;
+  }
+
+  // P0-B: 核心技术章节标题额外加权，抑制噪声章节（如全局变量、文档用途等）
+  const coreSectionRegex = /仿真|下装|编译|组态|调试|算法|硬[件件]配置|程序组织|工程管理|控制站|操作站|历史站/;
+  if (coreSectionRegex.test(metadata)) {
+    boost += 0.6;
+  }
+  // P0-B: 噪声章节惩罚（文档元信息、纯代码/参数面板、目录页等）
+  if (/文档用途|阅读对象|文档更新|全局变量|参数面板|目录\s*$|名词缩写|版权声明/.test(metadata)) {
+    boost -= 0.8;
   }
 
   return boost;

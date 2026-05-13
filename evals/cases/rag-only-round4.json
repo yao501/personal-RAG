@@ -1,0 +1,70 @@
+{
+  "id": "p0a-rag-only-round4",
+  "scope": "RAG-only Round 4 (fixture-first): expand troubleshooting/service-start oral variants; verify first-check shape + explicit entity; include 1 interference case (do not pivot to P0-B unless stable non-answer failures)",
+  "source": {
+    "kind": "fixture",
+    "fixture_documents": [
+      "benchmarks/fixtures/hollias_manual1_install.md",
+      "benchmarks/fixtures/hollias_manual3_engineering.md",
+      "benchmarks/fixtures/hollias_manual7_function_block.md"
+    ]
+  },
+  "cases": [
+    {
+      "id": "real-rag4-001-usersvr-oral-variant-install-finish-service-not-up",
+      "question": "装完以后 UserSvr 服务没起来，第一步先看啥？至少给两个排查点，并把对象名写出来。",
+      "rationale": "同意图不同口语变体：覆盖“没起来/先看啥”措辞，验证能稳定进入 troubleshooting 答案形态，显式输出 UserSvr，并给出 ≥2 个具体检查点。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册1：安装故障 UserSvr 服务启动失败（依赖/注册/日志/事件 + 注册脚本名）",
+      "expected_shape": {
+        "must_contain_all": ["UserSvr"],
+        "must_contain_any": ["依赖", "注册", "日志", "事件", "UserReg.bat", "UserUnReg.bat", "Common"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag4-002-usersvr-oral-variant-startup-failed-two-places",
+      "question": "UserSvr 启动不了，先查哪两个地方最靠谱？别只说重启。",
+      "rationale": "故障 + 口语近义：覆盖“启动不了/先查哪两个地方”，要求答案给出至少两类检查对象（依赖/注册/日志/事件/脚本），避免空泛建议。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册1：UserSvr 服务启动失败（检查依赖/注册，查看日志与系统事件记录；必要时注册/反注册脚本）",
+      "expected_shape": {
+        "must_contain_all": ["UserSvr"],
+        "must_contain_any": ["依赖", "注册", "日志", "事件", "UserReg.bat", "UserUnReg.bat"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag4-003-usersvr-boundary-reminder-avoid-workflow-drift",
+      "question": "我说的是 UserSvr 服务起不来这种安装故障，不是在问软件使用步骤。请先给一句边界提醒，然后给 2 个优先检查项。",
+      "rationale": "故障 + 边界提醒：验证答案能显式区分 troubleshooting vs 全流程步骤，并在边界提醒后仍点名 UserSvr + 给出排查点。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册1：UserSvr 故障段落；避免跑偏到 2.4 软件使用步骤（概览）",
+      "expected_shape": {
+        "must_contain_all": ["UserSvr"],
+        "must_contain_any": ["边界", "不是", "排查", "故障", "依赖", "注册", "日志"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag4-004-interference-unknown-service-start-failed-do-not-assume-usersvr",
+      "question": "安装时提示“某个服务启动失败”，但我没看到具体服务名。第一步先查什么？不要默认就是 UserSvr。",
+      "rationale": "临近但不同对象的干扰题：验证 Round 3 的 patch 没有把所有“服务启动失败”都硬套成 UserSvr 模板（避免误触发扩大影响面）。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "Round 4 干扰验证：语料中只有 UserSvr 故障示例，答案不应强行断言未知服务=UserSvr",
+      "expected_shape": {
+        "must_contain_all": ["不要", "默认"],
+        "must_contain_any": ["依赖", "注册", "日志", "事件"],
+        "must_not_contain": ["处理结论：若安装过程提示 UserSvr 服务启动失败"]
+      },
+      "fail_stage": "answer"
+    }
+  ]
+}

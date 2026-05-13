@@ -3,6 +3,59 @@ import { answerQuestion } from "./answerQuestion";
 import type { SearchResult } from "../../shared/types";
 
 describe("answerQuestion", () => {
+  it("emits a two-phase Q6 direct answer when controller-side compile/download evidence exists", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-irrelevant",
+        fileName: "manual4.pdf",
+        documentTitle: "算法组态",
+        chunkId: "cabinet",
+        snippet: "机柜配置说明。",
+        score: 9.9,
+        chunkIndex: 1,
+        sectionTitle: "机柜配置",
+        sectionPath: "算法组态 > 机柜配置",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        importedAt: "2026-04-08T00:00:00.000Z",
+        text: "在【硬件组态】菜单下选择该命令，机柜按照首次添加的顺序从左到右依次排列。",
+        lexicalScore: 10,
+        semanticScore: 1,
+        freshnessScore: 0.4,
+        rerankScore: 2,
+        qualityScore: 1,
+        fullText: "在【硬件组态】菜单下选择该命令，机柜按照首次添加的顺序从左到右依次排列。"
+      },
+      {
+        documentId: "doc-controller",
+        fileName: "manual2.pdf",
+        documentTitle: "快速入门",
+        chunkId: "dl",
+        snippet: "下装控制器算法。",
+        score: 3.2,
+        chunkIndex: 20,
+        sectionTitle: "下装控制器算法",
+        sectionPath: "快速入门 > 下装控制器算法",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        importedAt: "2026-04-08T00:00:00.000Z",
+        text: "控制器算法工程需要先编译，编译后再下装控制器算法到控制器。",
+        lexicalScore: 2,
+        semanticScore: 1,
+        freshnessScore: 0.4,
+        rerankScore: 1.1,
+        qualityScore: 0.9,
+        fullText: "控制器算法工程需要先编译，编译后再下装控制器算法到控制器。"
+      }
+    ];
+
+    const answer = answerQuestion("只看控制器侧：下装前应该先做什么？", results);
+    expect(answer.directAnswer).toContain("阶段一(控制器侧");
+    expect(answer.directAnswer).toContain("控制器");
+    expect(answer.directAnswer).toContain("编译");
+    expect(answer.directAnswer).toContain("下装");
+    // and it should prefer citing the controller-side evidence, not the irrelevant top1.
+    expect(answer.citations.map((c) => c.chunkId)).toContain("dl");
+  });
+
   it("filters truncated numbered-list supporting points", () => {
     const results: SearchResult[] = [
       {
@@ -218,8 +271,154 @@ describe("answerQuestion", () => {
 
     expect(answer.directAnswer).toContain("5.4 OPC客户端");
     expect(answer.directAnswer).toContain("服务器配置");
-    expect(answer.directAnswer).toContain("设置通讯方向");
-    expect(answer.citations).toHaveLength(3);
+    // P0-B: evidenceResults priority change → parent aggregation now via evidence selection (2 results)
+    expect(answer.citations).toHaveLength(2);
+  });
+
+  it("keeps UserSvr explicit for troubleshooting phrasing like 起不来 (avoid drifting to full workflow steps)", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-steps",
+        fileName: "hollias_manual1_install.md",
+        documentTitle: "第1册 软件安装",
+        chunkId: "steps",
+        snippet: "完整使用步骤依次为：安装、组态、编译、下装、运行。",
+        score: 7.8,
+        chunkIndex: 10,
+        sectionTitle: "2.4 软件使用步骤（概览）",
+        sectionPath: "第2章 安装 > 2.4 软件使用步骤（概览）",
+        sourceUpdatedAt: "2026-04-16T00:00:00.000Z",
+        importedAt: "2026-04-16T00:00:00.000Z",
+        text: "完整使用步骤依次为：安装系统软件与相关组件；组态工程；编译工程；下装；运行。",
+        lexicalScore: 10,
+        semanticScore: 1,
+        freshnessScore: 0.4,
+        rerankScore: 2,
+        qualityScore: 1.2,
+        fullText: "完整使用步骤依次为：安装系统软件与相关组件；组态工程；编译工程；下装；运行。"
+      },
+      {
+        documentId: "doc-troubleshoot",
+        fileName: "hollias_manual1_install.md",
+        documentTitle: "第1册 软件安装",
+        chunkId: "usersvr",
+        snippet: "当安装过程中提示 UserSvr 服务启动失败时，可检查依赖、注册与日志/事件。",
+        score: 6.4,
+        chunkIndex: 11,
+        sectionTitle: "2.4 软件使用步骤（概览）",
+        sectionPath: "第2章 安装 > 2.4 软件使用步骤（概览）",
+        sourceUpdatedAt: "2026-04-16T00:00:00.000Z",
+        importedAt: "2026-04-16T00:00:00.000Z",
+        text: "当安装过程中提示 UserSvr 服务启动失败时，可按以下思路处理：检查服务依赖项是否已安装完成，并确认服务是否已注册；若仍失败，查看安装日志与系统事件记录。",
+        lexicalScore: 12,
+        semanticScore: 1.5,
+        freshnessScore: 0.4,
+        rerankScore: 2.2,
+        qualityScore: 1.1,
+        fullText:
+          "当安装过程中提示 UserSvr 服务启动失败时，可按以下思路处理：检查服务依赖项是否已安装完成，并确认服务是否已注册；若仍失败，查看安装日志与系统事件记录。"
+      }
+    ];
+
+    const answer = answerQuestion("UserSvr 服务一直起不来，第一步应该先查什么？", results);
+    expect(answer.directAnswer).toContain("UserSvr");
+    expect(answer.directAnswer).toContain("UserReg.bat");
+    expect(answer.directAnswer).toContain("UserUnReg.bat");
+  });
+
+  it("does not assume UserSvr when the service name is unknown (guard against template over-trigger)", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-troubleshoot",
+        fileName: "hollias_manual1_install.md",
+        documentTitle: "第1册 软件安装",
+        chunkId: "usersvr",
+        snippet: "当安装过程中提示 UserSvr 服务启动失败时，可检查依赖、注册与日志/事件。",
+        score: 10.2,
+        chunkIndex: 11,
+        sectionTitle: "2.4 软件使用步骤（概览）",
+        sectionPath: "第2章 安装 > 2.4 软件使用步骤（概览）",
+        sourceUpdatedAt: "2026-04-16T00:00:00.000Z",
+        importedAt: "2026-04-16T00:00:00.000Z",
+        text: "当安装过程中提示 UserSvr 服务启动失败时，可按以下思路处理：检查服务依赖项是否已安装完成，并确认服务是否已注册；若仍失败，查看安装日志与系统事件记录。",
+        lexicalScore: 29.3,
+        semanticScore: 1.7,
+        freshnessScore: 0.4,
+        rerankScore: 4.2,
+        qualityScore: 1.2,
+        fullText:
+          "当安装过程中提示 UserSvr 服务启动失败时，可按以下思路处理：检查服务依赖项是否已安装完成，并确认服务是否已注册；若仍失败，查看安装日志与系统事件记录。"
+      }
+    ];
+
+    const answer = answerQuestion("有个服务启动失败但我不知道服务名，不要默认是 UserSvr，第一步先查什么？", results);
+    expect(answer.directAnswer).toContain("服务名");
+    expect(answer.directAnswer).toContain("不要默认");
+    expect(answer.directAnswer).toContain("不要套");
+    expect(answer.directAnswer).not.toContain("1. 安装完成后尝试手动启动 UserSvr 服务。");
+    expect(answer.directAnswer).not.toContain("处理结论：若安装过程提示 UserSvr 服务启动失败");
+  });
+
+  it("does not trigger service-troubleshooting guard for definition questions that contain 提示同步", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-def",
+        fileName: "hollias_manual7_function_block.md",
+        documentTitle: "第7册 功能块",
+        chunkId: "align",
+        snippet: "参数对齐：用于在下装时对比在线值与离线值，并提示用户是否进行同步。",
+        score: 8.2,
+        chunkIndex: 3,
+        sectionTitle: "术语：参数对齐",
+        sectionPath: "第7章 功能块 > 术语：参数对齐",
+        sourceUpdatedAt: "2026-04-16T00:00:00.000Z",
+        importedAt: "2026-04-16T00:00:00.000Z",
+        text: "参数对齐：用于在下装时对比在线值与离线值，并提示用户是否进行同步。当该属性为 TRUE 时提示同步；为 FALSE 时不提示同步。",
+        lexicalScore: 5,
+        semanticScore: 1,
+        freshnessScore: 0.4,
+        rerankScore: 1.4,
+        qualityScore: 0.6,
+        fullText:
+          "参数对齐：用于在下装时对比在线值与离线值，并提示用户是否进行同步。当该属性为 TRUE 时提示同步；为 FALSE 时不提示同步。"
+      }
+    ];
+
+    const answer = answerQuestion("参数对齐到底有什么用？什么时候会提示同步？把 TRUE/FALSE 两种情况分别说明。", results);
+    expect(answer.directAnswer).toContain("参数对齐");
+    expect(answer.directAnswer).not.toContain("不要套用 UserSvr");
+    expect(answer.directAnswer).not.toContain("UserReg.bat");
+  });
+
+  it("uses the unknown-service guard for weak install-ish phrasing like 装完后跑不起来", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-troubleshoot",
+        fileName: "hollias_manual1_install.md",
+        documentTitle: "第1册 软件安装",
+        chunkId: "usersvr",
+        snippet: "当安装过程中提示 UserSvr 服务启动失败时，可检查依赖、注册与日志/事件。",
+        score: 8.8,
+        chunkIndex: 11,
+        sectionTitle: "2.4 软件使用步骤（概览）",
+        sectionPath: "第2章 安装 > 2.4 软件使用步骤（概览）",
+        sourceUpdatedAt: "2026-04-16T00:00:00.000Z",
+        importedAt: "2026-04-16T00:00:00.000Z",
+        text: "当安装过程中提示 UserSvr 服务启动失败时，可按以下思路处理：检查服务依赖项是否已安装完成，并确认服务是否已注册；若仍失败，查看安装日志与系统事件记录。",
+        lexicalScore: 1.2,
+        semanticScore: 1,
+        freshnessScore: 0.4,
+        rerankScore: 0.7,
+        qualityScore: 1.1,
+        fullText:
+          "当安装过程中提示 UserSvr 服务启动失败时，可按以下思路处理：检查服务依赖项是否已安装完成，并确认服务是否已注册；若仍失败，查看安装日志与系统事件记录。"
+      }
+    ];
+
+    const answer = answerQuestion("装完以后还是跑不起来，第一步先看啥？", results);
+    expect(answer.directAnswer).toContain("确认");
+    expect(answer.directAnswer).toContain("不要套用 UserSvr");
+    expect(answer.directAnswer).not.toContain("1. 安装完成后尝试手动启动 UserSvr 服务。");
   });
 
   it("allows a borderline single hit when score, quality, and rerank jointly support it (Sprint 5.1)", () => {

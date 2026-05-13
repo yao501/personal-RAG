@@ -481,8 +481,13 @@ export function searchChunks(
         const df = documentFrequency.get(token) ?? 0;
         const idf = Math.log(1 + totalChunks / (1 + df));
         lexicalScore += tf * idf;
+        // P0-B: 章节标题命中权重提升（2.0→3.0），解决跨卷章节级检索精度不足
         if (metadataTokens.includes(token)) {
-          lexicalScore += 1.2;
+          lexicalScore += 3.0;
+        }
+        // P0-B: 文本中也命中则额外加分
+        if (tokens.includes(token)) {
+          lexicalScore += tf > 0 ? 0.6 : 0;
         }
       }
 
@@ -507,8 +512,9 @@ export function searchChunks(
         coverage * 1.35 +
         phraseBoost(lexicalQuery, normalizeForLexicalMatch(retrievalHaystack(chunk))) * 0.45 +
         metadataBoost +
-        longestMatch * 0.05 +
-        sectionBoost * 0.55 +
+        longestMatch * 0.08 +
+        // P0-B: sectionBoost权重提升 0.55→1.15，强化章节意图匹配
+        sectionBoost * 1.15 +
         evidenceCoverage * (intent.wantsSteps ? 1.2 : 0.55) +
         roleAnswerBoost(query, evidence.evidenceText, chunk, document) +
         evidence.evidenceScore * 0.72 +

@@ -1,0 +1,61 @@
+{
+  "branch": "P0-B-definition-constraint",
+  "round": 1,
+  "description": "支线B：定义+约束型问题评测 — 验证 RAG 对 MACS V6.5 术语定义、参数约束、条件边界的回答准确性",
+  "created": "2026-05-07T20:05:00+08:00",
+  "owner": "project",
+  "knowledge_base": "和利时 HOLLiAS MACS V6.5 操作手册 (7卷)",
+  "runner": "scripts/p0bDefinitionConstraintEval.ts",
+  "stop_conditions": {
+    "full_green_closeout": "首轮全绿(4/4)则直接收口",
+    "answer_issues": "存在partial/fail但主因是answer → 允许最小answer patch后复跑1轮",
+    "retrieval_issues": "stable + 非answer主因(retrieval/ranking) + ≥2题同类复现 → 登记retrieval治理候选",
+    "max_rounds": "最多2轮，若仍有fail则分析主因并记录为已知限制"
+  },
+  "cases": [
+    {
+      "id": "B1",
+      "type": "定义型/参数约束",
+      "question": "MACS V6.5 算法组态中，参数对齐功能的条件是什么？TRUE 和 FALSE 分别在什么情况下出现？该参数对齐功能主要用于什么场景？",
+      "rationale": "参数对齐是算法组态核心特性，TRUE/FALSE是判断型定义，需要召回手册4中参数对齐的精确定义和约束条件",
+      "source_hint": "手册4 算法组态 — 参数对齐相关章节",
+      "expected_shape": {
+        "must_contain_all": ["参数对齐", "TRUE", "FALSE"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "B2",
+      "type": "约束型/条件边界",
+      "question": "MACS V6.5 控制站的系统容量有哪些限制？I/O 点数、控制周期、任务数量分别有什么上限？扩展机架时需要注意什么？",
+      "rationale": "控制站容量是工程规划的关键约束，涉及多个硬性数字限制，需要从手册中召回准确的约束参数",
+      "source_hint": "手册3 工程总控 Ch2~Ch4 系统配置 / 手册4 算法组态 — 控制站相关",
+      "expected_shape": {
+        "must_contain_all": ["控制站", "I/O", "容量", "周期"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "B3",
+      "type": "约束型/使用限制",
+      "question": "MACS V6.5 的工程加密功能适用于哪些场景？对工程编译、下装、在线修改各有什么影响和限制条件？",
+      "rationale": "工程加密有明确的适用场景和操作限制，需要跨手册了解加密对各阶段的影响",
+      "source_hint": "手册3 工程总控 — 工程加密相关章节",
+      "expected_shape": {
+        "must_contain_all": ["加密", "工程", "限制"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "B4",
+      "type": "定义型/概念区分",
+      "question": "MACS V6.5 中，操作员站、工程师站、历史站的功能定义分别是什么？它们各自运行哪些软件？是否可以合并部署在一台机器上？",
+      "rationale": "站类型是DCS核心概念，定义是否精确直接影响后续操作理解，涉及跨卷功能定义召回",
+      "source_hint": "手册1 软件安装 / 手册3 工程总控 / 手册6 现场操作 — 站类型定义",
+      "expected_shape": {
+        "must_contain_all": ["操作员站", "工程师站", "历史站", "操作", "工程"],
+        "must_not_contain": []
+      }
+    }
+  ]
+}

@@ -17,9 +17,9 @@ The product now also stores real query logs locally. Those logs are not automati
 
 ## Where it lives
 
-- Config: [scripts/ragEval.config.ts](/Users/guangyaosun/personal-knowledge-rag/scripts/ragEval.config.ts)
-- Runner: [scripts/runRagEval.ts](/Users/guangyaosun/personal-knowledge-rag/scripts/runRagEval.ts)
-- Pure eval logic: [src/lib/eval/ragEval.ts](/Users/guangyaosun/personal-knowledge-rag/src/lib/eval/ragEval.ts)
+- Config: [scripts/ragEval.config.ts](../scripts/ragEval.config.ts)
+- Runner: [scripts/runRagEval.ts](../scripts/runRagEval.ts)
+- Pure eval logic: [src/lib/eval/ragEval.ts](../src/lib/eval/ragEval.ts)
 
 ## Run it
 
@@ -41,7 +41,7 @@ HOLLIAS_INSTALL_PDF="/absolute/path/to/manual.pdf" npm run eval:rag
 
 ## How to add a new dataset
 
-Add a dataset entry in [scripts/ragEval.config.ts](/Users/guangyaosun/personal-knowledge-rag/scripts/ragEval.config.ts):
+Add a dataset entry in [scripts/ragEval.config.ts](../scripts/ragEval.config.ts):
 
 - `documents`: files to parse and chunk
 - `cases`: questions to ask
@@ -83,7 +83,7 @@ The app now captures recent real questions together with:
 
 This gives us two complementary quality loops:
 
-- curated benchmark datasets in [scripts/ragEval.config.ts](/Users/guangyaosun/personal-knowledge-rag/scripts/ragEval.config.ts)
+- curated benchmark datasets in [scripts/ragEval.config.ts](../scripts/ragEval.config.ts)
 - real-user query logs surfaced in the desktop `Settings` view
 
 The intended workflow is:

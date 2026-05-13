@@ -12,6 +12,69 @@ This document describes the **local-first** benchmark format and how to run the 
 - **Plan and scope:** [`docs/P0-A_REAL_QUERY_EXPANSION_PLAN.md`](P0-A_REAL_QUERY_EXPANSION_PLAN.md) — small, anonymized real questions; no benchmark inflation in early rounds.
 - **Directory placeholder (cases + `fail_stage` notes):** [`evals/cases/README.md`](../evals/cases/README.md).
 
+### P0-A Round 1：Q6 同族最小闭环
+
+本轮只聚焦 **Q6 同族**（编译/下装顺序 + 控制器侧 vs 工程总控/站侧边界）。
+
+- **计划文档**：[`docs/P0-A_Q6_ROUND1_PLAN.md`](P0-A_Q6_ROUND1_PLAN.md)
+- **cases**：`evals/cases/q6-round1.json`
+- **runner**：`scripts/runRealRegressionQ6Round1.ts`
+
+运行：
+
+```bash
+export PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册"
+./node_modules/.bin/vite-node scripts/runRealRegressionQ6Round1.ts
+```
+
+### P0-A Round 2：Q6 控制器侧强约束问法
+
+本轮仍只聚焦 Q6 同族，但新增的 case **更强约束** answer 必须覆盖：
+控制器侧先做什么、两阶段边界、以及“先编译后下装”的顺序表达。
+
+- **计划文档**：`docs/P0-A_Q6_ROUND2_PLAN.md`
+- **cases**：`evals/cases/q6-round2.json`
+
+运行：
+
+```bash
+export PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册"
+./node_modules/.bin/vite-node scripts/runRealRegressionQ6Round1.ts round2
+```
+
+### P0-A Round 3：Q6 可接受答案形态收敛（acceptable variants）
+
+本轮引入 `acceptable_variants`：允许同义表达与结构化表达，但仍禁止“只答泛化 FAQ、完全不点控制器侧/边界”的答案。
+
+- **计划文档**：`docs/P0-A_Q6_ROUND3_PLAN.md`
+- **cases**：`evals/cases/q6-round3.json`
+
+运行：
+
+```bash
+export PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册"
+./node_modules/.bin/vite-node scripts/runRealRegressionQ6Round1.ts round3
+```
+
+### Q6 Answer Patch 1：仅 answer 层修补验证
+
+本轮只改 answer 层（不动检索规则），用 **Q6 Round 3** 回归验证是否更接近 `acceptable_variants`。
+
+- **计划**：`docs/P0-A_Q6_ANSWER_PATCH1_PLAN.md`
+
+运行（与 Round 3 相同）：
+
+```bash
+export PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册"
+./node_modules/.bin/vite-node scripts/runRealRegressionQ6Round1.ts round3
+```
+
+产物：
+
+- 原始 JSON：`evals/raw/real-regression-<YYYY-MM-DD>-<seq>.raw.json`
+- 结果 JSON：`evals/results/real-regression-run-<YYYY-MM-DD>-<seq>.json`
+- 可读 summary：`evals/results/real-regression-summary-<YYYY-MM-DD>-<seq>.md`
+
 ## Benchmark format (`schemaVersion: 1`)
 
 Benchmarks are JSON files (single object). See `benchmarks/benchmark.v1.json`.

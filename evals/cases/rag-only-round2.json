@@ -1,0 +1,70 @@
+{
+  "id": "p0a-rag-only-round2",
+  "scope": "RAG-only Round 2 (fixture-first): higher-divergence questions; no P0-C; no big P0-B governance",
+  "source": {
+    "kind": "fixture",
+    "fixture_documents": [
+      "benchmarks/fixtures/hollias_manual1_install.md",
+      "benchmarks/fixtures/hollias_manual3_engineering.md",
+      "benchmarks/fixtures/hollias_manual7_function_block.md"
+    ]
+  },
+  "cases": [
+    {
+      "id": "real-rag2-001-workflow-after-install-before-run",
+      "question": "系统安装完成后，到最终“运行/生效”之前，还必须经过哪些关键环节？请按主链顺序回答，不要只讲某一个子步骤。",
+      "rationale": "跨分册全流程主链（更易跑偏）：要求回答“安装后到运行前”的主链环节，避免只抓一个 FAQ 或单个步骤片段。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册1 软件使用步骤（安装→组态→编译→下装→运行）",
+      "expected_shape": {
+        "must_contain_all": ["组态", "编译", "下装", "运行"],
+        "must_contain_any": ["安装", "之后", "然后", "依次", "步骤"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag2-002-boundary-rephrase-engineering-side-only",
+      "question": "我只关心工程总控/站侧：下装之前要先做什么？请给出“对象 + 顺序”，并明确不是在问控制器侧。",
+      "rationale": "顺序/阶段边界（换说法）：同意图不同问法，强制答案点名“工程总控/站侧”并给出顺序词，避免漂移到控制器侧或泛化回答。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册3 工程总控侧：先编译后下装",
+      "expected_shape": {
+        "must_contain_all": ["工程总控"],
+        "must_contain_any": ["先编译", "编译后", "再下装", "然后下装"],
+        "must_not_contain": ["先下装后编译"]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag2-003-definition-constraint-userish-wording",
+      "question": "参数对齐到底有什么用？什么时候会提示同步？把 TRUE/FALSE 两种情况分别说清楚。",
+      "rationale": "定义+约束项（更像用户问法）：不直接复读“什么是参数对齐”，但仍要求覆盖 TRUE/FALSE 分支与“提示同步”的约束点。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册7 术语：参数对齐（TRUE/FALSE 分支 + 同步提示）",
+      "expected_shape": {
+        "must_contain_all": ["参数对齐"],
+        "must_contain_any": ["TRUE", "FALSE", "提示"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag2-004-troubleshooting-first-checks",
+      "question": "安装时 UserSvr 服务起不来，第一步应该先检查什么？至少给出 2 个优先排查点。",
+      "rationale": "故障/服务启动类（更具约束）：要求“第一步先查什么”并给出≥2 个排查点，避免只回答一句“重启试试”。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册1 安装故障：UserSvr 服务启动失败（依赖/注册/日志）",
+      "expected_shape": {
+        "must_contain_any": ["依赖", "注册", "日志", "事件"],
+        "must_contain_all": ["UserSvr"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    }
+  ]
+}

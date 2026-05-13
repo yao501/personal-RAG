@@ -24,6 +24,16 @@ interface SectionUnit {
 
 const MARKDOWN_HEADING = /^(#{1,6})\s+(.+?)\s*$/;
 
+/** C线技术债：噪音章节关键词，跳过这些章节不加入 sectionPath */
+const NOISE_HEADING_KEYWORDS = [
+  "关于本文档", "关于本书", "文档用途", "阅读对象", "重要信息",
+  "产品文档目录", "版权声明", "使用约定", "文档更新", "全局变量"
+];
+
+function isNoiseHeading(heading: string): boolean {
+  return NOISE_HEADING_KEYWORDS.some(kw => heading.includes(kw));
+}
+
 /**
  * P0-B B4 (single-rule, single-fragment):
  * PDF 抽取文本在「术语/参数表」附近常出现空行密集，导致术语名行与解释行被分到不同 block（`\\n{2,}`）并进而切碎。
@@ -110,6 +120,7 @@ function countTokens(text: string): number {
   return latinTokens.length + hanChars.length;
 }
 
+/** C线 技术债修复：排除表格参数行被误判为章节标题 */
 function isPlainHeading(line: string): boolean {
   const trimmed = line.trim();
   if (!trimmed || trimmed.length > 80) {
@@ -123,6 +134,17 @@ function isPlainHeading(line: string): boolean {
   if (/[.!?。！？]$/.test(trimmed)) {
     return false;
   }
+
+  // 排除功能块参数表的行：包含"是/否"布尔列、数值+单位、纯参数值行
+  if (/ (?:是|否|TRUE|FALSE)(?: |$)/i.test(trimmed)) return false;
+  if (/^[\d.]+\s*(?:是|否|TRUE|FALSE)/i.test(trimmed)) return false;
+  if (/^(?:[\d.]+\s+){2,}/.test(trimmed)) return false;  // 多列数字行
+
+  // 排除纯数值/百分比行
+  if (/^(?:[\d.]+\s*%?)+$/.test(trimmed)) return false;
+
+  // 排除"数值+中文词"短行（表格参数值如 "10 强制" "0.5 否 否 是 否"）
+  if (/^[\d.]+\s+[\p{Script=Han}]/u.test(trimmed) && trimmed.length <= 20) return false;
 
   const words = trimmed.split(/\s+/);
   return words.length > 0 && words.length <= 8 && /^[\p{L}\p{N}\s:\-/()]+$/u.test(trimmed);
@@ -239,7 +261,7 @@ function buildUnits(text: string, pageSpans?: SourcePageSpan[]): SectionUnit[] {
     if (headingMatch) {
       const level = headingMatch[1].length;
       const heading = headingMatch[2].trim();
-      sectionPath = [...sectionPath.slice(0, Math.max(0, level - 1)), heading];
+      sectionPath = isNoiseHeading(heading) ? sectionPath : [...sectionPath.slice(0, Math.max(0, level - 1)), heading];
       searchOffset = normalized.indexOf(block, searchOffset) + block.length;
       continue;
     }
@@ -249,7 +271,7 @@ function buildUnits(text: string, pageSpans?: SourcePageSpan[]): SectionUnit[] {
     if (firstLineHeadingMatch) {
       const level = firstLineHeadingMatch[1].length;
       const heading = firstLineHeadingMatch[2].trim();
-      sectionPath = [...sectionPath.slice(0, Math.max(0, level - 1)), heading];
+      sectionPath = isNoiseHeading(heading) ? sectionPath : [...sectionPath.slice(0, Math.max(0, level - 1)), heading];
       const body = lines.slice(1).join(" ").trim();
       const blockIndex = normalized.indexOf(block, searchOffset);
 
@@ -277,7 +299,7 @@ function buildUnits(text: string, pageSpans?: SourcePageSpan[]): SectionUnit[] {
 
     if (lines.length > 1 && isPlainHeading(lines[0])) {
       const heading = lines[0];
-      sectionPath = [heading];
+      if (!isNoiseHeading(heading)) sectionPath = [heading];
       const body = lines.slice(1).join(" ").trim();
       if (!body) {
         searchOffset = normalized.indexOf(block, searchOffset) + block.length;

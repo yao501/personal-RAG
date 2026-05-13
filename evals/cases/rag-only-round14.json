@@ -1,0 +1,85 @@
+{
+  "id": "p0a-rag-only-round14",
+  "scope": "RAG-only Round 14 (fixture-first): weaker, more oral variants with minimal retrieval anchors; unknown object must not default to UserSvr; denial semantics stable; preserve UserSvr positive; keep non-service interference stable",
+  "source": {
+    "kind": "fixture",
+    "fixture_documents": [
+      "benchmarks/fixtures/hollias_manual1_install.md",
+      "benchmarks/fixtures/hollias_manual3_engineering.md",
+      "benchmarks/fixtures/hollias_manual7_function_block.md"
+    ]
+  },
+  "cases": [
+    {
+      "id": "real-rag14-001-negative-oral-thingy-service-not-starting",
+      "question": "有个服务启动失败（没启动），我先看哪两个点？",
+      "rationale": "更弱、更口语的未知对象负样本：无安装上下文，不出现 UserSvr；保留最低锚点“服务/启动失败/没启动/先看”，避免 `hasReliableEvidence` 早退。期望走通用 guard（先确认服务名/对象），不应输出 UserSvr 专属三步模板/脚本名。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "弱提示负样本：语料中有 UserSvr 故障示例，但本题不应被硬套为 UserSvr；应先确认具体服务/对象名称，再查依赖/注册/日志/事件。",
+      "expected_shape": {
+        "must_contain_all": ["确认"],
+        "must_contain_any": ["服务名", "对象", "名称", "先别默认", "不要默认", "不要套用"],
+        "must_not_contain": [
+          "完整使用步骤依次为",
+          "组态",
+          "编译",
+          "下装",
+          "当安装过程中提示 **UserSvr** 服务启动失败时",
+          "处理结论：若安装过程提示 UserSvr 服务启动失败",
+          "1. 安装完成后尝试手动启动 UserSvr 服务。",
+          "UserReg.bat",
+          "UserUnReg.bat"
+        ]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag14-002-deny-usersvr-not-default-this",
+      "question": "别默认这是 UserSvr 的问题。我说的是别的服务没生效，先查什么？",
+      "rationale": "deny / 限制语义变体：无安装上下文，显式否定“默认 UserSvr”，同时保留最低锚点“服务/没生效/先查”。期望输出通用 guard，不输出 UserSvr 专属模板。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "否定语义 guard：用户明确排除 UserSvr 时，应先确认对象/名称，再给通用首检清单。",
+      "expected_shape": {
+        "must_contain_all": ["确认"],
+        "must_contain_any": ["不要套用", "不要默认", "对象", "名称", "服务名", "依赖", "注册", "日志", "事件"],
+        "must_not_contain": [
+          "处理结论：若安装过程提示 UserSvr 服务启动失败",
+          "1. 安装完成后尝试手动启动 UserSvr 服务。",
+          "UserReg.bat",
+          "UserUnReg.bat"
+        ]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag14-003-positive-usersvr-not-starting-two-checks",
+      "question": "UserSvr 没启动（没起来），第一步先查什么？至少给 2 个优先检查点。",
+      "rationale": "正样本回归：明确点名 UserSvr，验证 Round 14 的更弱口语负样本与 deny 变体不会误伤正样本；仍应输出 UserSvr 且至少 2 个检查点，且第一检查项明确。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册1：UserSvr 故障（依赖/注册/日志/事件 + 脚本）",
+      "expected_shape": {
+        "must_contain_all": ["UserSvr"],
+        "must_contain_any": ["第一", "依赖", "注册", "日志", "事件", "UserReg.bat", "UserUnReg.bat"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag14-004-oral-nonservice-interference-sync-true-false",
+      "question": "提示我做同步/参数对齐，这到底啥意思？TRUE/FALSE 是干嘛的？",
+      "rationale": "非服务类近邻干扰题（更口语）：包含“提示/同步/TRUE/FALSE/参数对齐”，验证不会误触发故障模板或 unknown-service guard，更不能输出 UserSvr。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册7：术语定义 参数对齐（TRUE/FALSE + 同步提示）",
+      "expected_shape": {
+        "must_contain_all": ["参数对齐"],
+        "must_contain_any": ["TRUE", "FALSE", "同步", "提示"],
+        "must_not_contain": ["UserSvr", "UserReg.bat", "UserUnReg.bat", "不要套用 UserSvr"]
+      },
+      "fail_stage": "answer"
+    }
+  ]
+}

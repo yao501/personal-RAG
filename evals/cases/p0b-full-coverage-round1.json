@@ -1,0 +1,145 @@
+{
+  "branch": "P0-B-full-coverage",
+  "round": 1,
+  "description": "B线 全卷覆盖首轮评测：将手册5（图形编辑）和手册7（功能块）纳入评测覆盖范围。分两组：M5系列（手册5四题）+ M7系列（手册7六题），共10题",
+  "created": "2026-05-11T21:40:00+08:00",
+  "owner": "project",
+  "knowledge_base": "和利时 HOLLiAS MACS V6.5 操作手册 (7卷全量)",
+  "runner": "scripts/p0bFullCoverageEval.ts",
+  "volume_map": {
+    "手册1": "软件安装",
+    "手册2": "快速入门",
+    "手册3": "工程总控",
+    "手册4": "算法组态",
+    "手册5": "图形编辑",
+    "手册6": "现场操作",
+    "手册7": "功能块"
+  },
+  "stop_conditions": {
+    "full_green_closeout": "首轮全绿（均分≥0.90）则直接收口",
+    "answer_issues": "存在partial/fail但主因是answer → 允许最小answer patch后复跑1轮",
+    "max_rounds": "最多2轮，若仍有fail则分析主因并记录为已知限制"
+  },
+  "cases": [
+    {
+      "id": "M5-1",
+      "type": "定义型",
+      "volume": "手册5_图形编辑",
+      "question": "MACS V6.5 图形编辑软件中，图形页面分为哪几类？每一类图形页面的用途和特点分别是什么？",
+      "rationale": "测试手册5 FAQ 14.1 图形页面分类的召回。图形页面包括主流程图、操作面板、总貌画面等",
+      "source_hint": "手册5_图形编辑 Ch14 常见问题 + Ch5 绘制流程图 + Ch6 绘制操作面板",
+      "expected_shape": {
+        "must_contain_all": ["图形页面", "流程图", "操作面板", "分类"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "M5-2",
+      "type": "定义型",
+      "volume": "手册5_图形编辑",
+      "question": "MACS V6.5 图形编辑软件提供了哪些符号库？MOT 系列符号库（MOT1/MOT2/MOT3/MOTD）和 VAL 系列符号库（VAL1/VAL2/VAL3）各有什么用途和区别？",
+      "rationale": "测试手册5符号库分类的召回：MOT系列用于马达/电机/风机，VAL系列用于阀门，MAN/PID用于手操器",
+      "source_hint": "手册5_图形编辑 Ch13 符号库（MOT1-4, VAL1-3, MAN, PID）",
+      "expected_shape": {
+        "must_contain_all": ["符号库", "MOT", "VAL", "马达", "阀门"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "M5-3",
+      "type": "操作条件型",
+      "volume": "手册5_图形编辑",
+      "question": "MACS V6.5 图形编辑中，交互特性支持哪些响应事件类型？弹出操作面板、弹出窗口、模拟量值输入（键盘输入）等交互方式各适用于什么场景？如何设置触发条件？",
+      "rationale": "测试手册5交互特性章节的召回：响应事件（鼠标左键抬起/按下、键盘输入等），交互方式（弹出面板、弹出窗口、模拟量输入）",
+      "source_hint": "手册5_图形编辑 Ch12 图形特性（交互特性、动态特性）",
+      "expected_shape": {
+        "must_contain_all": ["交互特性", "响应事件", "弹出", "触发"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "M5-4",
+      "type": "定义型",
+      "volume": "手册5_图形编辑",
+      "question": "MACS V6.5 图形编辑软件中支持哪些 ActiveX 控件？海康威视视频控件（HKVideoCtrl Class）的用途是什么？如何在流程图中集成和配置视频控件？",
+      "rationale": "测试手册5对ActiveX控件和视频控件集成的召回。手册1.3更新记录提到增加HKVideoCtrl",
+      "source_hint": "手册5_图形编辑 — ActiveX控件 + 海康威视视频控件",
+      "expected_shape": {
+        "must_contain_all": ["ActiveX", "控件", "视频"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "M7-1",
+      "type": "定义型",
+      "volume": "手册7_功能块",
+      "question": "MACS V6.5 功能块手册中，基本运算功能块包含哪些类型的功能块？ADD、SUB、MUL、DIV、SQRT 等基本运算块的输入输出有什么特点？",
+      "rationale": "测试手册7第3章基本运算功能块的召回。应列出基本运算块的种类和基本特性",
+      "source_hint": "手册7_功能块 第3章 基本运算",
+      "expected_shape": {
+        "must_contain_all": ["基本运算", "ADD", "SUB", "MUL", "DIV"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "M7-2",
+      "type": "参数约束型",
+      "volume": "手册7_功能块",
+      "question": "MACS V6.5 PID 功能块中，PVU/PVL 和 ENGU/ENGL 参数分别表示什么？它们之间的关系是什么？死区（Deadband）参数的作用和设置范围是什么？",
+      "rationale": "测试手册7 PID功能块关键参数的召回：PVU/PVL是过程量量程上下限，ENGU/ENGL是工程量上下限，死区用于抑制小幅波动",
+      "source_hint": "手册7_功能块 第5章 控制运算 — PID 功能块参数表",
+      "expected_shape": {
+        "must_contain_all": ["PVU", "PVL", "ENGU", "ENGL", "PID"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "M7-3",
+      "type": "操作条件型",
+      "volume": "手册7_功能块",
+      "question": "MACS V6.5 PID 功能块的跟踪模式（Tracking）和自动模式（Auto）有什么区别？什么条件下 PID 会进入跟踪模式？跟踪模式下 PID 的输出值由什么决定？",
+      "rationale": "测试手册7 PID跟踪模式的召回：跟踪模式下PID停止自动计算，输出由跟踪输入决定；常用于串级控制的副环",
+      "source_hint": "手册7_功能块 第5章 控制运算 — PID 跟踪/自动模式",
+      "expected_shape": {
+        "must_contain_all": ["跟踪", "自动", "PID", "输出"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "M7-4",
+      "type": "定义型",
+      "volume": "手册7_功能块",
+      "question": "MACS V6.5 高级运算功能块中，SWITCH（选择开关）、ORSEL（或选择）、MULDIV（乘除运算）、SUMMER_CTRL（累加器控制）分别有什么功能？各适用于什么场景？",
+      "rationale": "测试手册7第4章高级运算功能块的召回。这些是1.2版本新增的功能块",
+      "source_hint": "手册7_功能块 第4章 高级运算",
+      "expected_shape": {
+        "must_contain_all": ["SWITCH", "ORSEL", "MULDIV", "SUMMER"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "M7-5",
+      "type": "操作条件型",
+      "volume": "手册7_功能块",
+      "question": "MACS V6.5 功能块中，旁路（Bypass）功能的作用是什么？哪些功能块支持旁路功能？启用旁路后，功能块的输出值如何确定？旁路功能在调试和维护中有什么用途？",
+      "rationale": "测试手册7旁路功能的召回。v1.4版本新增旁路功能，选择功能块支持旁路；旁路后输出由旁路值决定",
+      "source_hint": "手册7_功能块 — 选择功能块旁路功能（v1.4更新内容）",
+      "expected_shape": {
+        "must_contain_all": ["旁路", "Bypass", "功能块", "输出"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "M7-6",
+      "type": "定义型",
+      "volume": "手册7_功能块",
+      "question": "MACS V6.5 控制运算中，MOTCTRL（马达控制）和 VALCTRL（阀门控制）功能块各自的作用是什么？它们分别有哪些关键参数？如何配置电机或阀门的反馈信号？",
+      "rationale": "测试手册7 MOTCTRL/VALCTRL功能块的召回。v1.5完善了MOT2说明，v1.6新增了MOTCTRL和VALCTRL",
+      "source_hint": "手册7_功能块 第5章 控制运算 — MOTCTRL/VALCTRL",
+      "expected_shape": {
+        "must_contain_all": ["MOTCTRL", "VALCTRL", "马达", "阀门"],
+        "must_not_contain": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "id": "p0a-rag-only-round5",
+  "scope": "RAG-only Round 5 (fixture-first): validate troubleshooting template trigger boundaries (avoid overfitting UserSvr); positive/negative/interference/boundary samples; no P0-B unless stable non-answer failures",
+  "source": {
+    "kind": "fixture",
+    "fixture_documents": [
+      "benchmarks/fixtures/hollias_manual1_install.md",
+      "benchmarks/fixtures/hollias_manual3_engineering.md",
+      "benchmarks/fixtures/hollias_manual7_function_block.md"
+    ]
+  },
+  "cases": [
+    {
+      "id": "real-rag5-001-positive-usersvr-startup-failed-first-two-checks",
+      "question": "UserSvr 启动不了，第一步先查什么？请至少给 2 个优先检查项（先写第一项）。",
+      "rationale": "正样本：明确点名 UserSvr + “第一步先查什么”。验证专属故障模板仍稳定触发，且答案包含 ≥2 个检查项（依赖+注册作为最小约束）。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册1：安装故障 UserSvr 服务启动失败（检查依赖、确认注册；查看日志与系统事件记录）",
+      "expected_shape": {
+        "must_contain_all": ["UserSvr", "依赖", "注册"],
+        "must_contain_any": ["日志", "事件", "UserReg.bat", "UserUnReg.bat", "Common"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag5-002-negative-unknown-service-do-not-assume-usersvr",
+      "question": "安装完后有个服务启动失败，但我不知道服务名。第一步先查什么？不要默认是 UserSvr。",
+      "rationale": "负样本：未知服务/未指名对象。验证 answer 不应硬套 UserSvr 专属模板；应先提示确认服务名，再给通用检查项（依赖/注册/日志/事件）。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "语料仅包含 UserSvr 作为示例；未知服务场景应先确认对象，不应直接给出“UserSvr 专属三步脚本模板”。",
+      "expected_shape": {
+        "must_contain_all": ["不要", "默认"],
+        "must_contain_any": ["服务名", "确认", "依赖", "注册", "日志", "事件"],
+        "must_not_contain": [
+          "处理结论：若安装过程提示 UserSvr 服务启动失败",
+          "1. 安装完成后尝试手动启动 UserSvr 服务。"
+        ]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag5-003-interference-full-workflow-should-not-be-usersvr-template",
+      "question": "别讲故障排查。我只想确认从安装到最终运行的完整使用步骤，按顺序列关键阶段。",
+      "rationale": "干扰样本：全流程/使用步骤。验证故障模板不会抢答，答案应回到安装→组态→编译→下装→运行主链路。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册1：2.4 软件使用步骤（概览）主链段落",
+      "expected_shape": {
+        "must_contain_all": ["安装", "组态", "编译", "下装", "运行"],
+        "must_contain_any": ["依次", "步骤", "顺序", "然后"],
+        "must_not_contain": ["UserReg.bat", "UserUnReg.bat"]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag5-004-boundary-service-troubleshooting-not-workflow-and-not-usersvr-by-default",
+      "question": "不是让你讲软件使用步骤。我只问：某服务起不来时，第一步先查什么？对象不明确时不要套 UserSvr。",
+      "rationale": "边界样本：强调“故障 vs 使用步骤”边界，同时仍是未知服务。验证 answer 能保持在排查边界内，并避免默认套 UserSvr 专属模板。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "Round 5 边界/负样本：语料仅有 UserSvr 示例，未知对象应先确认服务名，再给通用检查项。",
+      "expected_shape": {
+        "must_contain_any": ["服务名", "确认", "排查", "依赖", "注册", "日志", "事件"],
+        "must_contain_all": ["不要", "套"],
+        "must_not_contain": [
+          "处理结论：若安装过程提示 UserSvr 服务启动失败",
+          "1. 安装完成后尝试手动启动 UserSvr 服务。"
+        ]
+      },
+      "fail_stage": "answer"
+    }
+  ]
+}

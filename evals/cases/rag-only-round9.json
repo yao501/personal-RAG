@@ -1,0 +1,85 @@
+{
+  "id": "p0a-rag-only-round9",
+  "scope": "RAG-only Round 9 (fixture-first): no-install-context + weaker-hint unknown-object troubleshooting must not default to UserSvr; keep denial semantics stable; preserve UserSvr positive; include oral non-service interference",
+  "source": {
+    "kind": "fixture",
+    "fixture_documents": [
+      "benchmarks/fixtures/hollias_manual1_install.md",
+      "benchmarks/fixtures/hollias_manual3_engineering.md",
+      "benchmarks/fixtures/hollias_manual7_function_block.md"
+    ]
+  },
+  "cases": [
+    {
+      "id": "real-rag9-001-negative-no-install-service-not-up",
+      "question": "现在服务没起来，先查哪两个点？",
+      "rationale": "无安装上下文弱提示（最高优先）：不出现 UserSvr、不出现安装/装完，弱提示“没起来”。期望答案走通用 guard（先确认对象/名称），不应输出 UserSvr 专属三步模板或脚本名。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "无安装上下文负样本：语料里有 UserSvr 故障示例，但本题不应被硬套为 UserSvr；应先确认服务/对象名称，再查依赖/注册/日志/事件。",
+      "expected_shape": {
+        "must_contain_all": ["确认"],
+        "must_contain_any": ["对象", "名称", "服务名", "依赖", "注册", "日志", "事件", "不要默认", "不要套用"],
+        "must_not_contain": [
+          "处理结论：若安装过程提示 UserSvr 服务启动失败",
+          "1. 安装完成后尝试手动启动 UserSvr 服务。",
+          "UserReg.bat",
+          "UserUnReg.bat"
+        ]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag9-002-negative-no-install-startup-not-success",
+      "question": "启动没成功，先怎么排查？",
+      "rationale": "无安装上下文更弱提示：仅说“启动没成功”，不出现 UserSvr，也不出现安装上下文。期望答案仍先确认对象/名称，再给通用检查点，避免串成 UserSvr 专属模板。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "无安装上下文弱提示：应先确认失败对象/名称，再查依赖/注册/日志/事件（通用首检）。",
+      "expected_shape": {
+        "must_contain_all": ["确认"],
+        "must_contain_any": ["对象", "名称", "服务名", "依赖", "注册", "日志", "事件", "不要默认", "不要套用"],
+        "must_not_contain": [
+          "处理结论：若安装过程提示 UserSvr 服务启动失败",
+          "1. 安装完成后尝试手动启动 UserSvr 服务。",
+          "UserReg.bat",
+          "UserUnReg.bat"
+        ]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag9-003-deny-usersvr-oral-no-install",
+      "question": "别默认成 UserSvr。我问的是别的服务没起来，先查什么？",
+      "rationale": "更口语否定/限制语义：无安装上下文，显式否定 UserSvr，验证否定语义 guard 稳定生效，不输出 UserSvr 专属三步模板。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "否定语义 guard：用户明确排除 UserSvr 时，应输出通用首检清单（先确认对象/名称）。",
+      "expected_shape": {
+        "must_contain_all": ["别默认", "确认"],
+        "must_contain_any": ["对象", "名称", "服务名", "依赖", "注册", "日志", "事件", "不要套用"],
+        "must_not_contain": [
+          "处理结论：若安装过程提示 UserSvr 服务启动失败",
+          "1. 安装完成后尝试手动启动 UserSvr 服务。",
+          "UserReg.bat",
+          "UserUnReg.bat"
+        ]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag9-004-positive-usersvr-still-stable",
+      "question": "UserSvr 服务起不来，第一步先查什么？至少给 2 个优先检查点。",
+      "rationale": "正样本回归：明确点名 UserSvr，验证 Round 9 的“无安装上下文弱提示”扩题不会误伤正样本，仍输出 UserSvr + ≥2 检查点。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册1：UserSvr 故障（依赖/注册/日志/事件 + 脚本）",
+      "expected_shape": {
+        "must_contain_all": ["UserSvr"],
+        "must_contain_any": ["依赖", "注册", "日志", "事件", "UserReg.bat", "UserUnReg.bat"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    }
+  ]
+}

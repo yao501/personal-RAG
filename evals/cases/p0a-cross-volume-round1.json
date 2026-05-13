@@ -1,0 +1,60 @@
+{
+  "branch": "P0-A-cross-volume-main-chain",
+  "round": 1,
+  "description": "跨分册主链/全流程回归评测 — 验证 RAG 在多卷工程手册上的跨分册主链召回基线",
+  "created": "2026-05-06T14:50:00+08:00",
+  "owner": "project",
+  "knowledge_base": "和利时 HOLLiAS MACS V6.5 操作手册 (7卷)",
+  "runner": "scripts/p0aCrossVolumeEval.ts",
+  "stop_conditions": {
+    "full_green_closeout": "首轮4/4全绿则直接收口",
+    "answer_issues": "存在partial/fail但主因是answer → 允许最小answer patch后复跑1轮",
+    "p0b_threshold": "stable + 非answer主因(retrieval/ranking/chunk/parse) + ≥2题同类复现 → 登记P0-B候选"
+  },
+  "cases": [
+    {
+      "id": "A1",
+      "type": "跨卷编译流程",
+      "question": "在 HOLLiAS MACS V6.5 中，工程组态完成后，编译和下装的完整流程是怎样的？需要分别在哪些软件中进行编译操作？",
+      "rationale": "编译操作在工程总控(手册3 Ch5)和控制器算法组态(手册4 Ch9)中分别执行，需要跨卷召回才能完整回答",
+      "source_hint": "手册3 Ch5 编译 + 手册4 Ch9 编译",
+      "expected_shape": {
+        "must_contain_all": ["编译", "工程总控", "控制器算法", "下装"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "A2",
+      "type": "跨卷下装对象",
+      "question": "MACS V6.5 工程编译完成后，下装操作需要将文件下发到哪些目标站？控制器的下装和工程总控的下装各有什么不同？",
+      "rationale": "下装涉及两种场景：工程总控侧(手册3 Ch6)下装到操作站/历史站，控制器侧(手册4 Ch10)下装到控制站，跨卷区分至关重要",
+      "source_hint": "手册3 Ch6 下装 + 手册4 Ch10 下装",
+      "expected_shape": {
+        "must_contain_all": ["下装", "历史站", "控制器", "工程总控"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "A3",
+      "type": "全流程顺序",
+      "question": "从新建工程到最终在线运行，MACS V6.5 工程组态的完整操作顺序是什么？编译、下装、调试分别在哪个阶段执行？",
+      "rationale": "需要跨手册2(快速入门)、手册3(工程总控)、手册4(算法组态)拼接完整流程链，测试主链召回完整性",
+      "source_hint": "手册2 工程组态流程 + 手册3 Ch2~Ch7 + 手册4 Ch9~Ch11",
+      "expected_shape": {
+        "must_contain_all": ["组态", "编译", "下装", "运行"],
+        "must_not_contain": []
+      }
+    },
+    {
+      "id": "A4",
+      "type": "仿真调试路径",
+      "question": "MACS V6.5 的仿真功能和在线调试功能有什么区别？分别在哪本手册中说明？使用仿真前需要完成哪些前置步骤？",
+      "rationale": "仿真(手册3 Ch7)和在线调试(手册4 Ch11)是两个不同概念，分属不同手册和不同阶段，容易混淆",
+      "source_hint": "手册3 Ch7 仿真 + 手册4 Ch11 调试",
+      "expected_shape": {
+        "must_contain_all": ["仿真", "调试", "编译", "下装"],
+        "must_not_contain": []
+      }
+    }
+  ]
+}

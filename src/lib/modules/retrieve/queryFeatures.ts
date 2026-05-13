@@ -144,6 +144,23 @@ export function expandQueryTokens(query: string, intent: QueryIntent): string[] 
     expansions.push("切分", "切片", "chunk");
   }
 
+  // P0-B: 工程领域术语扩展 — 解决中文技术术语检索断层
+  if (/仿真/i.test(query)) {
+    expansions.push("模拟运行", "仿真系统", "仿真模式", "单机仿真", "联机仿真", "HiaSimuRTS");
+  }
+  if (/调试/i.test(query)) {
+    expansions.push("在线", "调试模式", "动态调试", "在线调试");
+  }
+  if (/编译/i.test(query)) {
+    expansions.push("全编译", "增量编译", "FULL_COMPILE", "ADD_COMPILE", "编译结果");
+  }
+  if (/下装/i.test(query)) {
+    expansions.push("数据生效", "下装文件", "下装操作", "全下装");
+  }
+  if (/组态/i.test(query)) {
+    expansions.push("工程组态", "算法组态", "硬件配置", "图形编辑");
+  }
+
   return expansions;
 }
 

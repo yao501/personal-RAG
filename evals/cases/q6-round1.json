@@ -1,0 +1,50 @@
+{
+  "id": "p0a-q6-round1",
+  "scope": "Q6 同类（编译/下装顺序 + 控制器侧 vs 工程总控/站侧边界）",
+  "source": {
+    "kind": "realpdf",
+    "env": "PKRAG_REALPDF_DIR",
+    "expected_files_regex": "^HOLLiAS_MACS_V6\\.5用户手册\\d+_.+\\.pdf$"
+  },
+  "cases": [
+    {
+      "id": "real-q6-001-compile-download-order-dual-side",
+      "question": "编译和下装的顺序是什么？请分别说明控制器侧与工程总控/站侧应该先做什么。",
+      "rationale": "覆盖 Q6 主矛盾：答案需要同时体现控制器侧与工程总控/站侧的阶段边界，避免只命中“工程总控 FAQ：先编译后下装”。",
+      "owner": "TBD",
+      "source_section_hint": "HOLLiAS_MACS_V6.5用户手册3_工程总控.pdf / 第13章 常见问题（编译/下装顺序）；控制器侧要点需从同族章节或相关分册补齐",
+      "expected_shape": {
+        "must_contain_any": ["控制器"],
+        "must_contain_all": ["工程总控", "先", "后"],
+        "must_not_contain": ["先下装后编译"]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-q6-002-controller-side-first-what",
+      "question": "只从控制器侧看：编译/下装时应该先做什么？不要只回答工程总控里的“先编译后下装”。",
+      "rationale": "把问法收窄到控制器侧，强制检索与回答覆盖控制器侧要点，检验是否会被工程总控 FAQ 抢走主位。",
+      "owner": "TBD",
+      "source_section_hint": "控制器侧编译/下装顺序相关段（可能跨分册）；需要在 summary 中记录实际命中章节",
+      "expected_shape": {
+        "must_contain_all": ["控制器"],
+        "must_contain_any": ["编译", "下装"],
+        "must_not_contain": ["主要依据《HOLLiAS_MACS_V6.5用户手册3_工程总控》"]
+      },
+      "fail_stage": "retrieval"
+    },
+    {
+      "id": "real-q6-003-two-stage-boundary-with-confusion-guard",
+      "question": "编译和下装涉及哪些阶段？先控制器算法工程还是先工程总控工程？容易混淆点是什么？",
+      "rationale": "验证“两个工程/两阶段”的边界表述是否稳定出现，并要求给出避免混淆的提醒（非全文答案）。",
+      "owner": "TBD",
+      "source_section_hint": "工程总控/站侧与控制器侧的边界说明（同族问法）",
+      "expected_shape": {
+        "must_contain_all": ["控制器", "工程总控"],
+        "must_contain_any": ["不要", "混淆", "区别", "两阶段"],
+        "must_not_contain": []
+      },
+      "fail_stage": "answer"
+    }
+  ]
+}

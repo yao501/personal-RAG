@@ -93,6 +93,12 @@ function isPdfHeading(line: string): boolean {
     !/[。！？.!?]$/.test(trimmed) &&
     !/\b(?:kb|mb|gb|rpm|hz|mhz|ghz|ms)\b/i.test(trimmed)
   ) {
+    // C线: 排除参数表数据行被误判为章节标题
+    const afterNum = trimmed.replace(/^\d+(?:\.\d+){0,3}\s+/, "");
+    const isParamTableRow =
+      /(?:是|否|TRUE|FALSE|强制|跟踪|闭锁|单位|上限|下限|百分比|开关量|模拟量|时间|秒|分钟|毫秒)/i.test(afterNum) &&
+      trimmed.length < 30;
+    if (isParamTableRow) return false;
     return true;
   }
 

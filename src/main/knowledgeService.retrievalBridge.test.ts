@@ -32,7 +32,7 @@ const searchChunksMock = vi.fn<
 
 vi.mock("../lib/modules/retrieve/searchIndex", () => {
   return {
-    searchChunks: (...args: any[]) => searchChunksMock(...args)
+    searchChunks: (...args: Parameters<typeof searchChunksMock>) => searchChunksMock(...args)
   };
 });
 
@@ -141,4 +141,3 @@ describe("KnowledgeService.askQuestion retrieval bridge (P0-B B1/B2/B3)", () => 
     expect(lastAnswerResults?.[0]?.fileName).toContain("用户手册1_软件安装");
   });
 });
-

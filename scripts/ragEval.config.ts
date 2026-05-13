@@ -18,25 +18,16 @@ export interface EvalDatasetConfig {
 }
 
 const hollysysInstallPdf = process.env.HOLLIAS_INSTALL_PDF
-  ?? "/Users/guangyaosun/Desktop/和利时DCS操作手册/HOLLiAS_MACS_V6.5用户手册1_软件安装.pdf";
-const stableDiffusionSummary =
-  "/Users/guangyaosun/Documents/简历/面试资料库/03 简历项目/02 玻璃AIGC产品设计/stable_diffusion_讨论总结.md";
-const stableDiffusionInterview =
-  "/Users/guangyaosun/Documents/简历/面试资料库/03 简历项目/02 玻璃AIGC产品设计/stable_diffusion项目面试讲解模块（aigc玻璃设计）-2.md";
-const boilerLoadDoc =
-  "/Users/guangyaosun/Documents/简历/面试资料库/03 简历项目/00 自动化类+传统AI项目/LSTM预测锅炉负荷.docx";
-const ragInterviewNote =
-  "/Users/guangyaosun/Documents/简历/面试资料库/03 简历项目/03 天然气安全+RAG/RAG";
-const guanghuiContacts =
-  "/Users/guangyaosun/多设备同步文件/基点起源/基点起源项目/01 新疆哈密项目/02 哈密第二次调研/05 解决方案/02 广汇环保科技/广汇人工智能试点项目各单位人员通讯录.docx";
-const guanghuiIndustryReport =
-  "/Users/guangyaosun/多设备同步文件/基点起源/基点起源项目/01 新疆哈密项目/02 哈密第二次调研/05 解决方案/广汇能源产业链研究报告-AI给出.pdf";
-const guanghuiSafetyCommitment =
-  "/Users/guangyaosun/多设备同步文件/基点起源/基点起源项目/01 新疆哈密项目/02 哈密第二次调研/05 解决方案/02 广汇环保科技/05 交付阶段/01 施工方案/乙二醇精馏数据采集项目安全承诺书.docx";
-const guanghuiPocPlan =
-  "/Users/guangyaosun/多设备同步文件/基点起源/基点起源项目/01 新疆哈密项目/02 哈密第二次调研/05 解决方案/02 广汇环保科技/05 交付阶段/01 施工方案/广汇乙二醇精馏全要素智能系统POC实施方案.docx";
-const guanghuiDataCollectionPlan =
-  "/Users/guangyaosun/多设备同步文件/基点起源/基点起源项目/01 新疆哈密项目/02 哈密第二次调研/05 解决方案/02 广汇环保科技/05 交付阶段/01 施工方案/数据采集方案/乙二醇精馏段全要素智能系统数采项目施工方案2.docx";
+  ?? "";
+const stableDiffusionSummary = process.env.PKRAG_SD_SUMMARY ?? "";
+const stableDiffusionInterview = process.env.PKRAG_SD_INTERVIEW ?? "";
+const boilerLoadDoc = process.env.PKRAG_BOILER_LOAD_DOC ?? "";
+const ragInterviewNote = process.env.PKRAG_INTERVIEW_NOTE ?? "";
+const guanghuiContacts = process.env.PKRAG_GUANGHUI_CONTACTS ?? "";
+const guanghuiIndustryReport = process.env.PKRAG_GUANGHUI_INDUSTRY_REPORT ?? "";
+const guanghuiSafetyCommitment = process.env.PKRAG_GUANGHUI_SAFETY_COMMITMENT ?? "";
+const guanghuiPocPlan = process.env.PKRAG_GUANGHUI_POC_PLAN ?? "";
+const guanghuiDataCollectionPlan = process.env.PKRAG_GUANGHUI_DATA_COLLECTION_PLAN ?? "";
 
 export const ragEvalDatasets: EvalDatasetConfig[] = [
   {

@@ -1,0 +1,104 @@
+{
+  "id": "p0a-q6-round3",
+  "scope": "Q6 同类（Round 3：可接受答案形态收敛；production-like checklist）",
+  "source": {
+    "kind": "realpdf",
+    "env": "PKRAG_REALPDF_DIR",
+    "expected_files_regex": "^HOLLiAS_MACS_V6\\.5用户手册\\d+_.+\\.pdf$"
+  },
+  "cases": [
+    {
+      "id": "real-q6r3-001-controller-side-acceptable-order",
+      "question": "只看控制器侧：下装前应该先做什么？请用一句话说明控制器侧的顺序（先做什么、再做什么）。",
+      "rationale": "Round 3：允许同义表达，但仍要求点名控制器侧并表达“先编译后下装”的顺序，禁止只答泛化 FAQ。",
+      "owner": "TBD",
+      "source_section_hint": "控制器侧顺序相关段（可能跨分册）；如仅命中工程总控 FAQ，应在答案层暴露缺口",
+      "expected_shape": {
+        "must_contain_all": ["控制器"],
+        "must_contain_any": ["先", "再", "然后", "之后"],
+        "must_not_contain": ["先下装后编译"]
+      },
+      "acceptable_variants": [
+        {
+          "label": "controller_order_compile_then_download",
+          "shape": {
+            "must_contain_all": ["控制器", "编译", "下装"],
+            "must_contain_any": ["先编译", "编译后", "再下装", "之后下装", "先…后"],
+            "must_not_contain": ["先下装后编译"]
+          }
+        },
+        {
+          "label": "controller_algo_project_compile_then_download",
+          "shape": {
+            "must_contain_all": ["控制器", "算法", "工程"],
+            "must_contain_any": ["先编译", "编译后", "再下装", "之后下装"],
+            "must_not_contain": ["先下装后编译"]
+          }
+        }
+      ],
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-q6r3-002-two-stage-acceptable-structure",
+      "question": "请分“控制器侧 / 工程总控（或站侧）”两部分说明编译与下装的流程。可以分点写，但不要把两边动作混在一起。",
+      "rationale": "Round 3：允许分点/分句结构，但必须清晰区分两阶段边界（控制器侧 vs 工程总控/站侧）。",
+      "owner": "TBD",
+      "source_section_hint": "工程总控 FAQ + 控制器侧边界说明（同族问法）",
+      "expected_shape": {
+        "must_contain_all": ["控制器", "工程总控"],
+        "must_contain_any": ["分别", "分", "控制器侧", "工程总控侧"],
+        "must_not_contain": ["先下装后编译"]
+      },
+      "acceptable_variants": [
+        {
+          "label": "two_phase_with_delimiter",
+          "shape": {
+            "must_contain_all": ["控制器", "工程总控"],
+            "must_contain_any": ["控制器侧", "工程总控侧", "站侧", "操作站"],
+            "must_not_contain": []
+          }
+        },
+        {
+          "label": "two_phase_sequence_words",
+          "shape": {
+            "must_contain_all": ["控制器", "工程总控"],
+            "must_contain_any": ["先", "再", "然后", "之后"],
+            "must_not_contain": ["先下装后编译"]
+          }
+        }
+      ],
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-q6r3-003-guardrail-acceptable",
+      "question": "编译/下装最容易混淆的点是什么？请给出一句提醒，说明不要把控制器侧和工程总控侧混为一谈。",
+      "rationale": "Round 3：guardrail 允许不同措辞，但必须出现“不要混淆/区分边界/不要把…写到…”等提醒，并点名两侧对象。",
+      "owner": "TBD",
+      "source_section_hint": "边界与易混提醒（同族问法）；若缺失应稳定暴露为答案缺口",
+      "expected_shape": {
+        "must_contain_all": ["控制器", "工程总控"],
+        "must_contain_any": ["不要混淆", "区分", "边界", "不是同一", "不要把"],
+        "must_not_contain": []
+      },
+      "acceptable_variants": [
+        {
+          "label": "guardrail_do_not_mix_two_phases",
+          "shape": {
+            "must_contain_all": ["控制器", "工程总控"],
+            "must_contain_any": ["不要混淆", "不要把", "先区分", "分开", "边界"],
+            "must_not_contain": []
+          }
+        },
+        {
+          "label": "guardrail_phase_not_same",
+          "shape": {
+            "must_contain_all": ["控制器", "工程总控"],
+            "must_contain_any": ["不是同一", "不同阶段", "分别"],
+            "must_not_contain": []
+          }
+        }
+      ],
+      "fail_stage": "answer"
+    }
+  ]
+}
