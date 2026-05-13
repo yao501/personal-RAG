@@ -1,5 +1,5 @@
 import os from "node:os";
-import type { DocumentRecord, QueryLogRecord } from "../../shared/types";
+import type { DocumentRecord, LibraryTaskProgress, QueryLogRecord } from "../../shared/types";
 
 export function redactAbsolutePath(filePath: string, anonymize: boolean): string {
   if (!anonymize) {
@@ -39,4 +39,17 @@ export function summarizeQueryLogsForBundle(logs: QueryLogRecord[], anonymize: b
     citationCount: log.citations.length,
     topResultCount: log.topResults.length
   }));
+}
+
+export function summarizeTaskProgressForBundle(progress: LibraryTaskProgress, anonymize: boolean): LibraryTaskProgress {
+  return {
+    ...progress,
+    currentFile: progress.currentFile ? redactAbsolutePath(progress.currentFile, anonymize) : null,
+    issue: progress.issue
+      ? {
+          ...progress.issue,
+          filePath: redactAbsolutePath(progress.issue.filePath, anonymize)
+        }
+      : progress.issue ?? null
+  };
 }

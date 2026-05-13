@@ -6,7 +6,7 @@ import path from "node:path";
 import { app } from "electron";
 import type { AppSnapshot, LibraryHealthReport } from "../lib/shared/types";
 import { getEmbeddingStatus } from "../lib/modules/embed/localEmbedder";
-import { redactAbsolutePath, summarizeDocumentForBundle, summarizeQueryLogsForBundle } from "../lib/modules/support/bundlePrivacy";
+import { redactAbsolutePath, summarizeDocumentForBundle, summarizeQueryLogsForBundle, summarizeTaskProgressForBundle } from "../lib/modules/support/bundlePrivacy";
 import { getRecentIpcErrors, getRecentTaskEvents } from "./diagnosticsBuffer";
 import type { AppStore } from "./store";
 
@@ -129,10 +129,7 @@ export async function exportSupportBundleZip(params: ExportSupportBundleParams):
       count: taskEvents.length,
       events: taskEvents.map((item) => ({
         recordedAt: item.recordedAt,
-        progress: {
-          ...item.progress,
-          currentFile: item.progress.currentFile ? redactAbsolutePath(item.progress.currentFile, anonymize) : null
-        }
+        progress: summarizeTaskProgressForBundle(item.progress, anonymize)
       }))
     });
 

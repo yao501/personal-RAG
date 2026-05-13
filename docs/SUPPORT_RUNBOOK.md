@@ -34,7 +34,7 @@ The support bundle helps triage desktop issues (import/reindex failures, health 
 | `library_health.json` | Full library health report (same shape as in-app health check). |
 | `documents_summary.json` | Per-document metadata: ids, titles, types, chunk counts, paths (paths redacted when anonymize is on). **No document body text.** |
 | `query_logs_meta.json` | Recent query logs as **metadata only** (counts, timestamps, short preview or redacted text). **No answers, citations, or retrieval payloads.** |
-| `library_tasks_recent.json` | Recent import/reindex task progress snapshots (ring buffer). `currentFile` may be redacted. |
+| `library_tasks_recent.json` | Recent import/reindex task progress snapshots (ring buffer). `currentFile` and structured issue `filePath` may be redacted. |
 | `ipc_errors_recent.json` | Recent structured IPC failures (channel, code, stage, message, suggestion). `details` omitted when anonymize is on. |
 | `chat_sessions_summary.json` | Session counts and titles (titles redacted when anonymize is on). **No chat turns or answers.** |
 

@@ -1,7 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { redactAbsolutePath, summarizeDocumentForBundle, summarizeQueryLogsForBundle } from "./bundlePrivacy";
+import { redactAbsolutePath, summarizeDocumentForBundle, summarizeQueryLogsForBundle, summarizeTaskProgressForBundle } from "./bundlePrivacy";
 import type { DocumentRecord, QueryLogRecord } from "../../shared/types";
 
 describe("bundlePrivacy", () => {
@@ -62,5 +62,35 @@ describe("bundlePrivacy", () => {
     const rows = summarizeQueryLogsForBundle([log], true) as Array<{ questionPreview: string; sessionId: string }>;
     expect(rows[0].questionPreview).toBe("[REDACTED]");
     expect(rows[0].sessionId).toBe("[REDACTED]");
+  });
+
+  it("redacts task progress current file and issue file path", () => {
+    const progress = summarizeTaskProgressForBundle({
+      taskId: "t1",
+      kind: "reindex",
+      phase: "failed",
+      message: "重建失败",
+      current: 1,
+      total: 1,
+      currentFile: "/Users/alice/Documents/source.pdf",
+      processed: 1,
+      succeeded: 0,
+      failed: 1,
+      skipped: 0,
+      done: false,
+      issue: {
+        filePath: "/Users/alice/Documents/source.pdf",
+        disposition: "failed",
+        reason: "missing",
+        code: "file_not_found",
+        stage: "preflight",
+        message: "missing",
+        suggestion: "choose again",
+        retryable: false
+      }
+    }, true);
+
+    expect(progress.currentFile).toBe("/Users/[USER]/Documents/source.pdf");
+    expect(progress.issue?.filePath).toBe("/Users/[USER]/Documents/source.pdf");
   });
 });
