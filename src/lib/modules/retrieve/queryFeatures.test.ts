@@ -36,4 +36,22 @@ describe("expandQueryTokens", () => {
 
     expect(expansions).toEqual(expect.arrayContaining(["马达", "电机", "阀门", "符号库"]));
   });
+
+  it("expands why-style chunking questions into purpose evidence terms", () => {
+    const expansions = expansionsFor("为什么要做文档切分？");
+
+    expect(expansions).toEqual(expect.arrayContaining(["检索精度", "上下文长度", "提高检索精度"]));
+  });
+
+  it("expands library health location questions into diagnostics anchors", () => {
+    const expansions = expansionsFor("在哪里可以查看资料库健康状态？");
+
+    expect(expansions).toEqual(expect.arrayContaining(["资料库健康", "健康检查", "缺失源文件", "索引状态"]));
+  });
+
+  it("expands advanced multi-module configuration questions into overview anchors", () => {
+    const expansions = expansionsFor("如何一步步完成多模块高级配置？");
+
+    expect(expansions).toEqual(expect.arrayContaining(["高级配置", "模块协同", "独立手册", "手册"]));
+  });
 });

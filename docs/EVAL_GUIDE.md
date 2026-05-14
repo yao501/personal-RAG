@@ -178,6 +178,16 @@ Generated reports are gitignored by default (`reports/rag-eval/*.md`).
 - **Intent groups**: pass rate per `intentGroup` (same-intent phrasing comparison).
 - **Per-case columns** `src` / `exp.mode`: `sourceType` and `expectedAnswerMode` when present.
 
+### Core retrieval paraphrase gate (Sprint 5.3)
+
+The default fixture benchmark now includes product-grade paraphrase checks for:
+
+- why-style chunking questions that should retrieve purpose evidence (`检索精度`, `上下文长度`)
+- library health navigation questions (`资料库健康`, `健康检查`, index/embed status)
+- procedural wording that only has overview evidence (`高级配置`, multi-module overview/manual pointers)
+
+Current baseline on 2026-05-14: `npm run eval:rag` passes **16/16**, with both synthetic no-match cases still producing refusal answers.
+
 ### `expectedAnswerMode` (Sprint 5.2)
 
 When set (and not redundant with `mustRefuse`):

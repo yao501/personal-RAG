@@ -834,4 +834,92 @@ describe("searchChunks", () => {
     expect(results[0]?.chunkId).toBe("symbol-library");
     expect(results[0]?.evidenceText).toMatch(/马达|阀门/);
   });
+
+  it("keeps benchmark fixture-style paraphrases grounded without weakening no-match refusal", () => {
+    const documents: DocumentRecord[] = [
+      {
+        id: "alpha",
+        filePath: "/tmp/alpha_rag_basics.md",
+        fileName: "alpha_rag_basics.md",
+        title: "检索增强生成（RAG）备忘",
+        fileType: "md",
+        content: "",
+        importedAt: "2026-04-01T00:00:00.000Z",
+        updatedAt: "2026-04-01T00:00:00.000Z",
+        sourceCreatedAt: "2026-04-01T00:00:00.000Z",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        chunkCount: 1
+      },
+      {
+        id: "delta",
+        filePath: "/tmp/delta_library_ops.md",
+        fileName: "delta_library_ops.md",
+        title: "资料库维护（示例）",
+        fileType: "md",
+        content: "",
+        importedAt: "2026-04-01T00:00:00.000Z",
+        updatedAt: "2026-04-01T00:00:00.000Z",
+        sourceCreatedAt: "2026-04-01T00:00:00.000Z",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        chunkCount: 1
+      },
+      {
+        id: "epsilon",
+        filePath: "/tmp/epsilon_weak_overview.md",
+        fileName: "epsilon_weak_overview.md",
+        title: "高级配置概述（示例）",
+        fileType: "md",
+        content: "",
+        importedAt: "2026-04-01T00:00:00.000Z",
+        updatedAt: "2026-04-01T00:00:00.000Z",
+        sourceCreatedAt: "2026-04-01T00:00:00.000Z",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        chunkCount: 1
+      }
+    ];
+
+    const chunks: ChunkRecord[] = [
+      {
+        id: "alpha-chunking",
+        documentId: "alpha",
+        text: "文档准备、文本切分、向量化、向量检索、再用语言模型生成回答。\n\n切分可以提高检索精度，并控制上下文长度。",
+        chunkIndex: 0,
+        startOffset: 0,
+        endOffset: 60,
+        tokenCount: 28,
+        sectionTitle: "基本流程",
+        sectionPath: "检索增强生成（RAG）备忘 > 基本流程",
+        headingTrail: "检索增强生成（RAG）备忘 > 基本流程"
+      },
+      {
+        id: "delta-health",
+        documentId: "delta",
+        text: "在「资料库健康」页面可查看缺失源文件、索引状态与嵌入是否就绪。",
+        chunkIndex: 0,
+        startOffset: 0,
+        endOffset: 36,
+        tokenCount: 18,
+        sectionTitle: "健康检查",
+        sectionPath: "资料库维护（示例） > 健康检查",
+        headingTrail: "资料库维护（示例） > 健康检查"
+      },
+      {
+        id: "epsilon-overview",
+        documentId: "epsilon",
+        text: "高级功能可能涉及多个模块协同。此处不展开逐步操作，请参阅各模块独立手册。",
+        chunkIndex: 0,
+        startOffset: 0,
+        endOffset: 40,
+        tokenCount: 20,
+        sectionTitle: "高级配置概述（示例）",
+        sectionPath: "高级配置概述（示例）",
+        headingTrail: "高级配置概述（示例）"
+      }
+    ];
+
+    expect(searchChunks("为什么要做文档切分？", documents, chunks, 1)[0]?.chunkId).toBe("alpha-chunking");
+    expect(searchChunks("在哪里可以查看资料库健康状态？", documents, chunks, 1)[0]?.chunkId).toBe("delta-health");
+    expect(searchChunks("如何一步步完成多模块高级配置？", documents, chunks, 1)[0]?.chunkId).toBe("epsilon-overview");
+    expect(searchChunks("zzzzzz_nonsense_query_no_match_please_99999", documents, chunks, 1)).toEqual([]);
+  });
 });
