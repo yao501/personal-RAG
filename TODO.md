@@ -193,7 +193,7 @@ Acceptance:
 
 ### P0.5 Release pipeline baseline
 
-Status (Sprint 4): **foundation in place** — `npm run release:mac` (alias `dist:mac`), predictable `release/mac-arm64/<productName>.app` output, `docs/INSTALLATION.md`, `docs/RELEASE.md`.
+Status (Sprint 4): **foundation in place** — `npm run release:quality` (tests + build + product RAG gate), `npm run release:mac` (alias `dist:mac`), predictable `release/mac-arm64/<productName>.app` output, `docs/INSTALLATION.md`, `docs/RELEASE.md`.
 
 Why this is P0 but after the items above:
 

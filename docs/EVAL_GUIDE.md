@@ -148,6 +148,13 @@ PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run eval:rag:prod
 
 `eval:rag:product` always runs the default fixture smoke benchmark and `benchmarks/refusal-gate.v1.json` first. The refusal gate covers no-match refusal, DCS-shaped unsupported questions, thin procedural evidence that must be cautious, and one grounded positive control. Product gate summaries are written under `evals/results/product-rag-gate-<date>-<seq>.md`. Files under `evals/results/` are gitignored because real-library runs may include absolute paths and source snippets.
 
+Release-quality gate (tests + production build + `dcs-core` product gate):
+
+```bash
+npm run release:quality -- --skip-realpdf
+PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run release:quality -- --require-realpdf
+```
+
 Profiles:
 
 - `manual7` (default): fixture smoke + DCS Manual 7 Phase B (`M7-2` ~ `M7-6`).

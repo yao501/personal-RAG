@@ -150,6 +150,15 @@ npm run eval:rag:product -- --profile dcs-core --require-realpdf
 
 This runs the fixture benchmark and refusal/sufficiency benchmark first, then local real-PDF gates when `PKRAG_REALPDF_DIR` is available. The default `manual7` profile gates DCS Manual 7 Phase B; `dcs-core` adds the 8-case cross-volume DCS core gate before Manual 7. Local real-PDF reports are written under `evals/results/` and are gitignored because they may include absolute paths and source snippets.
 
+Release-quality gate:
+
+```bash
+npm run release:quality -- --skip-realpdf
+PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run release:quality -- --require-realpdf
+```
+
+This runs unit tests, production build, then the `dcs-core` product RAG gate. Use `--require-realpdf` before sharing a candidate build that claims DCS manual validation.
+
 Sprint 5.x: the default benchmark path hydrates embeddings and runs the same **query embedding → top-24 vector shortlist → lexical merge → `searchChunks`** shape as the desktop app (LanceDB is replaced by in-memory cosine ranking in the script). Set **`PKRAG_RETRIEVAL_DEBUG=1`** for **schemaVersion 3** JSON: `vectorRecallBackend` (`lancedb` in the app, `memory` in `eval:rag`), `runtime` (`desktop` vs `eval`), tokens, scores, citation ids, refusal/cautious flags (`docs/EVAL_GUIDE.md`). Benchmark cases can carry **`expectedAnswerMode`** / **`sourceType`** metadata for regression reports.
 
 Included tests cover:

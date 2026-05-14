@@ -54,7 +54,7 @@ Use this before sharing a build outside your own machine:
 1. **Branch/commit** is the one you intend to ship (tag optional).
 2. **Bump `version`** in `package.json` if this drop should be distinguishable from previous zips.
 3. **Clean install test (optional but valuable):** fresh `npm ci` or `npm install` on a clean clone.
-4. Run **`npm test`** — recommended before packaging; not enforced by the `release:mac` script.
+4. Run **`npm run release:quality -- --skip-realpdf`** for code-only validation, or **`PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run release:quality -- --require-realpdf`** before a DCS-validated candidate.
 5. Run **`npm run release:mac`** and confirm the `.app` appears under `release/mac-arm64/`.
 6. Run **`npm run release:verify`** to inspect the local signature, Gatekeeper assessment, and stapler status.
 7. **Smoke test** on a Mac: launch, import a small file, ask one question, open Settings, export support bundle if you need support-style diagnostics.
@@ -198,7 +198,7 @@ xcrun stapler validate -v "$APP"
 
 | Step | Command / entry（可直接复制） | Success signal (keyword) | In repo today? | Gap if not | Common failures (1–3) |
 |------|-------------------------------|--------------------------|----------------|------------|------------------------|
-| **1) build** | `npm test && npm run release:mac` | `release/mac-arm64/` 下出现 `.app`；日志含 `packaging platform=darwin arch=arm64` | **Yes** | — | `tsc -b` 失败；native deps rebuild 失败（`better-sqlite3`） |
+| **1) quality + build** | `npm run release:quality -- --skip-realpdf`（或带 `PKRAG_REALPDF_DIR` 的 `--require-realpdf`）后 `npm run release:mac` | `Release quality gate: PASS`；`release/mac-arm64/` 下出现 `.app`；日志含 `packaging platform=darwin arch=arm64` | **Yes** | 真实 DCS 门禁依赖本机 `PKRAG_REALPDF_DIR` | `vitest` 失败；`tsc -b` 失败；RAG gate 失败；native deps rebuild 失败（`better-sqlite3`） |
 | **2) sign** | `npm run release:sign-precheck`（或手工 `codesign ...`） | `valid on disk`（验证）+ 有 `Authority=Developer ID Application`（签名链）+ `TeamIdentifier=<TEAMID>` | **Partial**（当前是 ad-hoc，`TeamIdentifier=not set`） | 缺 Developer ID 证书、（可选）entitlements 固化 | identity 不对；缺 hardened runtime/timestamp（notarize 时失败） |
 | **3) notarize** | 推荐（keychain profile）：`npm run release:notary-precheck -- "<PROFILE>"` 后再 `xcrun notarytool submit ... --wait` | `status: Accepted` | **No**（electron-builder 会跳过 notarize） | 缺 notarytool 凭证与配置（PROFILE） | `The binary is not signed`；`Invalid/expired credentials`；`The signature does not include a secure timestamp` |
 | **4) staple** | `xcrun stapler staple -v "release/mac-arm64/个人知识库 RAG.app"` | `The staple and validate action worked` | **No**（依赖 3） | 需 3 成功后再 stapling | `No staple found`（未公证/未等待完成） |

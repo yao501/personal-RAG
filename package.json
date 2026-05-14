@@ -14,6 +14,7 @@
     "electron:build": "electron-vite build",
     "app:mac": "npm run electron:build && electron-builder --mac dir",
     "release:mac": "npm run build && electron-builder --mac",
+    "release:quality": "./node_modules/.bin/vite-node scripts/releaseQualityGate.ts",
     "dist:mac": "npm run release:mac",
     "release:verify": "./scripts/release-macos-verify.sh",
     "release:sign-precheck": "./scripts/release-macos-sign-precheck.sh",
