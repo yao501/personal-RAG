@@ -1,0 +1,91 @@
+{
+  "id": "dcs-core-cross-volume",
+  "branch": "Sprint-5.3c-dcs-core",
+  "round": 2,
+  "description": "DCS core cross-volume real-PDF gate: validates the main HOLLiAS MACS V6.5 engineering flow, compile/download ordering, engineering-control triggers, parameter alignment, cross-domain access, grouping boundary, install-service repair, and 24M history-library troubleshooting.",
+  "created": "2026-05-14T00:00:00+08:00",
+  "owner": "project",
+  "knowledge_base": "和利时 HOLLiAS MACS V6.5 操作手册 (7卷)",
+  "runner": "scripts/sprint53cRealpdfEval.ts",
+  "source": {
+    "kind": "realpdf",
+    "env": "PKRAG_REALPDF_DIR",
+    "volume_filter": "^HOLLiAS_MACS_V6\\.5用户手册\\d+_.+\\.pdf$"
+  },
+  "baseline": {
+    "date": "2026-05-14",
+    "verdict": "P:7 Pa:1 F:0",
+    "gate": "pass >= 7, fail = 0, and Q1 primary citation is not Manual 5 graphics",
+    "notes": "Q7 is partial in the current rule-based judge because it retrieves the correct engineering-control source but does not match enough trigger-condition keywords. Real-PDF results are generated locally and are not intended to be committed."
+  },
+  "cases": [
+    {
+      "id": "Q1",
+      "type": "全流程型",
+      "question": "HOLLiAS MACS V6.5 从安装到最终运行，完整使用步骤是什么？",
+      "expected_shape": {
+        "must_contain_all": ["安装", "组态", "编译", "下装", "运行"],
+        "must_not_primary_citation": ["用户手册5_图形编辑"]
+      }
+    },
+    {
+      "id": "Q6",
+      "type": "顺序型",
+      "question": "编译和下装的顺序是什么？",
+      "expected_shape": {
+        "must_contain_all": ["控制器"],
+        "must_contain_any": ["工程总控", "操作站", "历史站"]
+      }
+    },
+    {
+      "id": "Q7",
+      "type": "操作条件型",
+      "question": "什么情况下需要编译工程总控？",
+      "expected_shape": {
+        "must_contain_all": ["工程总控"],
+        "must_contain_any": ["测点", "模块", "域间", "流程图", "总貌"]
+      }
+    },
+    {
+      "id": "Q8",
+      "type": "定义型",
+      "question": "什么是参数对齐？",
+      "expected_shape": {
+        "must_contain_all": ["参数对齐", "TRUE", "FALSE"]
+      }
+    },
+    {
+      "id": "Q9",
+      "type": "操作型",
+      "question": "如何实现域间访问？",
+      "expected_shape": {
+        "must_contain_all": ["域间引用", "3000", "编译", "下装"]
+      }
+    },
+    {
+      "id": "Q10",
+      "type": "边界型",
+      "question": "分组功能适用范围是什么？真实控制器支持吗？",
+      "expected_shape": {
+        "must_contain_all": ["HiaSimuRTS", "真实控制器"]
+      }
+    },
+    {
+      "id": "Q11",
+      "type": "故障处理型",
+      "question": "安装过程中提示 UserSvr 服务启动失败，应如何处理？",
+      "expected_shape": {
+        "must_contain_all": ["UserSvr", "UserReg", "UserUnReg"]
+      }
+    },
+    {
+      "id": "Q12",
+      "type": "故障处理型",
+      "question": "模拟量历史库容量超过 24M 导致工程总控编译失败，怎么处理？",
+      "expected_shape": {
+        "must_contain_all": ["24M"],
+        "must_contain_any": ["HISCP", "采集周期", "授权", "MACSV653"]
+      }
+    }
+  ]
+}

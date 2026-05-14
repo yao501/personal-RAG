@@ -205,10 +205,12 @@ async function main(): Promise<void> {
   const questions = [
     { id: "Q1", q: "HOLLiAS MACS V6.5 从安装到最终运行，完整使用步骤是什么？" },
     { id: "Q6", q: "编译和下装的顺序是什么？" },
+    { id: "Q7", q: "什么情况下需要编译工程总控？" },
     { id: "Q8", q: "什么是参数对齐？" },
     { id: "Q9", q: "如何实现域间访问？" },
     { id: "Q10", q: "分组功能适用范围是什么？真实控制器支持吗？" },
-    { id: "Q11", q: "安装过程中提示 UserSvr 服务启动失败，应如何处理？" }
+    { id: "Q11", q: "安装过程中提示 UserSvr 服务启动失败，应如何处理？" },
+    { id: "Q12", q: "模拟量历史库容量超过 24M 导致工程总控编译失败，怎么处理？" }
   ];
 
   const results: Record<string, unknown>[] = [];
@@ -270,13 +272,13 @@ async function main(): Promise<void> {
   const q8 = results.find((r) => r.source_question_id === "Q8");
   const q1Primary = ((q1?.citation_file_names as string[]) ?? [])[0] ?? "";
   const q1StillGraphics = /用户手册5_图形编辑/i.test(q1Primary);
-  const gatePassed = pass >= 4 && !q1StillGraphics;
+  const gatePassed = pass >= 7 && fail === 0 && !q1StillGraphics;
 
   const summaryMd = `# Sprint 5.3c 真实 PDF 抽样
 
 - **目录**：\`${dir}\`
 - **分册数**：${pdfFiles.length}，**合并 chunk**：${chunks.length}
-- **规则抽检**：pass **${pass}**/6，partial **${partial}**/6（验收 ≥4 pass：${pass >= 4 ? "**满足**" : "**未满足**"}）
+- **规则抽检**：pass **${pass}**/${results.length}，partial **${partial}**/${results.length}，fail **${fail}**/${results.length}（验收 ≥7 pass 且 0 fail：${pass >= 7 && fail === 0 ? "**满足**" : "**未满足**"}）
 
 ## Q1 / Q8 是否改善（相对 5.3b）
 
@@ -322,8 +324,8 @@ async function main(): Promise<void> {
 
 ## 4. Sprint 5.3 是否可收尾？是否需要 5.3d？
 
-- 若 **pass≥4/6 且 Q1 主 citation 不再以图形编辑为主**：可 **收尾 5.3**，后续以产品迭代修 chunk/索引。
-- 若 **Q1 仍不稳或整体 <4 pass**：建议 **5.3d** 继续做 **候选扩展 / 重排特征**（仍不大改 answer）。
+- 若 **pass≥7/${results.length}、0 fail 且 Q1 主 citation 不再以图形编辑为主**：可 **收尾 5.3**，后续以产品迭代修 chunk/索引。
+- 若 **Q1 仍不稳、出现 fail 或整体 <7 pass**：建议 **5.3d** 继续做 **候选扩展 / 重排特征**（仍不大改 answer）。
 
 ---
 生成时间：${new Date().toISOString()}

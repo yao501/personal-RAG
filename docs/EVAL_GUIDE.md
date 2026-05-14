@@ -151,7 +151,7 @@ PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run eval:rag:prod
 Profiles:
 
 - `manual7` (default): fixture smoke + DCS Manual 7 Phase B (`M7-2` ~ `M7-6`).
-- `dcs-core`: fixture smoke + cross-volume DCS core questions (`Q1`, `Q6`, `Q8`, `Q9`, `Q10`, `Q11`) + DCS Manual 7 Phase B.
+- `dcs-core`: fixture smoke + cross-volume DCS core questions (`Q1`, `Q6`, `Q7`, `Q8`, `Q9`, `Q10`, `Q11`, `Q12`; metadata in `evals/cases/dcs-core-cross-volume.json`) + DCS Manual 7 Phase B.
 
 Explicit benchmark file:
 
