@@ -1,13 +1,24 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createStableId } from "../lib/modules/core/id";
 import type { ChunkRecord, DocumentRecord, LibraryTaskProgress } from "../lib/shared/types";
 import { KnowledgeService } from "./knowledgeService";
 import type { AppStore } from "./store";
 
-describe("KnowledgeService.importFiles progress diagnostics", () => {
+vi.mock("electron", () => ({
+  app: {
+    getVersion: () => "0.0.0-test",
+    getPath: () => "/tmp/pkrag-test-user-data"
+  },
+  shell: {
+    openPath: vi.fn(),
+    openExternal: vi.fn()
+  }
+}));
+
+describe("KnowledgeService task progress diagnostics", () => {
   it("keeps skipped and failed counts separate in final task progress", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "pkrag-import-progress-"));
     const unchangedPath = path.join(dir, "unchanged.md");
@@ -65,8 +76,64 @@ describe("KnowledgeService.importFiles progress diagnostics", () => {
     expect(result.skippedDetails.map((item) => item.disposition)).toEqual(["skipped", "failed"]);
     expect(completed).toMatchObject({
       phase: "completed",
+      message: "导入完成：成功 0，跳过 1，失败 1",
       succeeded: 0,
       skipped: 1,
+      failed: 1
+    });
+  });
+
+  it("surfaces missing-source reindex failures as structured task issues", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "pkrag-reindex-progress-"));
+    const missingPath = path.join(dir, "deleted.md");
+    const document: DocumentRecord = {
+      id: "doc-missing",
+      filePath: missingPath,
+      fileName: "deleted.md",
+      title: "Deleted",
+      fileType: "md",
+      content: "# Deleted\n\nOld content",
+      importedAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+      sourceCreatedAt: "2026-01-01T00:00:00.000Z",
+      sourceUpdatedAt: "2026-01-01T00:00:00.000Z",
+      indexConfigSignature: JSON.stringify({
+        chunkSize: 180,
+        chunkOverlap: 40,
+        parserVersion: 2
+      }),
+      chunkCount: 1
+    };
+    const store: Partial<AppStore> = {
+      getSettings: () => ({ libraryPath: null, chunkSize: 180, chunkOverlap: 40 }),
+      listDocuments: () => [document],
+      listChunks: () => [],
+      getLibraryStats: () => ({ documentCount: 1, chunkCount: 0 }),
+      listChatSessions: () => [],
+      getDatabasePath: () => path.join(dir, "app.db")
+    };
+    const service = new KnowledgeService(store as AppStore);
+    (service as unknown as { lanceIndex: { rebuild: () => Promise<void> } }).lanceIndex = { rebuild: async () => {} };
+
+    const progress: LibraryTaskProgress[] = [];
+    await service.reindexLibrary((item) => progress.push(item));
+
+    const issueEvent = progress.find((item) => item.issue?.code === "file_not_found");
+    expect(issueEvent).toMatchObject({
+      kind: "reindex",
+      phase: "failed",
+      failed: 1,
+      issue: {
+        disposition: "failed",
+        code: "file_not_found",
+        stage: "preflight",
+        filePath: missingPath,
+        retryable: false
+      }
+    });
+    expect(progress.at(-1)).toMatchObject({
+      phase: "completed",
+      message: "重建索引完成：更新 0，跳过 0，失败 1",
       failed: 1
     });
   });

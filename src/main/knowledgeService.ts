@@ -498,7 +498,7 @@ export class KnowledgeService {
         taskId,
         kind: "import",
         phase: "completed",
-        message: `导入完成：成功 ${imported.length}，失败 ${skipped.length}`,
+        message: `导入完成：成功 ${imported.length}，跳过 ${skippedCount}，失败 ${failedCount}`,
         current: filePaths.length,
         total: filePaths.length,
         currentFile: null,
