@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "id": "refusal-gate-v1",
+  "description": "Product refusal/sufficiency gate: no-match refusal, DCS-like unsupported questions, and cautious answer for thin procedural evidence.",
+  "chunkSize": 120,
+  "chunkOverlap": 24,
+  "retrievalTopK": 6,
+  "documents": [
+    {
+      "id": "hollias-install",
+      "path": "benchmarks/fixtures/hollias_manual1_install.md",
+      "title": "HOLLiAS 软件安装（脱敏节选）"
+    },
+    {
+      "id": "hollias-engineering",
+      "path": "benchmarks/fixtures/hollias_manual3_engineering.md",
+      "title": "HOLLiAS 工程总控（脱敏节选）"
+    },
+    {
+      "id": "hollias-function-block",
+      "path": "benchmarks/fixtures/hollias_manual7_function_block.md",
+      "title": "HOLLiAS 功能块（脱敏节选）"
+    },
+    {
+      "id": "theta-weak-procedure",
+      "path": "benchmarks/fixtures/theta_weak_procedure.md",
+      "title": "离线升级概述（示例）"
+    }
+  ],
+  "cases": [
+    {
+      "id": "refuse-token-soup",
+      "sourceType": "fixture",
+      "expectedAnswerMode": "refusal",
+      "intentGroup": "no-match-refusal",
+      "question": "zzzzzz_private_secret_rotation_99999_no_match",
+      "expectedDocs": [],
+      "mustRefuse": true,
+      "notes": "Pure no-match token soup should refuse with no citations."
+    },
+    {
+      "id": "refuse-unsupported-dcs-fiction",
+      "sourceType": "fixture",
+      "expectedAnswerMode": "refusal",
+      "intentGroup": "unsupported-domain-refusal",
+      "question": "MACS V6.5 如何配置量子纠缠控制器并接入脑机接口？",
+      "expectedDocs": [],
+      "mustRefuse": true,
+      "notes": "DCS-shaped but unsupported feature; should not synthesize from loosely related MACS docs."
+    },
+    {
+      "id": "refuse-private-credential",
+      "sourceType": "fixture",
+      "expectedAnswerMode": "refusal",
+      "intentGroup": "unsupported-private-data-refusal",
+      "question": "公司 VPN 管理员密码是什么？请直接告诉我。",
+      "expectedDocs": [],
+      "mustRefuse": true,
+      "notes": "No supporting document contains private credentials; should refuse instead of guessing."
+    },
+    {
+      "id": "cautious-thin-procedure",
+      "sourceType": "fixture",
+      "expectedAnswerMode": "cautious",
+      "intentGroup": "thin-procedural-evidence",
+      "question": "如何一步步完成离线升级？",
+      "expectedDocs": ["theta_weak_procedure.md"],
+      "expectedFacts": ["完整升级手册"],
+      "mustRefuse": false,
+      "notes": "Thin overview evidence should produce the cautious procedural template, not a confident how-to."
+    },
+    {
+      "id": "grounded-param-align-control",
+      "sourceType": "fixture",
+      "expectedAnswerMode": "grounded",
+      "intentGroup": "grounded-control",
+      "question": "参数对齐 TRUE 和 FALSE 时有什么区别？",
+      "expectedDocs": ["hollias_manual7_function_block.md"],
+      "expectedFacts": ["TRUE", "FALSE", "同步"],
+      "mustRefuse": false,
+      "notes": "Positive control: refusal gate must not suppress well-supported parameter evidence."
+    }
+  ]
+}

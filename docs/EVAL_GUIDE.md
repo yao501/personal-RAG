@@ -141,11 +141,12 @@ Product gate (fixture smoke + optional/required real DCS Manual 7 gate):
 
 ```bash
 npm run eval:rag:product
+npm run eval:rag:refusal
 PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run eval:rag:product -- --require-realpdf
 PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run eval:rag:product -- --profile dcs-core --require-realpdf
 ```
 
-`eval:rag:product` writes a gate summary under `evals/results/product-rag-gate-<date>-<seq>.md`. Files under `evals/results/` are gitignored because real-library runs may include absolute paths and source snippets.
+`eval:rag:product` always runs the default fixture smoke benchmark and `benchmarks/refusal-gate.v1.json` first. The refusal gate covers no-match refusal, DCS-shaped unsupported questions, thin procedural evidence that must be cautious, and one grounded positive control. Product gate summaries are written under `evals/results/product-rag-gate-<date>-<seq>.md`. Files under `evals/results/` are gitignored because real-library runs may include absolute paths and source snippets.
 
 Profiles:
 
@@ -208,12 +209,12 @@ Current baseline on 2026-05-14: `npm run eval:rag` passes **16/16**, with both s
 When set (and not redundant with `mustRefuse`):
 
 - **`grounded`**: fails if the answer is a refusal template or a cautious procedural template.
-- **`cautious`**: fails if the answer is **not** cautious procedural (use sparingly — ranker scores can suppress cautious in the benchmark runner).
+- **`cautious`**: fails if the answer is **not** cautious procedural; use for thin procedural evidence and explicit “overview only / see full manual” fixtures.
 - **`refusal`**: fails if the answer does not match refusal heuristics (for non-`mustRefuse` cases that still expect refusal).
 
 For `mustRefuse: true`, refusal is already enforced; `expectedAnswerMode: "refusal"` is optional documentation.
 
-**Cautious procedural** behavior is **deterministically** covered by unit tests (`answerQuestion.test.ts`). The benchmark includes an overview-only fixture (`epsilon-procedural-gap`) for **retrieval + grounded** checks; it does **not** hard-require cautious output because hybrid scores can still yield a confident synthesis.
+**Cautious procedural** behavior is covered by unit tests and by the benchmark overview-only fixture (`epsilon-procedural-gap`). If evidence explicitly says the material is only an overview and points users back to a full manual, the benchmark must stay cautious even when retrieval scores are high.
 
 Pass/fail for a case is a conjunction of the checks that apply to that case (see report per row).
 
@@ -225,9 +226,9 @@ For procedural-style questions (`detectQueryIntent.wantsSteps`), the app may emi
 - `top.score ≥ 2.38` and `qualityScore ≥ 0.12` and `rerankScore ≥ 0.98` → strong enough; or
 - `top.score ≥ 2.35` and `qualityScore ≥ 0.28` → strong enough.
 
-If none of those hold and the chunk text still lacks step-like markers, the cautious template is used. For two retrieved chunks, if the second score is **below** `0.58 × top.score`, the cautious path is preferred (Sprint 5.1 tightened from `0.62` to reduce unnecessary cautious answers when the runner-up is moderately strong).
+If the retrieved evidence explicitly says it is overview/background material, lacks steps/commands/menu paths, or instructs users to consult the full manual, the cautious template is used before score-based overrides. Otherwise, if none of the strong-evidence score rules hold and the chunk text still lacks step-like markers, the cautious template is used. For two retrieved chunks, if the second score is **below** `0.58 × top.score`, the cautious path is preferred (Sprint 5.1 tightened from `0.62` to reduce unnecessary cautious answers when the runner-up is moderately strong).
 
-**Sprint 5.2:** No further threshold changes — validation against expanded benchmarks remained green without retuning.
+**Refusal/sufficiency gate:** validation now also includes `benchmarks/refusal-gate.v1.json`, which hard-checks unsupported specifics, private-credential style questions, thin procedural evidence, and a grounded positive control.
 
 ## Known limitations
 

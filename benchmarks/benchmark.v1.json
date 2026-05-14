@@ -182,13 +182,13 @@
     {
       "id": "epsilon-procedural-gap",
       "sourceType": "fixture",
-      "expectedAnswerMode": "grounded",
+      "expectedAnswerMode": "cautious",
       "intentGroup": "weak-procedural-overview",
       "question": "如何一步步完成多模块高级配置？",
       "expectedDocs": ["epsilon_weak_overview.md"],
       "expectedFacts": ["模块", "手册"],
       "mustRefuse": false,
-      "notes": "Procedural wording but overview-only fixture; ranker may return confident synthesis (not cautious). Cautious behavior is covered by unit tests. Compare desktop vs eval logs with PKRAG_RETRIEVAL_DEBUG."
+      "notes": "Procedural wording with overview-only evidence that explicitly points users back to full manuals; must remain cautious rather than synthesize step-by-step instructions."
     },
     {
       "id": "must-refuse-nonsense",

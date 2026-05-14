@@ -237,6 +237,36 @@ describe("answerQuestion", () => {
     expect(answer.citations).toHaveLength(0);
   });
 
+  it("refuses when a domain-shaped question has unsupported specific anchors", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-dcs",
+        fileName: "hollias_manual3_engineering.md",
+        documentTitle: "HOLLiAS 工程总控",
+        chunkId: "compile",
+        snippet: "工程总控侧的一般顺序是：先编译，后下装。",
+        score: 10.5,
+        chunkIndex: 0,
+        sectionTitle: "编译与下装（工程总控侧）",
+        sectionPath: "HOLLiAS 工程总控 > 编译与下装",
+        sourceUpdatedAt: "2026-04-16T00:00:00.000Z",
+        importedAt: "2026-04-16T00:00:00.000Z",
+        text: "工程总控侧的一般顺序是：先编译，后下装。在工程总控中进行编译，确认编译通过。",
+        lexicalScore: 19,
+        semanticScore: 0.3,
+        freshnessScore: 0.5,
+        rerankScore: 3.1,
+        qualityScore: 1.6,
+        fullText: "工程总控侧的一般顺序是：先编译，后下装。在工程总控中进行编译，确认编译通过。"
+      }
+    ];
+
+    const answer = answerQuestion("MACS V6.5 如何配置量子纠缠控制器并接入脑机接口？", results);
+
+    expect(answer.directAnswer).toContain("I could not find grounded evidence");
+    expect(answer.citations).toHaveLength(0);
+  });
+
   it("summarizes DCS advanced operation blocks with their identifiers instead of procedural section boilerplate", () => {
     const results: SearchResult[] = [
       {
@@ -699,6 +729,36 @@ describe("answerQuestion", () => {
 
     expect(answer.directAnswer).toContain("概述性");
     expect(answer.citations.length).toBeGreaterThan(0);
+  });
+
+  it("uses the cautious template when evidence explicitly says procedural steps are absent", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-1",
+        fileName: "upgrade.md",
+        documentTitle: "离线升级概述",
+        chunkId: "upgrade-overview",
+        snippet: "本文不包含逐步操作、命令、菜单路径或可执行步骤。执行前应查阅完整升级手册。",
+        score: 15.6,
+        chunkIndex: 0,
+        sectionTitle: "离线升级概述",
+        sectionPath: "离线升级概述",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        importedAt: "2026-04-01T00:00:00.000Z",
+        text: "本页仅为背景说明。完成离线升级可能涉及备份、版本检查和维护窗口。本文不包含逐步操作、命令、菜单路径或可执行步骤。执行前应查阅完整升级手册。",
+        lexicalScore: 34,
+        semanticScore: 0.7,
+        freshnessScore: 0.3,
+        rerankScore: 3.1,
+        qualityScore: 2,
+        fullText: "本页仅为背景说明。完成离线升级可能涉及备份、版本检查和维护窗口。本文不包含逐步操作、命令、菜单路径或可执行步骤。执行前应查阅完整升级手册。"
+      }
+    ];
+
+    const answer = answerQuestion("如何一步步完成离线升级？", results);
+
+    expect(answer.directAnswer).toContain("概述性");
+    expect(answer.directAnswer).toContain("未形成可逐步执行的完整操作说明");
   });
 
   it("returns localized direct answers instead of English grounding boilerplate", () => {

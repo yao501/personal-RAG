@@ -166,6 +166,7 @@ async function main(): Promise<void> {
   const steps: GateStep[] = [];
 
   steps.push(runStep("fixture-smoke", "Fixture smoke benchmark", ["scripts/runRagEval.ts", "benchmarks/benchmark.v1.json"]));
+  steps.push(runStep("refusal-gate", "Refusal and sufficiency benchmark", ["scripts/runRagEval.ts", "benchmarks/refusal-gate.v1.json"]));
 
   if (skipRealpdf) {
     const skippedIds = profile === "dcs-core" ? ["dcs-cross-volume", "dcs-manual7"] : ["dcs-manual7"];

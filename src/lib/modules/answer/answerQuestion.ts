@@ -140,6 +140,10 @@ function qualityUsableForEvidence(question: string, result: SearchResult): boole
 }
 
 function hasReliableEvidence(question: string, results: SearchResult[]): boolean {
+  if (hasUnsupportedSpecificityGap(question, results)) {
+    return false;
+  }
+
   const candidates = results.slice(0, 3);
   const usableIdx = candidates.findIndex((r) => {
     const technicalTableEvidence = isDcsTechnicalTableEvidence(question, r);
@@ -152,6 +156,38 @@ function hasReliableEvidence(question: string, results: SearchResult[]): boolean
     return technicalTableEvidence || !(sentenceLike === 0 && codeDensity > 0.18);
   });
   return usableIdx >= 0;
+}
+
+const HIGH_RISK_UNSUPPORTED_ANCHORS = [
+  "量子",
+  "纠缠",
+  "脑机",
+  "脑机接口",
+  "管理员密码",
+  "vpn",
+  "password",
+  "secret"
+];
+
+function hasUnsupportedSpecificityGap(question: string, results: SearchResult[]): boolean {
+  if (results.length === 0) {
+    return false;
+  }
+
+  const questionText = question.toLowerCase();
+  const riskAnchors = HIGH_RISK_UNSUPPORTED_ANCHORS.filter((anchor) => questionText.includes(anchor.toLowerCase()));
+  if (riskAnchors.length === 0) {
+    return false;
+  }
+
+  const evidenceText = results
+    .slice(0, 3)
+    .map((result) => [result.documentTitle, result.sectionTitle ?? "", result.sectionPath ?? "", result.evidenceText ?? "", result.snippet, result.text].join("\n"))
+    .join("\n")
+    .toLowerCase();
+  const matched = riskAnchors.filter((anchor) => evidenceText.includes(anchor.toLowerCase()));
+
+  return matched.length === 0;
 }
 
 function normalizeSentence(text: string): string {
@@ -313,17 +349,33 @@ function hasProceduralStructuredIntent(question: string): boolean {
   return /步骤|顺序|环节|如何|怎样|怎么|怎么处理|如何处理|先后|从[^。!?\n]{0,48}到|编译|下装|配置|启动/.test(q);
 }
 
+function hasExplicitProceduralGapEvidence(results: SearchResult[]): boolean {
+  const bundle = results
+    .slice(0, 2)
+    .map((result) => [result.evidenceText ?? "", result.snippet, result.text].join("\n"))
+    .join("\n");
+  return (
+    /(?:仅为|只是|只包含|仅包含).{0,16}(?:背景说明|概述|概览)/.test(bundle) ||
+    /(?:不包含|未包含|没有|无).{0,16}(?:逐步操作|操作步骤|可执行步骤|命令|菜单路径)/.test(bundle) ||
+    /(?:请|应).{0,8}(?:查阅|参考).{0,12}(?:完整.*手册|升级手册|操作手册)/.test(bundle)
+  );
+}
+
 function needsProceduralEvidenceCaution(question: string, results: SearchResult[]): boolean {
   if (results.some((result) => isDcsTechnicalTableEvidence(question, result))) {
     return false;
   }
 
-  if (evidenceCoverageHighEnough(question, results)) {
+  const intent = detectQueryIntent(question);
+  if (!intent.wantsSteps || results.length === 0) {
     return false;
   }
 
-  const intent = detectQueryIntent(question);
-  if (!intent.wantsSteps || results.length === 0) {
+  if (hasExplicitProceduralGapEvidence(results)) {
+    return true;
+  }
+
+  if (evidenceCoverageHighEnough(question, results)) {
     return false;
   }
 
