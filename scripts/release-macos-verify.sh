@@ -16,6 +16,9 @@ echo
 
 echo "== codesign details =="
 codesign -dvvv "$ABS_APP_PATH" 2>&1 | /usr/bin/grep -E "Identifier=|TeamIdentifier=|Authority=|Runtime Version" || true
+if codesign -dvvv "$ABS_APP_PATH" 2>&1 | /usr/bin/grep -q "TeamIdentifier=not set"; then
+  echo "NOTE: TeamIdentifier=not set; this is an ad-hoc/local build until Developer ID signing is configured."
+fi
 echo
 
 echo "== codesign verify (deep/strict) =="
@@ -24,11 +27,15 @@ echo "OK: codesign verify"
 echo
 
 echo "== spctl assess (Gatekeeper) =="
-spctl --assess --verbose=4 --type execute "$ABS_APP_PATH" || true
+if ! spctl --assess --verbose=4 --type execute "$ABS_APP_PATH"; then
+  echo "WARN: Gatekeeper assessment did not accept this app; expected for ad-hoc or non-notarized local builds."
+fi
 echo
 
 echo "== stapler validate (requires notarization+staple) =="
-xcrun stapler validate -v "$ABS_APP_PATH" || true
+if ! xcrun stapler validate -v "$ABS_APP_PATH"; then
+  echo "WARN: stapler validation did not pass; expected before notarization and stapling."
+fi
 echo
 
 echo "Done."
