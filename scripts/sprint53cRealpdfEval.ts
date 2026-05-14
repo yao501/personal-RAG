@@ -18,6 +18,7 @@ import type { ChunkRecord, DocumentRecord } from "../src/lib/shared/types";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
+const gateMode = process.argv.includes("--gate");
 
 const CAUTIOUS_OVERVIEW = /当前检索到的资料仅包含概述性内容|未形成可逐步执行的完整操作说明/;
 
@@ -240,6 +241,7 @@ async function main(): Promise<void> {
 
   const pass = results.filter((r) => r.verdict === "pass").length;
   const partial = results.filter((r) => r.verdict === "partial").length;
+  const fail = results.length - pass - partial;
 
   fs.mkdirSync(path.join(repoRoot, "evals/results"), { recursive: true });
   fs.writeFileSync(
@@ -268,6 +270,7 @@ async function main(): Promise<void> {
   const q8 = results.find((r) => r.source_question_id === "Q8");
   const q1Primary = ((q1?.citation_file_names as string[]) ?? [])[0] ?? "";
   const q1StillGraphics = /用户手册5_图形编辑/i.test(q1Primary);
+  const gatePassed = pass >= 4 && !q1StillGraphics;
 
   const summaryMd = `# Sprint 5.3c 真实 PDF 抽样
 
@@ -328,7 +331,12 @@ async function main(): Promise<void> {
 
   fs.writeFileSync(path.join(repoRoot, "evals/results/sprint-5.3c-overall-summary-001.md"), overallMd, "utf8");
 
-  console.log({ pass, partial, q1Primary: (q1?.citation_file_names as string[])?.[0] });
+  console.log(`Sprint 5.3c realpdf: P:${pass} Pa:${partial} F:${fail} | q1Primary=${q1Primary || "n/a"} | gate=${gatePassed ? "PASS" : "FAIL"}`);
+  console.log({ pass, partial, fail, q1Primary: (q1?.citation_file_names as string[])?.[0] });
+
+  if (gateMode && !gatePassed) {
+    process.exit(1);
+  }
 }
 
 main().catch((e) => {

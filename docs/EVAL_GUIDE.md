@@ -142,9 +142,15 @@ Product gate (fixture smoke + optional/required real DCS Manual 7 gate):
 ```bash
 npm run eval:rag:product
 PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run eval:rag:product -- --require-realpdf
+PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run eval:rag:product -- --profile dcs-core --require-realpdf
 ```
 
 `eval:rag:product` writes a gate summary under `evals/results/product-rag-gate-<date>-<seq>.md`. Files under `evals/results/` are gitignored because real-library runs may include absolute paths and source snippets.
+
+Profiles:
+
+- `manual7` (default): fixture smoke + DCS Manual 7 Phase B (`M7-2` ~ `M7-6`).
+- `dcs-core`: fixture smoke + cross-volume DCS core questions (`Q1`, `Q6`, `Q8`, `Q9`, `Q10`, `Q11`) + DCS Manual 7 Phase B.
 
 Explicit benchmark file:
 

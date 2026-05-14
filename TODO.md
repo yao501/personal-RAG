@@ -151,7 +151,7 @@ Acceptance:
 
 ### P0.4 Regression-quality evaluation
 
-Status (Sprint 3 / 5.3): **foundation in place** — versioned benchmark JSON (`benchmarks/benchmark.v1.json`), `npm run eval:rag`, deterministic metrics, Markdown reports under `reports/rag-eval/`, and [docs/EVAL_GUIDE.md](docs/EVAL_GUIDE.md). Current default baseline on 2026-05-14 is **16/16**, including grounded paraphrase cases and synthetic refusal cases. `npm run eval:rag:product` now acts as the product gate: fixture smoke first, then local DCS Manual 7 Phase B when `PKRAG_REALPDF_DIR` is available.
+Status (Sprint 3 / 5.3): **foundation in place** — versioned benchmark JSON (`benchmarks/benchmark.v1.json`), `npm run eval:rag`, deterministic metrics, Markdown reports under `reports/rag-eval/`, and [docs/EVAL_GUIDE.md](docs/EVAL_GUIDE.md). Current default baseline on 2026-05-14 is **16/16**, including grounded paraphrase cases and synthetic refusal cases. `npm run eval:rag:product` now acts as the product gate: fixture smoke first, then local DCS Manual 7 Phase B when `PKRAG_REALPDF_DIR` is available; `--profile dcs-core` adds cross-volume DCS questions for release-quality local validation.
 
 Why this is P0:
 
