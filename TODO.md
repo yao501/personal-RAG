@@ -165,6 +165,7 @@ Scope:
 - add retrieval metrics first
 - add answer-layer checks after retrieval output is stable
 - generate markdown reports and preserve history
+- promote real query logs into sanitized benchmark v1 case drafts, including refusal candidates
 
 Start small:
 

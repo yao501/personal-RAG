@@ -131,7 +131,9 @@ export interface EvalCaseDraft {
   id: string;
   sourceLogId: string;
   category: "definition" | "procedure" | "troubleshooting" | "navigational" | "role" | "general";
+  answerMode: "grounded" | "cautious" | "refusal";
   question: string;
+  mustRefuse: boolean;
   expectation: {
     topK: number;
     fileNameIncludes?: string;

@@ -184,7 +184,7 @@ Notes:
 - SQLite was chosen for reliable local persistence and simple reindex flows.
 - Retrieval combines lexical match, metadata boosts, local embeddings, LanceDB candidate recall, and intent-aware reranking so the stack stays local while improving recall quality.
 - Answer generation is citation-first and grounded in retrieved chunks, with sentence-level evidence selection plus page/paragraph and sentence anchors to make citations easier to inspect.
-- Real query logs are persisted locally so future retrieval changes can be compared against both curated eval datasets and actual user questions, then promoted into benchmark drafts from the desktop app.
+- Real query logs are persisted locally so future retrieval changes can be compared against both curated eval datasets and actual user questions, then promoted into sanitized benchmark v1 case drafts from the desktop app, including grounded, cautious, and refusal candidates.
 - Recent query logs now persist a local retrieval debug snapshot, making vector shortlist count, candidate count, top-result scores, citation hits, query type, and refusal/cautious answer flags inspectable before tuning retrieval behavior.
 - Import and reindex now expose stage-level progress plus structured failure reasons, which makes large-library maintenance much safer for end users.
 - Busy-task and file-picker failures use stable structured error codes, and reindex failures surface in the same task issue panel as import failures.

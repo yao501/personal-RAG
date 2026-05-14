@@ -45,17 +45,21 @@ describe("queryLogDrafts", () => {
 
     expect(draft?.sourceLogId).toBe("log-1");
     expect(draft?.category).toBe("definition");
+    expect(draft?.answerMode).toBe("grounded");
+    expect(draft?.mustRefuse).toBe(false);
     expect(draft?.expectation.fileNameIncludes).toBe("施工方案.docx");
     expect(draft?.expectation.sectionPathIncludes).toEqual(["3 项目背景与现状"]);
     expect(draft?.expectation.evidenceIncludes?.[0]).toContain("采集周期为1秒/次");
   });
 
-  it("renders a copyable eval-case draft block", () => {
+  it("renders a copyable benchmark v1 case draft block", () => {
     const rendered = renderEvalCaseDraft({
       id: "sampling-interval",
       sourceLogId: "log-1",
       category: "definition",
+      answerMode: "grounded",
       question: "采集周期是多少？",
+      mustRefuse: false,
       expectation: {
         topK: 2,
         fileNameIncludes: "施工方案.docx",
@@ -63,9 +67,53 @@ describe("queryLogDrafts", () => {
         evidenceIncludes: ["采集周期为1秒/次"]
       }
     });
+    const parsed = JSON.parse(rendered);
 
-    expect(rendered).toContain('id: "sampling-interval"');
-    expect(rendered).toContain('fileNameIncludes: "施工方案.docx"');
-    expect(rendered).toContain('evidenceIncludes: ["采集周期为1秒/次"]');
+    expect(parsed).toMatchObject({
+      id: "sampling-interval",
+      sourceType: "sanitized",
+      expectedAnswerMode: "grounded",
+      intentGroup: "definition",
+      question: "采集周期是多少？",
+      expectedDocs: ["施工方案.docx"],
+      expectedFacts: ["采集周期为1秒/次"],
+      expectedCitations: {
+        fileNameIncludes: ["施工方案.docx"]
+      },
+      mustRefuse: false
+    });
+  });
+
+  it("builds a must-refuse draft from a refusal query log without citations", () => {
+    const log: QueryLogRecord = {
+      id: "log-refusal",
+      sessionId: "session-1",
+      question: "系统管理员密码是什么？",
+      answer: {
+        answer: "",
+        directAnswer: "I could not find grounded evidence for that question in the current library. Try importing more files or rephrasing the question.",
+        supportingPoints: [],
+        sourceDocumentCount: 0,
+        basedOnSingleDocument: false,
+        citations: []
+      },
+      citations: [],
+      topResults: [],
+      retrievalDebug: null,
+      createdAt: "2026-04-09T00:00:00.000Z",
+      feedbackStatus: "benchmark_candidate",
+      feedbackNote: null
+    };
+
+    const draft = buildEvalCaseDraft(log);
+    const rendered = renderEvalCaseDraft(draft!);
+    const parsed = JSON.parse(rendered);
+
+    expect(draft?.answerMode).toBe("refusal");
+    expect(parsed).toMatchObject({
+      expectedAnswerMode: "refusal",
+      expectedDocs: [],
+      mustRefuse: true
+    });
   });
 });

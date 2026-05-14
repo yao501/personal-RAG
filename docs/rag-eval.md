@@ -90,7 +90,9 @@ The intended workflow is:
 
 1. watch for repeated real-user misses or weak citations
 2. mark representative logs as benchmark candidates in the desktop app
-3. review or copy the auto-generated eval drafts
+3. review or copy the auto-generated benchmark v1 case drafts
 4. promote the best candidates into the curated eval set
 5. rerun `npm run eval:rag`
 6. only keep retrieval changes that improve aggregate behavior without breaking existing datasets
+
+Generated drafts are intentionally marked `sourceType: "sanitized"` and include a note to review source documents before committing. Refusal logs without citations can also become `mustRefuse` benchmark candidates, so unsupported real questions are preserved as regression cases instead of disappearing from the loop.

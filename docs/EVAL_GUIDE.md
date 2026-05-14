@@ -276,4 +276,5 @@ Benchmark **case counts** and ids change over time (e.g. Sprint 5.1 added wordin
 ## Suggested next steps
 
 - Grow the benchmark with anonymized real-library exports.
+- Use the desktop Settings query-log flow to mark representative real questions as benchmark candidates; copied drafts are benchmark v1 case JSON snippets with `sourceType: "sanitized"` and support grounded, cautious, and refusal cases.
 - Optional CI: run `npm run eval:rag` on PRs if runtime stays acceptable; keep it non-blocking until stable.

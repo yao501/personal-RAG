@@ -1,6 +1,7 @@
 import type { Citation, EvalCaseDraft, QueryLogRecord } from "../shared/types";
 import { isRoleQuestion } from "../modules/retrieve/queryFeatures";
 import { detectQueryIntent } from "../modules/retrieve/queryIntent";
+import { isCautiousProceduralAnswer } from "../modules/answer/cautiousMarkers";
 
 function slugifyQuestion(question: string): string {
   const normalized = question
@@ -61,9 +62,17 @@ function extractEvidenceIncludes(citation: Citation): string[] {
   return selected.length > 0 ? selected : [source.slice(0, 32)].filter(Boolean);
 }
 
+function isRefusalLog(log: QueryLogRecord): boolean {
+  if (log.citations.length > 0 || log.answer.citations.length > 0) {
+    return false;
+  }
+  return /could not find grounded evidence|没有找到足够可靠的依据/i.test(log.answer.directAnswer);
+}
+
 export function buildEvalCaseDraft(log: QueryLogRecord): EvalCaseDraft | null {
   const citation = log.citations[0];
-  if (!citation) {
+  const refusal = isRefusalLog(log);
+  if (!citation && !refusal) {
     return null;
   }
 
@@ -71,12 +80,14 @@ export function buildEvalCaseDraft(log: QueryLogRecord): EvalCaseDraft | null {
     id: slugifyQuestion(log.question),
     sourceLogId: log.id,
     category: inferCategory(log.question),
+    answerMode: refusal ? "refusal" : isCautiousProceduralAnswer(log.answer) ? "cautious" : "grounded",
     question: log.question,
+    mustRefuse: refusal,
     expectation: {
       topK: 2,
-      fileNameIncludes: citation.fileName,
-      sectionPathIncludes: citation.sectionPath ? [citation.sectionPath] : undefined,
-      evidenceIncludes: extractEvidenceIncludes(citation)
+      fileNameIncludes: citation?.fileName,
+      sectionPathIncludes: citation?.sectionPath ? [citation.sectionPath] : undefined,
+      evidenceIncludes: citation ? extractEvidenceIncludes(citation) : undefined
     }
   };
 }
@@ -88,28 +99,20 @@ export function buildEvalCaseDrafts(logs: QueryLogRecord[]): EvalCaseDraft[] {
 }
 
 export function renderEvalCaseDraft(draft: EvalCaseDraft): string {
-  const lines = [
-    "{",
-    `  id: "${draft.id}",`,
-    `  category: "${draft.category}",`,
-    `  question: "${draft.question}",`,
-    "  expectations: [",
-    "    {",
-    `      topK: ${draft.expectation.topK},`
-  ];
-
-  if (draft.expectation.fileNameIncludes) {
-    lines.push(`      fileNameIncludes: "${draft.expectation.fileNameIncludes}",`);
-  }
-
-  if (draft.expectation.sectionPathIncludes?.length) {
-    lines.push(`      sectionPathIncludes: ${JSON.stringify(draft.expectation.sectionPathIncludes)},`);
-  }
-
-  if (draft.expectation.evidenceIncludes?.length) {
-    lines.push(`      evidenceIncludes: ${JSON.stringify(draft.expectation.evidenceIncludes)}`);
-  }
-
-  lines.push("    }", "  ]", "}");
-  return lines.join("\n");
+  const expectedDocs = draft.expectation.fileNameIncludes ? [draft.expectation.fileNameIncludes] : [];
+  const benchmarkCase = {
+    id: draft.id,
+    sourceType: "sanitized",
+    expectedAnswerMode: draft.answerMode,
+    intentGroup: draft.category,
+    question: draft.question,
+    expectedDocs,
+    ...(draft.expectation.evidenceIncludes?.length ? { expectedFacts: draft.expectation.evidenceIncludes } : {}),
+    ...(draft.expectation.fileNameIncludes
+      ? { expectedCitations: { fileNameIncludes: [draft.expectation.fileNameIncludes] } }
+      : {}),
+    mustRefuse: draft.mustRefuse,
+    notes: `Promoted from local query log ${draft.sourceLogId}. Review and sanitize source documents before committing.`
+  };
+  return JSON.stringify(benchmarkCase, null, 2);
 }

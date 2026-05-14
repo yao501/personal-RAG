@@ -2125,7 +2125,7 @@ export function App() {
                 <article key={draft.id} className="chunk-card">
                   <header>
                     <strong>{draft.question}</strong>
-                    <span>{draft.category}</span>
+                    <span>{draft.category} · {draft.answerMode}</span>
                   </header>
                   <div className="citation-meta">
                     <span>topK {draft.expectation.topK}</span>
