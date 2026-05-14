@@ -106,7 +106,7 @@ Scope:
 
 - define standard error codes (**foundation in place; continue expanding for new real-world failures**)
 - map each import/index failure stage to stable error codes (**foundation in place for preflight/parsing/chunking/embedding/indexing/storage**)
-- unify how errors appear in UI, logs, and diagnostics (**IPC envelope, task issue panel, support bundle recent errors, corrected import completion counts, and missing-source reindex regression coverage are in place**)
+- unify how errors appear in UI, logs, and diagnostics (**IPC envelope, task issue panel, support bundle recent errors, vector-index fallback diagnostics, corrected import completion counts, and missing-source reindex regression coverage are in place**)
 - add stronger pre-import checks
 - improve per-file retry and repair flows
 - deepen library consistency checks

@@ -196,6 +196,7 @@ Notes:
 - Real query logs are persisted locally so future retrieval changes can be compared against both curated eval datasets and actual user questions, then promoted into sanitized benchmark v1 case drafts from the desktop app, including grounded, cautious, and refusal candidates.
 - Recent query logs now persist a local retrieval debug snapshot, making vector shortlist count, candidate count, top-result scores, citation hits, query type, and refusal/cautious answer flags inspectable before tuning retrieval behavior.
 - Import and reindex now expose stage-level progress plus structured failure reasons, which makes large-library maintenance much safer for end users.
+- Vector index failures are recorded as diagnostics and surfaced as fallback state, so lexical retrieval can keep working while support can see why semantic vector recall degraded.
 - Busy-task and file-picker failures use stable structured error codes, and reindex failures surface in the same task issue panel as import failures.
 - Reindex is now incremental-aware, so unchanged documents are skipped when their source timestamp and indexing signature still match, which reduces maintenance cost for larger libraries.
 - The app now includes a library-health layer that can detect missing source files, stale source updates, index-config drift, and missing embeddings so maintenance problems are visible before retrieval quality degrades.

@@ -43,7 +43,9 @@ const EMPTY_STATUS: SystemStatus = {
   documentCount: 0,
   chunkCount: 0,
   embeddingAvailable: false,
-  embeddingReason: null
+  embeddingReason: null,
+  vectorIndexAvailable: false,
+  vectorIndexReason: null
 };
 
 const EMPTY_APP_INFO: AppInfo = {
@@ -112,7 +114,9 @@ function buildDiagnosticsText(appInfo: AppInfo, systemStatus: SystemStatus): str
     `documentCount: ${systemStatus.documentCount}`,
     `chunkCount: ${systemStatus.chunkCount}`,
     `embeddingAvailable: ${systemStatus.embeddingAvailable ? "yes" : "no"}`,
-    `embeddingReason: ${systemStatus.embeddingReason ?? "n/a"}`
+    `embeddingReason: ${systemStatus.embeddingReason ?? "n/a"}`,
+    `vectorIndexAvailable: ${systemStatus.vectorIndexAvailable ? "yes" : "no"}`,
+    `vectorIndexReason: ${systemStatus.vectorIndexReason ?? "n/a"}`
   ].join("\n");
 }
 
@@ -1380,6 +1384,13 @@ export function App() {
           </p>
           {!systemStatus.embeddingAvailable && systemStatus.embeddingReason && (
             <p className="error-text">模型状态：{systemStatus.embeddingReason}</p>
+          )}
+          <p className="muted">
+            向量索引：
+            {systemStatus.vectorIndexAvailable ? "已就绪" : "降级检索"}
+          </p>
+          {!systemStatus.vectorIndexAvailable && systemStatus.vectorIndexReason && (
+            <p className="error-text">索引状态：{systemStatus.vectorIndexReason}</p>
           )}
           {(recentFailedImports.length > 0 || recentSkippedImports.length > 0) && (
             <div className="task-issues">

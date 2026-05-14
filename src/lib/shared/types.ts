@@ -177,6 +177,8 @@ export interface SystemStatus {
   chunkCount: number;
   embeddingAvailable: boolean;
   embeddingReason: string | null;
+  vectorIndexAvailable: boolean;
+  vectorIndexReason: string | null;
 }
 
 export interface AppInfo {

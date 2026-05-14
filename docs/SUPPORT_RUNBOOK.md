@@ -4,7 +4,7 @@ This document describes the **support bundle** export in Personal Knowledge RAG 
 
 ## Purpose
 
-The support bundle helps triage desktop issues (import/reindex failures, health warnings, IPC errors, embedding status) **without** asking users to send their original documents or full index content.
+The support bundle helps triage desktop issues (import/reindex failures, health warnings, IPC errors, embedding/vector-index status) **without** asking users to send their original documents or full index content.
 
 ## How users export
 
@@ -29,7 +29,8 @@ The support bundle helps triage desktop issues (import/reindex failures, health 
 | `paths.json` | `userData`, SQLite DB path, LanceDB directory, temp dir (paths may be redacted). |
 | `sqlite.json` | SQLite `PRAGMA` snapshot (`user_version`, `journal_mode`, `page_size`) and DB file name. |
 | `embedding.json` | Local embedding pipeline availability and reason if unavailable. |
-| `system_status.json` | Document/chunk counts and embedding availability as shown in the app. |
+| `system_status.json` | Document/chunk counts, embedding availability, and vector-index availability as shown in the app. |
+| `vector_index.json` | Current vector-index availability plus recent rebuild/search events. Event details are omitted when anonymize is on. |
 | `settings_safe.json` | Chunk size/overlap and optional library path (may be redacted). |
 | `library_health.json` | Full library health report (same shape as in-app health check). |
 | `documents_summary.json` | Per-document metadata: ids, titles, types, chunk counts, paths (paths redacted when anonymize is on). **No document body text.** |
@@ -61,7 +62,7 @@ When anonymize is **off**, more path and preview text is present to speed up int
 
 ## How support should use the bundle
 
-1. **Start with** `manifest.json`, `app_runtime.json`, `paths.json`, `sqlite.json`, `embedding.json` to confirm environment and storage layout.
+1. **Start with** `manifest.json`, `app_runtime.json`, `paths.json`, `sqlite.json`, `embedding.json`, and `vector_index.json` to confirm environment and storage layout.
 2. Check **`library_health.json`** for actionable issues (missing sources, stale files, missing embeddings).
 3. Review **`library_tasks_recent.json`** for the last import/reindex timeline and failure phases.
 4. Use **`ipc_errors_recent.json`** if the user reports UI actions failing (settings, import, etc.).

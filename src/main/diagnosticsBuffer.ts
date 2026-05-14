@@ -2,9 +2,17 @@ import type { LibraryTaskProgress, RendererErrorInfo } from "../lib/shared/types
 
 const MAX_TASK_EVENTS = 120;
 const MAX_IPC_ERRORS = 40;
+const MAX_VECTOR_INDEX_EVENTS = 40;
 
 const taskEvents: Array<{ recordedAt: string; progress: LibraryTaskProgress }> = [];
 const ipcErrors: Array<{ recordedAt: string; channel: string; error: RendererErrorInfo }> = [];
+const vectorIndexEvents: Array<{
+  recordedAt: string;
+  operation: string;
+  ok: boolean;
+  message: string;
+  details?: Record<string, unknown> | null;
+}> = [];
 
 export function recordTaskProgressSnapshot(progress: LibraryTaskProgress): void {
   taskEvents.push({ recordedAt: new Date().toISOString(), progress: { ...progress } });
@@ -17,6 +25,18 @@ export function recordIpcFailure(channel: string, error: RendererErrorInfo): voi
   ipcErrors.push({ recordedAt: new Date().toISOString(), channel, error: { ...error } });
   while (ipcErrors.length > MAX_IPC_ERRORS) {
     ipcErrors.shift();
+  }
+}
+
+export function recordVectorIndexEvent(input: {
+  operation: string;
+  ok: boolean;
+  message: string;
+  details?: Record<string, unknown> | null;
+}): void {
+  vectorIndexEvents.push({ recordedAt: new Date().toISOString(), ...input });
+  while (vectorIndexEvents.length > MAX_VECTOR_INDEX_EVENTS) {
+    vectorIndexEvents.shift();
   }
 }
 
@@ -33,4 +53,14 @@ export function getRecentIpcErrors(): Array<{ recordedAt: string; channel: strin
     channel: item.channel,
     error: { ...item.error }
   }));
+}
+
+export function getRecentVectorIndexEvents(): Array<{
+  recordedAt: string;
+  operation: string;
+  ok: boolean;
+  message: string;
+  details?: Record<string, unknown> | null;
+}> {
+  return vectorIndexEvents.map((item) => ({ ...item }));
 }

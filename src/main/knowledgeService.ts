@@ -31,12 +31,12 @@ import type {
   QueryLogRecord
 } from "../lib/shared/types";
 import { AppStore } from "./store";
-import { LanceChunkRow, LanceIndex } from "./lanceIndex";
+import { LanceChunkRow, LanceIndex, type LanceIndexStatus } from "./lanceIndex";
 import { buildEvalCaseDrafts } from "../lib/eval/queryLogDrafts";
 import { buildLibraryHealthReport } from "../lib/health/libraryHealth";
 import { buildDocumentOpenTarget, shouldUseExternalDocumentOpenTarget } from "./documentOpen";
 import { createImportError, normalizeImportError, toImportIssueDetail } from "./importErrors";
-import { recordTaskProgressSnapshot } from "./diagnosticsBuffer";
+import { recordTaskProgressSnapshot, recordVectorIndexEvent } from "./diagnosticsBuffer";
 
 function deriveDocumentTitle(fileName: string, content: string): string {
   const markdownHeading = content.match(/^\s*#\s+(.+?)\s*$/m)?.[1]?.trim();
@@ -169,11 +169,41 @@ export class KnowledgeService {
   }
 
   private async rebuildLanceIndex(documents: DocumentRecord[], chunks: ChunkRecord[]): Promise<void> {
+    const rows = this.toLanceRows(documents, chunks);
     try {
-      await this.lanceIndex.rebuild(this.toLanceRows(documents, chunks));
-    } catch {
+      await this.lanceIndex.rebuild(rows);
+      recordVectorIndexEvent({
+        operation: "rebuild",
+        ok: true,
+        message: rows.length > 0 ? `Vector index rebuilt with ${rows.length} rows.` : "Vector index cleared because no vector rows were available.",
+        details: { rowCount: rows.length, documentCount: documents.length, chunkCount: chunks.length }
+      });
+    } catch (error) {
+      recordVectorIndexEvent({
+        operation: "rebuild",
+        ok: false,
+        message: error instanceof Error ? error.message : String(error),
+        details: { rowCount: rows.length, documentCount: documents.length, chunkCount: chunks.length }
+      });
       // Keep the app usable even if the native vector layer is unavailable.
     }
+  }
+
+  private async getVectorIndexStatus(): Promise<LanceIndexStatus> {
+    const maybeIndex = this.lanceIndex as LanceIndex & {
+      getStatus?: () => LanceIndexStatus;
+      inspectStatus?: () => Promise<LanceIndexStatus>;
+    };
+    if (maybeIndex.inspectStatus) {
+      return maybeIndex.inspectStatus();
+    }
+    return maybeIndex.getStatus?.() ?? {
+      available: false,
+      tableReady: false,
+      reason: "Vector index status is unavailable.",
+      lastErrorAt: null,
+      lastOperation: null
+    };
   }
 
   private emitTaskProgress(
@@ -232,6 +262,7 @@ export class KnowledgeService {
   async getSnapshot(): Promise<AppSnapshot> {
     const embeddingStatus = await getEmbeddingStatus();
     const stats = this.store.getLibraryStats();
+    const vectorIndexStatus = await this.getVectorIndexStatus();
     return {
       documents: this.store.listDocuments(),
       settings: this.store.getSettings(),
@@ -240,7 +271,9 @@ export class KnowledgeService {
         documentCount: stats.documentCount,
         chunkCount: stats.chunkCount,
         embeddingAvailable: embeddingStatus.available,
-        embeddingReason: embeddingStatus.reason
+        embeddingReason: embeddingStatus.reason,
+        vectorIndexAvailable: vectorIndexStatus.available,
+        vectorIndexReason: vectorIndexStatus.reason
       },
       appInfo: {
         version: electronApp.getVersion(),
@@ -814,7 +847,13 @@ export class KnowledgeService {
           await this.rebuildLanceIndex(documents, chunks);
           vectorChunkIds = await this.lanceIndex.search(queryEmbedding, 24);
         }
-      } catch {
+      } catch (error) {
+        recordVectorIndexEvent({
+          operation: "search",
+          ok: false,
+          message: error instanceof Error ? error.message : String(error),
+          details: { requestedLimit: 24 }
+        });
         vectorChunkIds = [];
       }
     }

@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createStableId } from "../lib/modules/core/id";
 import type { ChunkRecord, DocumentRecord, LibraryTaskProgress } from "../lib/shared/types";
 import { KnowledgeService } from "./knowledgeService";
+import { getRecentVectorIndexEvents } from "./diagnosticsBuffer";
 import type { AppStore } from "./store";
 
 vi.mock("electron", () => ({
@@ -135,6 +136,48 @@ describe("KnowledgeService task progress diagnostics", () => {
       phase: "completed",
       message: "重建索引完成：更新 0，跳过 0，失败 1",
       failed: 1
+    });
+  });
+
+  it("records vector index rebuild failures while completing the import with lexical fallback", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "pkrag-vector-index-progress-"));
+    const filePath = path.join(dir, "source.md");
+    await fs.writeFile(filePath, "# Source\n\nUseful content for indexing.", "utf8");
+
+    let documents: DocumentRecord[] = [];
+    let chunks: ChunkRecord[] = [];
+    const store: Partial<AppStore> = {
+      getSettings: () => ({ libraryPath: null, chunkSize: 180, chunkOverlap: 40 }),
+      getDocument: () => null,
+      listDocuments: () => documents,
+      listChunks: () => chunks,
+      upsertDocument: (document: DocumentRecord, nextChunks: ChunkRecord[]) => {
+        documents = [document];
+        chunks = nextChunks.map((chunk) => ({ ...chunk, embedding: "[0.1]" }));
+      }
+    };
+    const service = new KnowledgeService(store as AppStore);
+    (service as unknown as { lanceIndex: { rebuild: () => Promise<void>; getStatus: () => unknown } }).lanceIndex = {
+      rebuild: async () => {
+        throw new Error("simulated vector index failure");
+      },
+      getStatus: () => ({
+        available: false,
+        tableReady: false,
+        reason: "simulated vector index failure",
+        lastErrorAt: "2026-01-01T00:00:00.000Z",
+        lastOperation: "rebuild"
+      })
+    };
+
+    const result = await service.importFiles([filePath]);
+    const lastVectorEvent = getRecentVectorIndexEvents().at(-1);
+
+    expect(result.imported).toHaveLength(1);
+    expect(lastVectorEvent).toMatchObject({
+      operation: "rebuild",
+      ok: false,
+      message: "simulated vector index failure"
     });
   });
 });

@@ -7,7 +7,7 @@ import { app } from "electron";
 import type { AppSnapshot, LibraryHealthReport } from "../lib/shared/types";
 import { getEmbeddingStatus } from "../lib/modules/embed/localEmbedder";
 import { redactAbsolutePath, summarizeDocumentForBundle, summarizeQueryLogsForBundle, summarizeTaskProgressForBundle } from "../lib/modules/support/bundlePrivacy";
-import { getRecentIpcErrors, getRecentTaskEvents } from "./diagnosticsBuffer";
+import { getRecentIpcErrors, getRecentTaskEvents, getRecentVectorIndexEvents } from "./diagnosticsBuffer";
 import type { AppStore } from "./store";
 
 export const SUPPORT_BUNDLE_FORMAT_VERSION = 1;
@@ -47,6 +47,7 @@ export async function exportSupportBundleZip(params: ExportSupportBundleParams):
   const recentLogs = store.listQueryLogs(24);
   const taskEvents = getRecentTaskEvents();
   const ipcFailures = getRecentIpcErrors();
+  const vectorIndexEvents = getRecentVectorIndexEvents();
 
   const userDataPath = app.getPath("userData");
   const lanceDbPath = path.join(userDataPath, "lancedb");
@@ -106,7 +107,21 @@ export async function exportSupportBundleZip(params: ExportSupportBundleParams):
       documentCount: snapshot.systemStatus.documentCount,
       chunkCount: snapshot.systemStatus.chunkCount,
       embeddingAvailable: snapshot.systemStatus.embeddingAvailable,
-      embeddingReason: snapshot.systemStatus.embeddingReason
+      embeddingReason: snapshot.systemStatus.embeddingReason,
+      vectorIndexAvailable: snapshot.systemStatus.vectorIndexAvailable,
+      vectorIndexReason: snapshot.systemStatus.vectorIndexReason
+    });
+
+    await writeJson(bundleDir, "vector_index.json", {
+      available: snapshot.systemStatus.vectorIndexAvailable,
+      reason: snapshot.systemStatus.vectorIndexReason,
+      recentEvents: vectorIndexEvents.map((item) => ({
+        recordedAt: item.recordedAt,
+        operation: item.operation,
+        ok: item.ok,
+        message: item.message,
+        details: anonymize ? null : item.details ?? null
+      }))
     });
 
     await writeJson(bundleDir, "settings_safe.json", {
