@@ -133,7 +133,22 @@ npm run eval:rag
 Writes a timestamped Markdown report under `reports/rag-eval/`. Benchmark format, metrics, and limitations: [docs/EVAL_GUIDE.md](docs/EVAL_GUIDE.md).
 The same run also writes a timestamped JSON summary for CI-friendly comparison.
 
-Sprint 5.x: the default benchmark path hydrates embeddings and runs the same **query embedding → top-24 vector shortlist → lexical merge → `searchChunks`** shape as the desktop app (LanceDB is replaced by in-memory cosine ranking in the script). Set **`PKRAG_RETRIEVAL_DEBUG=1`** for **schemaVersion 2** JSON: `vectorRecallBackend` (`lancedb` in the app, `memory` in `eval:rag`), `runtime` (`desktop` vs `eval`), tokens, scores, citation ids, refusal/cautious flags (`docs/EVAL_GUIDE.md`). Benchmark cases can carry **`expectedAnswerMode`** / **`sourceType`** metadata for regression reports.
+Product RAG gate:
+
+```bash
+npm run eval:rag:product
+```
+
+For release-quality local validation against the DCS manuals:
+
+```bash
+export PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册"
+npm run eval:rag:product -- --require-realpdf
+```
+
+This runs the fixture benchmark first, then the real DCS Manual 7 Phase B gate when `PKRAG_REALPDF_DIR` is available. Local real-PDF reports are written under `evals/results/` and are gitignored because they may include absolute paths and source snippets.
+
+Sprint 5.x: the default benchmark path hydrates embeddings and runs the same **query embedding → top-24 vector shortlist → lexical merge → `searchChunks`** shape as the desktop app (LanceDB is replaced by in-memory cosine ranking in the script). Set **`PKRAG_RETRIEVAL_DEBUG=1`** for **schemaVersion 3** JSON: `vectorRecallBackend` (`lancedb` in the app, `memory` in `eval:rag`), `runtime` (`desktop` vs `eval`), tokens, scores, citation ids, refusal/cautious flags (`docs/EVAL_GUIDE.md`). Benchmark cases can carry **`expectedAnswerMode`** / **`sourceType`** metadata for regression reports.
 
 Included tests cover:
 

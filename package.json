@@ -21,7 +21,9 @@
     "preview": "vite preview",
     "audit:security": "npm audit --audit-level=high",
     "test": "vitest run",
-    "eval:rag": "./node_modules/.bin/vite-node scripts/runRagEval.ts"
+    "eval:rag": "./node_modules/.bin/vite-node scripts/runRagEval.ts",
+    "eval:rag:dcs:manual7": "./node_modules/.bin/vite-node scripts/p0bPhaseBOnly.ts --spec evals/cases/p0b-manual7-phaseb.json",
+    "eval:rag:product": "./node_modules/.bin/vite-node scripts/productRagGate.ts"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",

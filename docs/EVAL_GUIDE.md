@@ -137,6 +137,15 @@ Default (uses `benchmarks/benchmark.v1.json`):
 npm run eval:rag
 ```
 
+Product gate (fixture smoke + optional/required real DCS Manual 7 gate):
+
+```bash
+npm run eval:rag:product
+PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run eval:rag:product -- --require-realpdf
+```
+
+`eval:rag:product` writes a gate summary under `evals/results/product-rag-gate-<date>-<seq>.md`. Files under `evals/results/` are gitignored because real-library runs may include absolute paths and source snippets.
+
 Explicit benchmark file:
 
 ```bash
