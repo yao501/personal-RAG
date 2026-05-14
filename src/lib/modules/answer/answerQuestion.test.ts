@@ -56,6 +56,57 @@ describe("answerQuestion", () => {
     expect(answer.citations.map((c) => c.chunkId)).toContain("dl");
   });
 
+  it("keeps controller-side context for short compile/download order questions", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-eng",
+        fileName: "manual3.pdf",
+        documentTitle: "工程总控",
+        chunkId: "faq-order",
+        snippet: "Q：编译和下装的顺序是什么？先编译后下装。",
+        score: 24,
+        chunkIndex: 100,
+        sectionTitle: "第13章 常见问题",
+        sectionPath: "工程总控 > 第13章 常见问题",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        importedAt: "2026-04-08T00:00:00.000Z",
+        text: "13.2 Q：编译和下装的顺序是什么？先编译后下装。",
+        lexicalScore: 20,
+        semanticScore: 2,
+        freshnessScore: 0.4,
+        rerankScore: 8,
+        qualityScore: 0.6,
+        fullText: "13.2 Q：编译和下装的顺序是什么？先编译后下装。"
+      },
+      {
+        documentId: "doc-quickstart",
+        fileName: "manual2.pdf",
+        documentTitle: "快速入门",
+        chunkId: "download-targets",
+        snippet: "下装是将编译生成的下装文件，通过网络传输到历史站、操作员站和控制器的过程。",
+        score: 23,
+        chunkIndex: 88,
+        sectionTitle: "2.9.1 下装",
+        sectionPath: "快速入门 > 2.9 下装运行 > 2.9.1 下装",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        importedAt: "2026-04-08T00:00:00.000Z",
+        text: "下装是将编译生成的下装文件，通过网络传输到历史站、操作员站和控制器的过程。下装分为下装控制器算法、下装操作站、下装历史站和下装报表打印站。",
+        lexicalScore: 8,
+        semanticScore: 1.4,
+        freshnessScore: 0.4,
+        rerankScore: 4,
+        qualityScore: 1.1,
+        fullText: "下装是将编译生成的下装文件，通过网络传输到历史站、操作员站和控制器的过程。下装分为下装控制器算法、下装操作站、下装历史站和下装报表打印站。"
+      }
+    ];
+
+    const answer = answerQuestion("编译和下装的顺序是什么？", results);
+
+    expect(answer.directAnswer).toContain("控制器");
+    expect(answer.directAnswer).toMatch(/工程总控|操作员站|历史站/);
+    expect(answer.directAnswer).toContain("阶段");
+  });
+
   it("filters truncated numbered-list supporting points", () => {
     const results: SearchResult[] = [
       {

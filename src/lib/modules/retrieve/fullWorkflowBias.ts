@@ -139,6 +139,38 @@ function findParamAlignChunk(pool: ChunkRecord[], documents: DocumentRecord[]): 
   );
 }
 
+function findCompileOrderControllerChunk(pool: ChunkRecord[], documents: DocumentRecord[]): ChunkRecord | undefined {
+  const docMap = new Map(documents.map((d) => [d.id, d]));
+  const fileOf = (docId: string) => docMap.get(docId)?.fileName ?? "";
+  const candidates = pool
+    .filter((c) => {
+      const fileName = fileOf(c.documentId);
+      const haystack = chunkHaystack(c);
+      if (!/用户手册[124]_/.test(fileName)) {
+        return false;
+      }
+      if (/仿真|模拟运行|不具备.*环境/.test(haystack)) {
+        return false;
+      }
+      return /控制器|控制站/.test(haystack) && /(?:下装|下载)/.test(haystack) && /编译/.test(haystack);
+    })
+    .map((chunk) => {
+      const haystack = chunkHaystack(chunk);
+      let score = 0;
+      if (/用户手册2_快速入门/.test(fileOf(chunk.documentId))) score += 3;
+      if (/下装控制器算法/.test(haystack)) score += 3;
+      if (/下装是将编译生成的下装文件/.test(haystack)) score += 2.6;
+      if (/历史站|操作员站/.test(haystack)) score += 1.2;
+      if (/工程编译成功/.test(haystack)) score += 1.1;
+      if (/AutoThink/.test(haystack)) score += 0.6;
+      return { chunk, score };
+    })
+    .filter((item) => item.score >= 3.2)
+    .sort((left, right) => right.score - left.score);
+
+  return candidates[0]?.chunk;
+}
+
 function buildStubSearchResult(chunk: ChunkRecord, document: DocumentRecord, score: number): SearchResult {
   return {
     documentId: chunk.documentId,
@@ -201,9 +233,9 @@ export function injectSprint53aCandidateChunks(
   if (
     /(?:编译|下装)/.test(question) &&
     /(?:顺序|先后)/.test(question) &&
-    !results.some((r) => /应先编译控制器/.test(r.text))
+    !results.some((r) => /应先编译控制器|下装控制器算法|控制器.*下装/.test(r.text))
   ) {
-    pushExtra(injectPool.find((c) => /应先编译控制器/.test(c.text)), 1.15);
+    pushExtra(injectPool.find((c) => /应先编译控制器/.test(c.text)) ?? findCompileOrderControllerChunk(injectPool, documents), 1.15);
   }
 
   if (/参数对齐/.test(question.trim()) && !results.some(resultHasParamAlignDefinition)) {
