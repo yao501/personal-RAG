@@ -180,4 +180,67 @@ describe("KnowledgeService task progress diagnostics", () => {
       message: "simulated vector index failure"
     });
   });
+
+  it("reports empty parsed content as a structured import issue", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "pkrag-empty-import-"));
+    const filePath = path.join(dir, "empty.md");
+    await fs.writeFile(filePath, "   \n\n", "utf8");
+
+    const store: Partial<AppStore> = {
+      getSettings: () => ({ libraryPath: null, chunkSize: 180, chunkOverlap: 40 }),
+      getDocument: () => null,
+      listChunks: () => [],
+      listDocuments: () => []
+    };
+    const service = new KnowledgeService(store as AppStore);
+    (service as unknown as { lanceIndex: { rebuild: () => Promise<void> } }).lanceIndex = { rebuild: async () => {} };
+
+    const progress: LibraryTaskProgress[] = [];
+    const result = await service.importFiles([filePath], (item) => progress.push(item));
+
+    expect(result.imported).toHaveLength(0);
+    expect(result.skippedDetails[0]).toMatchObject({
+      disposition: "failed",
+      code: "empty_content",
+      stage: "parsing",
+      retryable: false
+    });
+    expect(progress.find((item) => item.issue?.code === "empty_content")).toMatchObject({
+      phase: "failed",
+      failed: 1
+    });
+  });
+
+  it("reports storage write failures as structured import issues", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "pkrag-storage-import-"));
+    const filePath = path.join(dir, "source.md");
+    await fs.writeFile(filePath, "# Source\n\nContent to persist.", "utf8");
+
+    const store: Partial<AppStore> = {
+      getSettings: () => ({ libraryPath: null, chunkSize: 180, chunkOverlap: 40 }),
+      getDocument: () => null,
+      listChunks: () => [],
+      listDocuments: () => [],
+      upsertDocument: () => {
+        throw new Error("sqlite constraint failed");
+      }
+    };
+    const service = new KnowledgeService(store as AppStore);
+    (service as unknown as { lanceIndex: { rebuild: () => Promise<void> } }).lanceIndex = { rebuild: async () => {} };
+
+    const progress: LibraryTaskProgress[] = [];
+    const result = await service.importFiles([filePath], (item) => progress.push(item));
+
+    expect(result.imported).toHaveLength(0);
+    expect(result.skippedDetails[0]).toMatchObject({
+      disposition: "failed",
+      code: "sqlite_write_failed",
+      stage: "storage",
+      retryable: true
+    });
+    expect(progress.at(-1)).toMatchObject({
+      phase: "completed",
+      failed: 1
+    });
+  });
 });
