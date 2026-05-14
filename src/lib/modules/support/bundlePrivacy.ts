@@ -1,6 +1,14 @@
 import os from "node:os";
 import type { DocumentRecord, LibraryTaskProgress, QueryLogRecord } from "../../shared/types";
 
+export interface VectorIndexEventForBundle {
+  recordedAt: string;
+  operation: string;
+  ok: boolean;
+  message: string;
+  details?: Record<string, unknown> | null;
+}
+
 export function redactAbsolutePath(filePath: string, anonymize: boolean): string {
   if (!anonymize) {
     return filePath;
@@ -52,4 +60,17 @@ export function summarizeTaskProgressForBundle(progress: LibraryTaskProgress, an
         }
       : progress.issue ?? null
   };
+}
+
+export function summarizeVectorIndexEventsForBundle(
+  events: VectorIndexEventForBundle[],
+  anonymize: boolean
+): VectorIndexEventForBundle[] {
+  return events.map((event) => ({
+    recordedAt: event.recordedAt,
+    operation: event.operation,
+    ok: event.ok,
+    message: event.message,
+    details: anonymize ? null : event.details ?? null
+  }));
 }

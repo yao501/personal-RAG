@@ -1,7 +1,13 @@
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { redactAbsolutePath, summarizeDocumentForBundle, summarizeQueryLogsForBundle, summarizeTaskProgressForBundle } from "./bundlePrivacy";
+import {
+  redactAbsolutePath,
+  summarizeDocumentForBundle,
+  summarizeQueryLogsForBundle,
+  summarizeTaskProgressForBundle,
+  summarizeVectorIndexEventsForBundle
+} from "./bundlePrivacy";
 import type { DocumentRecord, QueryLogRecord } from "../../shared/types";
 
 describe("bundlePrivacy", () => {
@@ -93,5 +99,41 @@ describe("bundlePrivacy", () => {
 
     expect(progress.currentFile).toBe("/Users/[USER]/Documents/source.pdf");
     expect(progress.issue?.filePath).toBe("/Users/[USER]/Documents/source.pdf");
+  });
+
+  it("omits vector index event details when anonymize is true", () => {
+    const [redacted] = summarizeVectorIndexEventsForBundle(
+      [
+        {
+          recordedAt: "2026-05-14T00:00:00.000Z",
+          operation: "rebuild",
+          ok: false,
+          message: "simulated failure",
+          details: {
+            databasePath: "/Users/alice/Library/Application Support/app/lancedb",
+            rowCount: 12
+          }
+        }
+      ],
+      true
+    );
+    const [full] = summarizeVectorIndexEventsForBundle(
+      [
+        {
+          recordedAt: "2026-05-14T00:00:00.000Z",
+          operation: "rebuild",
+          ok: false,
+          message: "simulated failure",
+          details: {
+            databasePath: "/Users/alice/Library/Application Support/app/lancedb",
+            rowCount: 12
+          }
+        }
+      ],
+      false
+    );
+
+    expect(redacted.details).toBeNull();
+    expect(full.details).toMatchObject({ rowCount: 12 });
   });
 });

@@ -30,7 +30,7 @@ The support bundle helps triage desktop issues (import/reindex failures, health 
 | `sqlite.json` | SQLite `PRAGMA` snapshot (`user_version`, `journal_mode`, `page_size`) and DB file name. |
 | `embedding.json` | Local embedding pipeline availability and reason if unavailable. |
 | `system_status.json` | Document/chunk counts, embedding availability, and vector-index availability as shown in the app. |
-| `vector_index.json` | Current vector-index availability plus recent rebuild/search events. Event details are omitted when anonymize is on. |
+| `vector_index.json` | Current vector-index availability plus recent rebuild/search events. Event `details` are omitted when anonymize is on. Added in support bundle format v2. |
 | `settings_safe.json` | Chunk size/overlap and optional library path (may be redacted). |
 | `library_health.json` | Full library health report (same shape as in-app health check). |
 | `documents_summary.json` | Per-document metadata: ids, titles, types, chunk counts, paths (paths redacted when anonymize is on). **No document body text.** |
