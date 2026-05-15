@@ -141,6 +141,13 @@ export interface QueryLogRetrievalDebug {
   queryRetrievalType: string;
   vectorShortlistCount: number;
   candidateChunkCount: number;
+  candidateSelection?: {
+    mode: "all_chunks_no_vector" | "hybrid_vector_lexical" | "hybrid_vector_only_or_unknown";
+    vectorRecallCount: number;
+    candidateChunkCount: number;
+    lexicalFallbackCount: number | null;
+    candidateCoverageRatio: number | null;
+  };
   searchTopK: number;
   topResults: Array<{
     chunkId: string;
@@ -151,6 +158,10 @@ export interface QueryLogRetrievalDebug {
     rerankScore: number;
     qualityScore: number;
     sectionTitle: string | null;
+    vectorHit?: boolean;
+    selectionReasons?: string[];
+    citationStatus?: "cited" | "not_cited";
+    notCitedReason?: string | null;
   }>;
   answerCitationChunkIds: string[];
   answerFlags: {

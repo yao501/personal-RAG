@@ -868,7 +868,8 @@ export class KnowledgeService {
       searchLimit: 6,
       vectorRecallBackend: "lancedb",
       runtime: "desktop",
-      queryRetrievalType
+      queryRetrievalType,
+      candidateChunkIds: candidateChunks.map((chunk) => chunk.id)
     });
     if (process.env.PKRAG_RETRIEVAL_DEBUG === "1") {
       console.log(JSON.stringify(retrievalDebug));

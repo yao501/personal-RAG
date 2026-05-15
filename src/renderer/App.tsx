@@ -329,6 +329,10 @@ export function App() {
     () => new Set(selectedDebugLog?.citations.map((citation) => citation.chunkId) ?? []),
     [selectedDebugLog]
   );
+  const selectedDebugResultReasonMap = useMemo(
+    () => new Map(selectedDebugLog?.retrievalDebug?.topResults.map((result) => [result.chunkId, result]) ?? []),
+    [selectedDebugLog]
+  );
   const currentDetailQuestion = useMemo(
     () => selectedTurn?.question?.trim() || lastAskedQuestion.trim(),
     [lastAskedQuestion, selectedTurn]
@@ -2087,6 +2091,19 @@ export function App() {
                       </p>
                     </div>
                   </div>
+                  {selectedDebugLog.retrievalDebug?.candidateSelection && (
+                    <div className="debug-result-card">
+                      <header>
+                        <strong>候选池来源</strong>
+                        <span>{selectedDebugLog.retrievalDebug.candidateSelection.mode}</span>
+                      </header>
+                      <div className="debug-score-grid">
+                        <span>向量召回 {selectedDebugLog.retrievalDebug.candidateSelection.vectorRecallCount}</span>
+                        <span>候选 {selectedDebugLog.retrievalDebug.candidateSelection.candidateChunkCount}</span>
+                        <span>词法补充 {selectedDebugLog.retrievalDebug.candidateSelection.lexicalFallbackCount ?? "n/a"}</span>
+                      </div>
+                    </div>
+                  )}
                   <div className="debug-token-row">
                     <span>有效词：{selectedDebugHints.effectiveQueryTokens.slice(0, 18).join(" / ") || "无"}</span>
                     {selectedDebugHints.expandedTokens.length > 0 && (
@@ -2109,11 +2126,12 @@ export function App() {
                   <div className="debug-result-list">
                     {selectedDebugLog.topResults.slice(0, 6).map((result, index) => {
                       const citationHit = selectedDebugCitationChunkIds.has(result.chunkId);
+                      const debugResult = selectedDebugResultReasonMap.get(result.chunkId);
                       return (
                         <article key={`${selectedDebugLog.id}-${result.chunkId}`} className={`debug-result-card ${citationHit ? "debug-result-cited" : ""}`}>
                           <header>
                             <strong>#{index + 1} {result.documentTitle}</strong>
-                            <span>{citationHit ? "已引用" : "未引用"}</span>
+                            <span>{debugResult?.citationStatus === "cited" || citationHit ? "已引用" : "未引用"}</span>
                           </header>
                           <div className="citation-meta">
                             <span>{result.fileName}</span>
@@ -2127,6 +2145,16 @@ export function App() {
                             <span>重排 {formatDebugScore(result.rerankScore)}</span>
                             <span>质量 {formatDebugScore(result.qualityScore)}</span>
                           </div>
+                          {debugResult?.selectionReasons && debugResult.selectionReasons.length > 0 && (
+                            <div className="debug-token-row">
+                              {debugResult.selectionReasons.slice(0, 8).map((reason) => (
+                                <span key={`${result.chunkId}-${reason}`}>{reason}</span>
+                              ))}
+                            </div>
+                          )}
+                          {debugResult?.notCitedReason && !citationHit && (
+                            <p className="muted">未引用原因：{debugResult.notCitedReason}</p>
+                          )}
                           <p>{normalizeInlineText(result.evidenceText ?? result.snippet)}</p>
                         </article>
                       );

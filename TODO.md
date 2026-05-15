@@ -226,7 +226,7 @@ Acceptance:
 
 ### P1.1 Retrieval quality improvements
 
-Status (Sprint 5 + 5.1 + 5.2 + evidence-decision pass): **eval–desktop retrieval shape aligned**, **tuned cautious-procedural thresholds**, **benchmark intent groups + failure buckets + `expectedAnswerMode`**, **`PKRAG_RETRIEVAL_DEBUG` schema v4** (`vectorRecallBackend` / `runtime` + tokens + flags + answer evidence decision; eval runner can emit the same shape per case).
+Status (Sprint 5 + 5.1 + 5.2 + evidence-decision pass + candidate-reasons pass): **eval–desktop retrieval shape aligned**, **tuned cautious-procedural thresholds**, **benchmark intent groups + failure buckets + `expectedAnswerMode`**, **`PKRAG_RETRIEVAL_DEBUG` schema v5** (`vectorRecallBackend` / `runtime` + tokens + flags + answer evidence decision + candidate/result selection reasons; eval runner can emit the same shape per case).
 
 Keep the current route:
 
@@ -238,7 +238,7 @@ Good next steps:
 
 - chunk contextualization
 - configurable lexical/vector weighting
-- conflict-evidence messaging and deeper candidate-selection reasons
+- conflict-evidence messaging and deeper candidate rejection reasons
 - stable refusal on weak evidence
 
 Important:
@@ -248,11 +248,11 @@ Important:
 
 ### P1.2 Retrieval debug panel
 
-Status: **first in-app version implemented** — Settings exposes recent-query debug details from persisted query logs: query type, intent hints, effective/expanded tokens, answer flags, evidence decision reasons, citation-hit count, vector shortlist count, candidate chunk count, and top-result score breakdowns. The chat answer view also shows the current answer's evidence decision.
+Status: **first in-app version implemented** — Settings exposes recent-query debug details from persisted query logs: query type, intent hints, effective/expanded tokens, answer flags, evidence decision reasons, candidate pool source, citation-hit count, vector shortlist count, candidate chunk count, top-result selection reason codes, and score breakdowns. The chat answer view also shows the current answer's evidence decision.
 
 Remaining scope:
 
-- show filtering or candidate-selection reasons when available
+- show deeper filtering / rejection reasons when available from the ranker
 - export a single query debug snapshot
 
 This will make retrieval iteration much faster and safer.

@@ -148,7 +148,12 @@ describe("KnowledgeService.askQuestion retrieval bridge (P0-B B1/B2/B3)", () => 
       runtime: "desktop",
       vectorRecallBackend: "lancedb",
       queryRetrievalType: "procedural_full_flow",
-      candidateChunkCount: 0
+      candidateChunkCount: 0,
+      candidateSelection: {
+        mode: "all_chunks_no_vector",
+        vectorRecallCount: 0,
+        candidateChunkCount: 0
+      }
     });
   });
 });

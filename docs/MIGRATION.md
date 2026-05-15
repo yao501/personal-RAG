@@ -25,7 +25,7 @@ Privacy:
 
 Compatibility note:
 
-- Retrieval debug payload schema may evolve inside the existing nullable JSON column. As of schema v4, new rows can include compact answer evidence-decision metadata. This does **not** require a SQLite `user_version` bump because the table shape is unchanged and older rows remain readable.
+- Retrieval debug payload schema may evolve inside the existing nullable JSON column. As of schema v5, new rows can include compact answer evidence-decision metadata plus candidate/result selection reason summaries. This does **not** require a SQLite `user_version` bump because the table shape is unchanged and older rows remain readable.
 
 ### v1 — baseline local library schema
 

@@ -70,22 +70,35 @@ describe("resolveQueryRetrievalType", () => {
 });
 
 describe("buildRetrievalDebugPayload queryRetrievalType", () => {
-  it("includes queryRetrievalType and evidence decision in payload for logs (schema v4)", () => {
+  it("includes queryRetrievalType, evidence decision, and selection reasons in payload for logs (schema v5)", () => {
     const payload = buildRetrievalDebugPayload(
       "编译和下装的顺序？",
-      [],
-      0,
-      [minimalResult({ chunkId: "x" })],
+      ["x"],
+      1,
+      [minimalResult({ chunkId: "x", evidenceText: "先编译，后下装。" })],
       emptyAnswer(),
       {
         searchLimit: 6,
         vectorRecallBackend: "memory",
         runtime: "eval",
-        queryRetrievalType: "compile_order"
+        queryRetrievalType: "compile_order",
+        candidateChunkIds: ["x"]
       }
     );
-    expect(payload.schemaVersion).toBe(4);
+    expect(payload.schemaVersion).toBe(5);
     expect(payload.queryRetrievalType).toBe("compile_order");
+    expect(payload.candidateSelection).toMatchObject({
+      mode: "hybrid_vector_only_or_unknown",
+      vectorRecallCount: 1,
+      candidateChunkCount: 1,
+      lexicalFallbackCount: 0
+    });
+    expect(payload.topResults[0]).toMatchObject({
+      vectorHit: true,
+      citationStatus: "not_cited",
+      notCitedReason: "answer_refused_or_no_citations",
+      selectionReasons: expect.arrayContaining(["vector_shortlist_hit", "sentence_evidence_selected"])
+    });
     expect(payload.evidenceDecision).toMatchObject({
       mode: "refusal",
       reasonCode: "no_results",
