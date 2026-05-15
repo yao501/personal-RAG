@@ -148,6 +148,26 @@ export interface QueryLogRetrievalDebug {
     lexicalFallbackCount: number | null;
     candidateCoverageRatio: number | null;
   };
+  rejectionDiagnostics?: {
+    evaluatedCandidateCount: number;
+    primaryCandidateCount: number;
+    rejectedCandidateCount: number;
+    sampledRejected: Array<{
+      chunkId: string;
+      fileName: string;
+      sectionTitle: string | null;
+      score: number;
+      lexicalScore: number;
+      semanticScore: number;
+      rerankScore: number;
+      qualityScore: number;
+      penalty: number;
+      coverage: number;
+      evidenceCoverage: number;
+      matchedAnchorCount: number;
+      reasons: string[];
+    }>;
+  };
   searchTopK: number;
   topResults: Array<{
     chunkId: string;

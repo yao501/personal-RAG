@@ -6,7 +6,7 @@ import type { QueryRetrievalType } from "./queryRetrievalType";
 import { resolveQueryRetrievalType } from "./queryRetrievalType";
 import { applySprint53cRetrievalBias } from "./sprint53cBias";
 import { selectCandidateChunksFromVectors } from "./candidateChunks";
-import { searchChunks } from "./searchIndex";
+import { createEmptySearchDiagnostics, searchChunks, type SearchDiagnostics } from "./searchIndex";
 
 /** Matches `KnowledgeService.askQuestion` default top-k passed to `searchChunks`. */
 export const DEFAULT_RETRIEVAL_LIMIT = 6;
@@ -87,6 +87,8 @@ export interface RetrievalPipelineResult {
   candidateChunks: ChunkRecord[];
   /** P0-B: coarse bucket for bias + debug; see {@link resolveQueryRetrievalType}. */
   queryRetrievalType: QueryRetrievalType;
+  /** Optional search-stage filtering diagnostics for retrieval debug logs. */
+  searchDiagnostics: SearchDiagnostics;
 }
 
 /**
@@ -145,7 +147,8 @@ export async function runRetrievalLikeDesktop(
   const queryRetrievalType = resolveQueryRetrievalType(question);
   const vectorChunkIds = rankChunkIdsByEmbeddingSimilarity(working, queryEmbedding, VECTOR_SHORTLIST_MAX);
   const candidateChunks = selectCandidateChunksFromVectors(question, documents, working, vectorChunkIds);
-  let results = searchChunks(question, documents, candidateChunks, limit, queryEmbedding);
+  const searchDiagnostics = createEmptySearchDiagnostics();
+  let results = searchChunks(question, documents, candidateChunks, limit, queryEmbedding, searchDiagnostics);
   if (useBias) {
     results = applyFullWorkflowRetrievalBias(question, results);
   }
@@ -163,6 +166,7 @@ export async function runRetrievalLikeDesktop(
     queryEmbedding,
     vectorChunkIds,
     candidateChunks,
-    queryRetrievalType
+    queryRetrievalType,
+    searchDiagnostics
   };
 }

@@ -691,6 +691,24 @@ select {
   gap: 10px;
 }
 
+.debug-rejected-list {
+  display: grid;
+  gap: 8px;
+}
+
+.debug-rejected-item {
+  display: grid;
+  gap: 8px;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.debug-rejected-item header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .debug-result-card {
   display: grid;
   gap: 8px;

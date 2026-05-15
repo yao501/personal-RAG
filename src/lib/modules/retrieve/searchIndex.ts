@@ -30,8 +30,43 @@ interface CandidateScore {
   rerankScore: number;
   qualityScore: number;
   score: number;
+  penalty: number;
+  coverage: number;
+  evidenceCoverage: number;
+  matchedAnchorCount: number;
   evidenceText: string;
   evidenceScore: number;
+}
+
+export type SearchRejectionReason =
+  | "very_low_score"
+  | "high_penalty"
+  | "role_question_without_role_evidence"
+  | "low_quality_weak_match"
+  | "low_query_coverage"
+  | "anchor_tokens_not_satisfied";
+
+export interface SearchRejectedCandidateDiagnostic {
+  chunkId: string;
+  fileName: string;
+  sectionTitle: string | null;
+  score: number;
+  lexicalScore: number;
+  semanticScore: number;
+  rerankScore: number;
+  qualityScore: number;
+  penalty: number;
+  coverage: number;
+  evidenceCoverage: number;
+  matchedAnchorCount: number;
+  reasons: SearchRejectionReason[];
+}
+
+export interface SearchDiagnostics {
+  evaluatedCandidateCount: number;
+  primaryCandidateCount: number;
+  rejectedCandidateCount: number;
+  sampledRejected: SearchRejectedCandidateDiagnostic[];
 }
 
 interface EvidenceCandidate {
@@ -43,6 +78,56 @@ interface SectionRootGroupStats {
   count: number;
   topScore: number;
   aggregateScore: number;
+}
+
+export function createEmptySearchDiagnostics(): SearchDiagnostics {
+  return {
+    evaluatedCandidateCount: 0,
+    primaryCandidateCount: 0,
+    rejectedCandidateCount: 0,
+    sampledRejected: []
+  };
+}
+
+function buildSearchRejectionReasons(input: {
+  score: number;
+  penalty: number;
+  roleQuestionWithoutRoleEvidence: boolean;
+  lowQualityWeakMatch: boolean;
+  coverage: number;
+  minimumCoverage: number;
+  hasStrongSignal: boolean;
+  anchorSatisfied: boolean;
+}): SearchRejectionReason[] {
+  const reasons: SearchRejectionReason[] = [];
+  if (input.score <= 0.02) reasons.push("very_low_score");
+  if (input.penalty >= 1.4) reasons.push("high_penalty");
+  if (input.roleQuestionWithoutRoleEvidence) reasons.push("role_question_without_role_evidence");
+  if (input.lowQualityWeakMatch) reasons.push("low_quality_weak_match");
+  if (input.coverage < input.minimumCoverage && !input.hasStrongSignal) reasons.push("low_query_coverage");
+  if (!input.anchorSatisfied && !input.hasStrongSignal) reasons.push("anchor_tokens_not_satisfied");
+  return reasons;
+}
+
+function toRejectedCandidateDiagnostic(
+  candidate: CandidateScore,
+  reasons: SearchRejectionReason[]
+): SearchRejectedCandidateDiagnostic {
+  return {
+    chunkId: candidate.chunk.id,
+    fileName: candidate.document.fileName,
+    sectionTitle: candidate.chunk.sectionTitle ?? null,
+    score: candidate.score,
+    lexicalScore: candidate.lexicalScore,
+    semanticScore: candidate.semanticScore,
+    rerankScore: candidate.rerankScore,
+    qualityScore: candidate.qualityScore,
+    penalty: candidate.penalty,
+    coverage: candidate.coverage,
+    evidenceCoverage: candidate.evidenceCoverage,
+    matchedAnchorCount: candidate.matchedAnchorCount,
+    reasons
+  };
 }
 
 function findHighlightRange(fullText: string, evidenceText: string | null | undefined): {
@@ -427,8 +512,13 @@ export function searchChunks(
   documents: DocumentRecord[],
   chunks: ChunkRecord[],
   limit = 6,
-  queryEmbedding: number[] | null = null
+  queryEmbedding: number[] | null = null,
+  diagnostics?: SearchDiagnostics
 ): SearchResult[] {
+  if (diagnostics) {
+    Object.assign(diagnostics, createEmptySearchDiagnostics());
+  }
+
   // B5: normalize only for lexical matching signals; do not mutate stored chunk text/snippets.
   const lexicalQuery = normalizeForLexicalMatch(query);
   const intent = detectQueryIntent(lexicalQuery);
@@ -457,7 +547,7 @@ export function searchChunks(
   const recencyWeight = intent.wantsRecency ? 0.9 : 0.35;
 
   const evaluatedCandidates = chunks
-    .map((chunk, index): { candidate: CandidateScore; keepInPrimaryRanking: boolean } | null => {
+    .map((chunk, index): { candidate: CandidateScore; keepInPrimaryRanking: boolean; rejectionReasons: SearchRejectionReason[] } | null => {
       const document = documentMap.get(chunk.documentId);
       if (!document) {
         return null;
@@ -558,14 +648,17 @@ export function searchChunks(
         /安装|步骤|下一步|安装内容|单击|点击|勾选/.test([chunk.sectionTitle, chunk.sectionPath, evidence.evidenceText].filter(Boolean).join(" ")) &&
         !/(用于|用来|负责|完成|实现|作用是)/.test(evidence.evidenceText);
 
-      const keepInPrimaryRanking = !(
-        score <= 0.02 ||
-        penalty >= 1.4 ||
-        roleQuestionWithoutRoleEvidence ||
-        lowQualityWeakMatch ||
-        (coverage < minimumCoverage && !hasStrongSignal) ||
-        (!anchorSatisfied && !hasStrongSignal)
-      );
+      const rejectionReasons = buildSearchRejectionReasons({
+        score,
+        penalty,
+        roleQuestionWithoutRoleEvidence,
+        lowQualityWeakMatch,
+        coverage,
+        minimumCoverage,
+        hasStrongSignal,
+        anchorSatisfied
+      });
+      const keepInPrimaryRanking = rejectionReasons.length === 0;
 
       return {
         candidate: {
@@ -578,17 +671,33 @@ export function searchChunks(
           rerankScore,
           qualityScore,
           score,
+          penalty,
+          coverage,
+          evidenceCoverage,
+          matchedAnchorCount,
           evidenceText: evidence.evidenceText,
           evidenceScore: evidence.evidenceScore
         },
-        keepInPrimaryRanking
+        keepInPrimaryRanking,
+        rejectionReasons
       };
     })
-    .filter((item): item is { candidate: CandidateScore; keepInPrimaryRanking: boolean } => item !== null);
+    .filter((item): item is { candidate: CandidateScore; keepInPrimaryRanking: boolean; rejectionReasons: SearchRejectionReason[] } => item !== null);
 
   const primaryCandidates = evaluatedCandidates
     .filter((item) => item.keepInPrimaryRanking)
     .map((item) => item.candidate);
+
+  if (diagnostics) {
+    diagnostics.evaluatedCandidateCount = evaluatedCandidates.length;
+    diagnostics.primaryCandidateCount = primaryCandidates.length;
+    diagnostics.rejectedCandidateCount = Math.max(0, evaluatedCandidates.length - primaryCandidates.length);
+    diagnostics.sampledRejected = evaluatedCandidates
+      .filter((item) => !item.keepInPrimaryRanking)
+      .sort((left, right) => right.candidate.score - left.candidate.score)
+      .slice(0, 8)
+      .map((item) => toRejectedCandidateDiagnostic(item.candidate, item.rejectionReasons));
+  }
   const baseTopScore = primaryCandidates.reduce((max, candidate) => Math.max(max, candidate.score), 0);
   const sectionRootGroups = buildSectionRootGroupStats(primaryCandidates);
   const sortedCandidates = primaryCandidates

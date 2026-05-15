@@ -10,7 +10,7 @@ import { buildRetrievalDebugPayload } from "../lib/modules/retrieve/retrievalDeb
 import { resolveQueryRetrievalType } from "../lib/modules/retrieve/queryRetrievalType";
 import { applySprint53cRetrievalBias } from "../lib/modules/retrieve/sprint53cBias";
 import { selectCandidateChunksFromVectors } from "../lib/modules/retrieve/candidateChunks";
-import { searchChunks } from "../lib/modules/retrieve/searchIndex";
+import { createEmptySearchDiagnostics, searchChunks } from "../lib/modules/retrieve/searchIndex";
 import type {
   AppSnapshot,
   AppSettings,
@@ -859,7 +859,8 @@ export class KnowledgeService {
     }
 
     const candidateChunks = selectCandidateChunksFromVectors(question, documents, chunks, vectorChunkIds);
-    const baseResults = searchChunks(question, documents, candidateChunks, 6, queryEmbedding);
+    const searchDiagnostics = createEmptySearchDiagnostics();
+    const baseResults = searchChunks(question, documents, candidateChunks, 6, queryEmbedding, searchDiagnostics);
     const results = applySprint53cRetrievalBias(question, baseResults, queryRetrievalType, {
       documentCount: documents.length
     });
@@ -869,7 +870,8 @@ export class KnowledgeService {
       vectorRecallBackend: "lancedb",
       runtime: "desktop",
       queryRetrievalType,
-      candidateChunkIds: candidateChunks.map((chunk) => chunk.id)
+      candidateChunkIds: candidateChunks.map((chunk) => chunk.id),
+      searchDiagnostics
     });
     if (process.env.PKRAG_RETRIEVAL_DEBUG === "1") {
       console.log(JSON.stringify(retrievalDebug));

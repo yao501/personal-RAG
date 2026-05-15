@@ -70,7 +70,7 @@ describe("resolveQueryRetrievalType", () => {
 });
 
 describe("buildRetrievalDebugPayload queryRetrievalType", () => {
-  it("includes queryRetrievalType, evidence decision, and selection reasons in payload for logs (schema v5)", () => {
+  it("includes queryRetrievalType, evidence decision, and selection reasons in payload for logs (schema v6)", () => {
     const payload = buildRetrievalDebugPayload(
       "编译和下装的顺序？",
       ["x"],
@@ -82,10 +82,32 @@ describe("buildRetrievalDebugPayload queryRetrievalType", () => {
         vectorRecallBackend: "memory",
         runtime: "eval",
         queryRetrievalType: "compile_order",
-        candidateChunkIds: ["x"]
+        candidateChunkIds: ["x"],
+        searchDiagnostics: {
+          evaluatedCandidateCount: 2,
+          primaryCandidateCount: 1,
+          rejectedCandidateCount: 1,
+          sampledRejected: [
+            {
+              chunkId: "y",
+              fileName: "noise.md",
+              sectionTitle: "Noise",
+              score: -0.2,
+              lexicalScore: 0,
+              semanticScore: 0,
+              rerankScore: 0,
+              qualityScore: -0.1,
+              penalty: 0.5,
+              coverage: 0,
+              evidenceCoverage: 0,
+              matchedAnchorCount: 0,
+              reasons: ["very_low_score"]
+            }
+          ]
+        }
       }
     );
-    expect(payload.schemaVersion).toBe(5);
+    expect(payload.schemaVersion).toBe(6);
     expect(payload.queryRetrievalType).toBe("compile_order");
     expect(payload.candidateSelection).toMatchObject({
       mode: "hybrid_vector_only_or_unknown",
@@ -103,6 +125,12 @@ describe("buildRetrievalDebugPayload queryRetrievalType", () => {
       mode: "refusal",
       reasonCode: "no_results",
       citedChunkCount: 0
+    });
+    expect(payload.rejectionDiagnostics).toMatchObject({
+      evaluatedCandidateCount: 2,
+      primaryCandidateCount: 1,
+      rejectedCandidateCount: 1,
+      sampledRejected: [expect.objectContaining({ chunkId: "y", reasons: ["very_low_score"] })]
     });
   });
 });

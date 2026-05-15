@@ -4,9 +4,10 @@ import { detectQueryIntent } from "./queryIntent";
 import { expandQueryTokens } from "./queryFeatures";
 import type { QueryRetrievalType } from "./queryRetrievalType";
 import { resolveQueryRetrievalType } from "./queryRetrievalType";
+import type { SearchDiagnostics } from "./searchIndex";
 
-/** Bump when JSON shape changes (for log parsers). v5 adds candidate/result selection reason summaries. */
-export const RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION = 5;
+/** Bump when JSON shape changes (for log parsers). v6 adds primary-rank rejection diagnostics. */
+export const RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION = 6;
 
 export type VectorRecallBackend = "lancedb" | "memory";
 export type RetrievalDebugRuntime = "desktop" | "eval";
@@ -19,6 +20,8 @@ export interface RetrievalDebugBuildOptions {
   queryRetrievalType?: QueryRetrievalType;
   /** Optional selected candidate ids from the vector+lexical merge stage. */
   candidateChunkIds?: string[];
+  /** Optional diagnostics from `searchChunks` primary-rank filtering. */
+  searchDiagnostics?: SearchDiagnostics;
 }
 
 export interface RetrievalDebugPayload {
@@ -45,6 +48,26 @@ export interface RetrievalDebugPayload {
     candidateChunkCount: number;
     lexicalFallbackCount: number | null;
     candidateCoverageRatio: number | null;
+  };
+  rejectionDiagnostics?: {
+    evaluatedCandidateCount: number;
+    primaryCandidateCount: number;
+    rejectedCandidateCount: number;
+    sampledRejected: Array<{
+      chunkId: string;
+      fileName: string;
+      sectionTitle: string | null;
+      score: number;
+      lexicalScore: number;
+      semanticScore: number;
+      rerankScore: number;
+      qualityScore: number;
+      penalty: number;
+      coverage: number;
+      evidenceCoverage: number;
+      matchedAnchorCount: number;
+      reasons: string[];
+    }>;
   };
   /** `searchChunks` limit (desktop default 6). */
   searchTopK: number;
@@ -111,6 +134,35 @@ function buildCandidateSelectionSummary(
     candidateChunkCount,
     lexicalFallbackCount,
     candidateCoverageRatio: vectorChunkIds.length > 0 ? vectorCandidateCount / vectorChunkIds.length : null
+  };
+}
+
+function buildRejectionDiagnostics(
+  diagnostics?: SearchDiagnostics
+): RetrievalDebugPayload["rejectionDiagnostics"] | undefined {
+  if (!diagnostics || (diagnostics.evaluatedCandidateCount === 0 && diagnostics.rejectedCandidateCount === 0)) {
+    return undefined;
+  }
+
+  return {
+    evaluatedCandidateCount: diagnostics.evaluatedCandidateCount,
+    primaryCandidateCount: diagnostics.primaryCandidateCount,
+    rejectedCandidateCount: diagnostics.rejectedCandidateCount,
+    sampledRejected: diagnostics.sampledRejected.map((candidate) => ({
+      chunkId: candidate.chunkId,
+      fileName: candidate.fileName,
+      sectionTitle: candidate.sectionTitle,
+      score: candidate.score,
+      lexicalScore: candidate.lexicalScore,
+      semanticScore: candidate.semanticScore,
+      rerankScore: candidate.rerankScore,
+      qualityScore: candidate.qualityScore,
+      penalty: candidate.penalty,
+      coverage: candidate.coverage,
+      evidenceCoverage: candidate.evidenceCoverage,
+      matchedAnchorCount: candidate.matchedAnchorCount,
+      reasons: candidate.reasons
+    }))
   };
 }
 
@@ -206,6 +258,7 @@ export function buildRetrievalDebugPayload(
     vectorShortlistCount: vectorChunkIds.length,
     candidateChunkCount,
     candidateSelection: buildCandidateSelectionSummary(vectorChunkIds, candidateChunkCount, options?.candidateChunkIds),
+    rejectionDiagnostics: buildRejectionDiagnostics(options?.searchDiagnostics),
     searchTopK: searchLimit,
     topResults: results.slice(0, searchLimit).map((result) => {
       const vectorHit = vectorSet.has(result.chunkId);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { searchChunks } from "./searchIndex";
+import { createEmptySearchDiagnostics, searchChunks } from "./searchIndex";
 import type { ChunkRecord, DocumentRecord } from "../../shared/types";
 
 describe("searchChunks", () => {
@@ -921,5 +921,56 @@ describe("searchChunks", () => {
     expect(searchChunks("在哪里可以查看资料库健康状态？", documents, chunks, 1)[0]?.chunkId).toBe("delta-health");
     expect(searchChunks("如何一步步完成多模块高级配置？", documents, chunks, 1)[0]?.chunkId).toBe("epsilon-overview");
     expect(searchChunks("zzzzzz_nonsense_query_no_match_please_99999", documents, chunks, 1)).toEqual([]);
+  });
+
+  it("collects privacy-safe rejection diagnostics without changing no-match results", () => {
+    const documents: DocumentRecord[] = [
+      {
+        id: "doc-1",
+        filePath: "/tmp/ops.md",
+        fileName: "ops.md",
+        title: "Operations",
+        fileType: "md",
+        content: "",
+        importedAt: "2026-04-01T00:00:00.000Z",
+        updatedAt: "2026-04-01T00:00:00.000Z",
+        sourceCreatedAt: "2026-04-01T00:00:00.000Z",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        chunkCount: 1
+      }
+    ];
+    const chunks: ChunkRecord[] = [
+      {
+        id: "ops-1",
+        documentId: "doc-1",
+        text: "The operator console shows alarms and current process values.",
+        chunkIndex: 0,
+        startOffset: 0,
+        endOffset: 64,
+        tokenCount: 9,
+        sectionTitle: "Console",
+        sectionPath: "Operations > Console",
+        headingTrail: "Operations > Console"
+      }
+    ];
+    const diagnostics = createEmptySearchDiagnostics();
+
+    const results = searchChunks("zzzzzz_nonsense_query_no_match_please_99999", documents, chunks, 1, null, diagnostics);
+
+    expect(results).toEqual([]);
+    expect(diagnostics).toMatchObject({
+      evaluatedCandidateCount: 1,
+      primaryCandidateCount: 0,
+      rejectedCandidateCount: 1,
+      sampledRejected: [
+        expect.objectContaining({
+          chunkId: "ops-1",
+          fileName: "ops.md",
+          sectionTitle: "Console",
+          reasons: expect.arrayContaining(["low_query_coverage"])
+        })
+      ]
+    });
+    expect(JSON.stringify(diagnostics)).not.toContain("operator console shows alarms");
   });
 });

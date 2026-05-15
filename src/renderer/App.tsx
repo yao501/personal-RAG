@@ -2104,6 +2104,43 @@ export function App() {
                       </div>
                     </div>
                   )}
+                  {selectedDebugLog.retrievalDebug?.rejectionDiagnostics && (
+                    <div className="debug-result-card">
+                      <header>
+                        <strong>主排序过滤</strong>
+                        <span>rejected {selectedDebugLog.retrievalDebug.rejectionDiagnostics.rejectedCandidateCount}</span>
+                      </header>
+                      <div className="debug-score-grid">
+                        <span>评估 {selectedDebugLog.retrievalDebug.rejectionDiagnostics.evaluatedCandidateCount}</span>
+                        <span>进入主排序 {selectedDebugLog.retrievalDebug.rejectionDiagnostics.primaryCandidateCount}</span>
+                        <span>采样 {selectedDebugLog.retrievalDebug.rejectionDiagnostics.sampledRejected.length}</span>
+                      </div>
+                      {selectedDebugLog.retrievalDebug.rejectionDiagnostics.sampledRejected.length > 0 && (
+                        <div className="debug-rejected-list">
+                          {selectedDebugLog.retrievalDebug.rejectionDiagnostics.sampledRejected.slice(0, 4).map((candidate) => (
+                            <article key={`${selectedDebugLog.id}-${candidate.chunkId}-rejected`} className="debug-rejected-item">
+                              <header>
+                                <strong>{candidate.fileName}</strong>
+                                <span>{candidate.sectionTitle ?? "通用内容"}</span>
+                              </header>
+                              <div className="debug-score-grid">
+                                <span>总分 {formatDebugScore(candidate.score)}</span>
+                                <span>词法 {formatDebugScore(candidate.lexicalScore)}</span>
+                                <span>语义 {formatDebugScore(candidate.semanticScore)}</span>
+                                <span>惩罚 {formatDebugScore(candidate.penalty)}</span>
+                                <span>覆盖 {formatDebugScore(candidate.coverage)}</span>
+                              </div>
+                              <div className="debug-token-row">
+                                {candidate.reasons.slice(0, 6).map((reason) => (
+                                  <span key={`${candidate.chunkId}-${reason}`}>{reason}</span>
+                                ))}
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className="debug-token-row">
                     <span>有效词：{selectedDebugHints.effectiveQueryTokens.slice(0, 18).join(" / ") || "无"}</span>
                     {selectedDebugHints.expandedTokens.length > 0 && (

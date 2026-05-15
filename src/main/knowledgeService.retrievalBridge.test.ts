@@ -32,6 +32,12 @@ const searchChunksMock = vi.fn<
 
 vi.mock("../lib/modules/retrieve/searchIndex", () => {
   return {
+    createEmptySearchDiagnostics: () => ({
+      evaluatedCandidateCount: 0,
+      primaryCandidateCount: 0,
+      rejectedCandidateCount: 0,
+      sampledRejected: []
+    }),
     searchChunks: (...args: Parameters<typeof searchChunksMock>) => searchChunksMock(...args)
   };
 });
