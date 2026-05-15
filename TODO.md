@@ -226,7 +226,7 @@ Acceptance:
 
 ### P1.1 Retrieval quality improvements
 
-Status (Sprint 5 + 5.1 + 5.2): **eval–desktop retrieval shape aligned**, **tuned cautious-procedural thresholds**, **benchmark intent groups + failure buckets + `expectedAnswerMode`**, **`PKRAG_RETRIEVAL_DEBUG` schema v2** (`vectorRecallBackend` / `runtime` + tokens + flags; eval runner can emit the same shape per case).
+Status (Sprint 5 + 5.1 + 5.2 + evidence-decision pass): **eval–desktop retrieval shape aligned**, **tuned cautious-procedural thresholds**, **benchmark intent groups + failure buckets + `expectedAnswerMode`**, **`PKRAG_RETRIEVAL_DEBUG` schema v4** (`vectorRecallBackend` / `runtime` + tokens + flags + answer evidence decision; eval runner can emit the same shape per case).
 
 Keep the current route:
 
@@ -238,9 +238,8 @@ Good next steps:
 
 - chunk contextualization
 - configurable lexical/vector weighting
-- further evidence sufficiency / conflict messaging (foundation started in Sprint 5)
+- conflict-evidence messaging and deeper candidate-selection reasons
 - stable refusal on weak evidence
-- conflict-evidence messaging
 
 Important:
 
@@ -249,7 +248,7 @@ Important:
 
 ### P1.2 Retrieval debug panel
 
-Status: **first in-app version implemented** — Settings exposes recent-query debug details from persisted query logs: query type, intent hints, effective/expanded tokens, answer flags, citation-hit count, vector shortlist count, candidate chunk count, and top-result score breakdowns.
+Status: **first in-app version implemented** — Settings exposes recent-query debug details from persisted query logs: query type, intent hints, effective/expanded tokens, answer flags, evidence decision reasons, citation-hit count, vector shortlist count, candidate chunk count, and top-result score breakdowns. The chat answer view also shows the current answer's evidence decision.
 
 Remaining scope:
 

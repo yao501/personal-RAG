@@ -23,6 +23,10 @@ Privacy:
 
 - The support bundle still exports only query-log metadata via `query_logs_meta.json`; it does not include full answers, citations JSON, top-k retrieval JSON, or `retrievalDebugJson`.
 
+Compatibility note:
+
+- Retrieval debug payload schema may evolve inside the existing nullable JSON column. As of schema v4, new rows can include compact answer evidence-decision metadata. This does **not** require a SQLite `user_version` bump because the table shape is unchanged and older rows remain readable.
+
 ### v1 — baseline local library schema
 
 Includes settings, documents, chunks, chat sessions, chat turns, and query logs.

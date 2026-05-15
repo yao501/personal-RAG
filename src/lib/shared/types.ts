@@ -92,6 +92,38 @@ export interface ChatAnswer {
   sourceDocumentCount: number;
   basedOnSingleDocument: boolean;
   citations: Citation[];
+  evidenceDecision?: AnswerEvidenceDecision;
+}
+
+export type AnswerEvidenceMode = "grounded" | "cautious" | "refusal";
+
+export type AnswerEvidenceReasonCode =
+  | "compile_error_diagnosis"
+  | "reliable_evidence"
+  | "no_results"
+  | "unsupported_specificity_gap"
+  | "insufficient_reliable_evidence"
+  | "procedural_overview_only";
+
+export interface AnswerEvidenceDecision {
+  schemaVersion: number;
+  mode: AnswerEvidenceMode;
+  reasonCode: AnswerEvidenceReasonCode;
+  reason: string;
+  suggestions: string[];
+  signals: {
+    resultCount: number;
+    usableResultCount: number;
+    citedChunkCount: number;
+    sourceDocumentCount: number;
+    intentWantsSteps: boolean;
+    topScore: number | null;
+    topLexicalScore: number | null;
+    topSemanticScore: number | null;
+    topRerankScore: number | null;
+    topQualityScore: number | null;
+    unsupportedAnchors?: string[];
+  };
 }
 
 export type QueryLogFeedbackStatus = "pending" | "benchmark_candidate" | "promoted" | "ignored";
@@ -124,6 +156,13 @@ export interface QueryLogRetrievalDebug {
   answerFlags: {
     refusal: boolean;
     cautiousProcedural: boolean;
+  };
+  evidenceDecision?: {
+    mode: AnswerEvidenceMode;
+    reasonCode: AnswerEvidenceReasonCode;
+    reason: string;
+    citedChunkCount: number;
+    sourceDocumentCount: number;
   };
 }
 

@@ -1,4 +1,4 @@
-import type { ChatAnswer, SearchResult } from "../../shared/types";
+import type { AnswerEvidenceDecision, AnswerEvidenceReasonCode, ChatAnswer, SearchResult } from "../../shared/types";
 import { CAUTIOUS_PROCEDURAL_ANSWER_MARKER } from "./cautiousMarkers";
 import { splitSentenceLikePreservingTechnicalDots as splitSentenceLike } from "./safeSentenceSplit";
 import { formatReferenceTag } from "../citation/locator";
@@ -144,8 +144,12 @@ function hasReliableEvidence(question: string, results: SearchResult[]): boolean
     return false;
   }
 
+  return countReliableEvidenceCandidates(question, results) > 0;
+}
+
+function countReliableEvidenceCandidates(question: string, results: SearchResult[]): number {
   const candidates = results.slice(0, 3);
-  const usableIdx = candidates.findIndex((r) => {
+  return candidates.filter((r) => {
     const technicalTableEvidence = isDcsTechnicalTableEvidence(question, r);
     if (r.qualityScore < -0.25 && !technicalTableEvidence) return false;
     if (r.score < 0.8) return false;
@@ -154,8 +158,7 @@ function hasReliableEvidence(question: string, results: SearchResult[]): boolean
     const sentenceLike = (topText.match(/[。!?.!?]/g) ?? []).length;
     const codeDensity = ((topText.match(/[A-Z0-9-]/g) ?? []).length / Math.max(1, topText.length));
     return technicalTableEvidence || !(sentenceLike === 0 && codeDensity > 0.18);
-  });
-  return usableIdx >= 0;
+  }).length;
 }
 
 const HIGH_RISK_UNSUPPORTED_ANCHORS = [
@@ -170,14 +173,17 @@ const HIGH_RISK_UNSUPPORTED_ANCHORS = [
 ];
 
 function hasUnsupportedSpecificityGap(question: string, results: SearchResult[]): boolean {
-  if (results.length === 0) {
-    return false;
-  }
+  return unsupportedSpecificityGapAnchors(question, results).length > 0;
+}
 
+function unsupportedSpecificityGapAnchors(question: string, results: SearchResult[]): string[] {
+  if (results.length === 0) {
+    return [];
+  }
   const questionText = question.toLowerCase();
   const riskAnchors = HIGH_RISK_UNSUPPORTED_ANCHORS.filter((anchor) => questionText.includes(anchor.toLowerCase()));
   if (riskAnchors.length === 0) {
-    return false;
+    return [];
   }
 
   const evidenceText = results
@@ -187,7 +193,7 @@ function hasUnsupportedSpecificityGap(question: string, results: SearchResult[])
     .toLowerCase();
   const matched = riskAnchors.filter((anchor) => evidenceText.includes(anchor.toLowerCase()));
 
-  return matched.length === 0;
+  return matched.length === 0 ? riskAnchors : [];
 }
 
 function normalizeSentence(text: string): string {
@@ -413,7 +419,7 @@ function needsProceduralEvidenceCaution(question: string, results: SearchResult[
   return !chunkHasStepLikeContent(top.text) && (!second || !chunkHasStepLikeContent(second.text));
 }
 
-function buildCautiousProceduralAnswer(top: SearchResult): ChatAnswer {
+function buildCautiousProceduralAnswer(top: SearchResult, evidenceDecision?: AnswerEvidenceDecision): ChatAnswer {
   const section = top.sectionTitle ?? splitSectionPath(top.sectionPath).at(-1) ?? "相关章节";
   const directAnswer = `当前检索到的资料仅包含${CAUTIOUS_PROCEDURAL_ANSWER_MARKER},未形成可逐步执行的完整操作说明。建议打开《${top.documentTitle}》中与「${section}」相关的段落逐条对照,或补充包含步骤说明的文档。`;
   const supporting = `${normalizeSentence(top.evidenceText ?? top.snippet)} ${formatReferenceTag(top)}`;
@@ -435,6 +441,7 @@ function buildCautiousProceduralAnswer(top: SearchResult): ChatAnswer {
     supportingPoints: [supporting],
     sourceDocumentCount: 1,
     basedOnSingleDocument: true,
+    evidenceDecision,
     citations: [
       (({ text: _text, lexicalScore: _lexicalScore, semanticScore: _semanticScore, freshnessScore: _freshnessScore, rerankScore: _rerankScore, qualityScore: _qualityScore, ...citation }) => citation)(top)
     ]
@@ -1945,28 +1952,100 @@ function fallbackSupportingPoint(result: SearchResult): string {
   return `${section}${result.documentTitle} contains relevant material for this answer. ${formatReferenceTag(result)}`;
 }
 
+function createEvidenceDecision(
+  question: string,
+  results: SearchResult[],
+  mode: AnswerEvidenceDecision["mode"],
+  reasonCode: AnswerEvidenceReasonCode,
+  reason: string,
+  citations: SearchResult[],
+  suggestions: string[]
+): AnswerEvidenceDecision {
+  const top = results[0] ?? null;
+  const unsupportedAnchors = unsupportedSpecificityGapAnchors(question, results);
+  return {
+    schemaVersion: 1,
+    mode,
+    reasonCode,
+    reason,
+    suggestions,
+    signals: {
+      resultCount: results.length,
+      usableResultCount: countReliableEvidenceCandidates(question, results),
+      citedChunkCount: citations.length,
+      sourceDocumentCount: new Set(citations.map((citation) => citation.documentId)).size,
+      intentWantsSteps: detectQueryIntent(question).wantsSteps,
+      topScore: top?.score ?? null,
+      topLexicalScore: top?.lexicalScore ?? null,
+      topSemanticScore: top?.semanticScore ?? null,
+      topRerankScore: top?.rerankScore ?? null,
+      topQualityScore: top?.qualityScore ?? null,
+      ...(unsupportedAnchors.length > 0 ? { unsupportedAnchors } : {})
+    }
+  };
+}
+
+function refusalReasonFor(question: string, results: SearchResult[]): {
+  code: Extract<AnswerEvidenceReasonCode, "no_results" | "unsupported_specificity_gap" | "insufficient_reliable_evidence">;
+  reason: string;
+  suggestions: string[];
+} {
+  const unsupportedAnchors = unsupportedSpecificityGapAnchors(question, results);
+  if (results.length === 0) {
+    return {
+      code: "no_results",
+      reason: "检索没有找到可用于回答的候选片段。",
+      suggestions: ["导入更多相关文档", "换一个更接近文档术语的问题"]
+    };
+  }
+  if (unsupportedAnchors.length > 0) {
+    return {
+      code: "unsupported_specificity_gap",
+      reason: `问题包含高风险或高具体度词项（${unsupportedAnchors.join("、")}），但当前证据没有覆盖这些词项。`,
+      suggestions: ["补充包含这些术语的原始文档", "改问当前手册中明确覆盖的功能或参数"]
+    };
+  }
+  return {
+    code: "insufficient_reliable_evidence",
+    reason: "检索到了候选片段，但分数、质量或证据形态不足以支撑可靠回答。",
+    suggestions: ["打开检索调试查看 top results", "尝试使用文档中的章节名、参数名或功能块名重新提问"]
+  };
+}
+
 export function answerQuestion(question: string, results: SearchResult[]): ChatAnswer {
   // P0-A Round 2 (N1): 编译失败排查 — 在证据门控之前检查，避免被 hasReliableEvidence 拦截
   const compileErrorAnswer = tryCompileErrorDiagnosis(question, results);
   if (compileErrorAnswer) {
+    const citations = results.slice(0, 2);
     return {
       answer: "Direct answer\n" + compileErrorAnswer,
       directAnswer: compileErrorAnswer,
       supportingPoints: [],
       sourceDocumentCount: results.length > 0 ? 1 : 0,
       basedOnSingleDocument: true,
-      citations: results.slice(0, 2).map(({ text: _text, lexicalScore: _lexicalScore, semanticScore: _semanticScore, freshnessScore: _freshnessScore, rerankScore: _rerankScore, qualityScore: _qualityScore, ...citation }) => citation)
+      evidenceDecision: createEvidenceDecision(
+        question,
+        results,
+        "grounded",
+        "compile_error_diagnosis",
+        "命中了编译失败排查的专门证据路径，允许在通用证据门控之前生成诊断回答。",
+        citations,
+        ["继续核对引用片段中的报错条件和处理步骤"]
+      ),
+      citations: citations.map(({ text: _text, lexicalScore: _lexicalScore, semanticScore: _semanticScore, freshnessScore: _freshnessScore, rerankScore: _rerankScore, qualityScore: _qualityScore, ...citation }) => citation)
     };
   }
 
   if (results.length === 0 || !hasReliableEvidence(question, results)) {
     const fallback = "I could not find grounded evidence for that question in the current library. Try importing more files or rephrasing the question.";
+    const refusal = refusalReasonFor(question, results);
     return {
       answer: fallback,
       directAnswer: fallback,
       supportingPoints: [],
       sourceDocumentCount: 0,
       basedOnSingleDocument: false,
+      evidenceDecision: createEvidenceDecision(question, results, "refusal", refusal.code, refusal.reason, [], refusal.suggestions),
       citations: []
     };
   }
@@ -1979,7 +2058,19 @@ export function answerQuestion(question: string, results: SearchResult[]): ChatA
 
   if (needsProceduralEvidenceCaution(question, results)) {
     const usableForCaution = results.find((r) => !isNoise(r));
-    return buildCautiousProceduralAnswer(usableForCaution ?? results[0]);
+    const cautionResult = usableForCaution ?? results[0];
+    return buildCautiousProceduralAnswer(
+      cautionResult,
+      createEvidenceDecision(
+        question,
+        results,
+        "cautious",
+        "procedural_overview_only",
+        "当前证据与问题相关，但缺少足够的逐步操作结构，因此只能给出概述性谨慎回答。",
+        [cautionResult],
+        ["打开引用上下文核对完整步骤", "补充包含操作步骤、菜单路径或条件分支的文档"]
+      )
+    );
   }
 
   const q6Results = chooseQ6EvidenceResults(question, results);
@@ -2025,6 +2116,15 @@ export function answerQuestion(question: string, results: SearchResult[]): ChatA
     supportingPoints,
     sourceDocumentCount,
     basedOnSingleDocument,
+    evidenceDecision: createEvidenceDecision(
+      question,
+      results,
+      "grounded",
+      "reliable_evidence",
+      "检索结果中存在可用证据，且已选择引用片段支撑回答。",
+      finalResults,
+      ["继续检查引用片段以确认答案边界"]
+    ),
     citations: finalResults.map(({ text: _text, lexicalScore: _lexicalScore, semanticScore: _semanticScore, freshnessScore: _freshnessScore, rerankScore: _rerankScore, qualityScore: _qualityScore, ...citation }) => citation)
   };
 }

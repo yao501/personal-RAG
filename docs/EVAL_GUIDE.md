@@ -264,7 +264,7 @@ export PKRAG_RETRIEVAL_DEBUG=1
 - **Electron**: each `askQuestion` logs **one JSON object per line** (stderr).
 - **Eval runner**: logs **one line per benchmark case** when the same env var is set (same schema for apples-to-apples inspection).
 
-Payload **`schemaVersion` is 3** (`RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION`). Fields include:
+Payload **`schemaVersion` is 4** (`RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION`). Fields include:
 
 - `vectorRecallBackend` (`lancedb` | `memory`), `runtime` (`desktop` | `eval`)
 - `queryRetrievalType` — coarse P0-B bucket (`procedural_full_flow` | `compile_order` | `definition` | `troubleshooting` | `default`) aligned with retrieval bias
@@ -273,8 +273,9 @@ Payload **`schemaVersion` is 3** (`RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION`). Fie
 - `topResults` — top `searchTopK` rows with scores
 - `answerCitationChunkIds`
 - `answerFlags.refusal` / `answerFlags.cautiousProcedural`
+- `evidenceDecision` — compact answer-layer decision metadata: `mode` (`grounded` | `cautious` | `refusal`), `reasonCode`, human-readable `reason`, cited chunk count, and source document count
 
-The desktop app also exposes a first-pass **Settings → 最近真实提问 → 检索调试** panel based on persisted query logs. It shows query type, intent hints, token expansion, answer flags, vector shortlist count, candidate chunk count, citation-hit count, and score breakdowns for the stored top results.
+The desktop app also exposes a first-pass **Settings → 最近真实提问 → 检索调试** panel based on persisted query logs. It shows query type, intent hints, token expansion, answer flags, evidence decision reason, vector shortlist count, candidate chunk count, citation-hit count, and score breakdowns for the stored top results. The chat answer view also shows the same evidence decision in user-facing language so refusal/cautious behavior is inspectable without opening developer logs.
 
 ### Baseline comparability
 

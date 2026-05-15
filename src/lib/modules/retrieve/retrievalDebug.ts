@@ -1,12 +1,12 @@
-import type { ChatAnswer, SearchResult } from "../../shared/types";
+import type { AnswerEvidenceMode, AnswerEvidenceReasonCode, ChatAnswer, SearchResult } from "../../shared/types";
 import { isCautiousProceduralAnswer } from "../answer/cautiousMarkers";
 import { detectQueryIntent } from "./queryIntent";
 import { expandQueryTokens } from "./queryFeatures";
 import type { QueryRetrievalType } from "./queryRetrievalType";
 import { resolveQueryRetrievalType } from "./queryRetrievalType";
 
-/** Bump when JSON shape changes (for log parsers). v3 adds `queryRetrievalType` (P0-B). */
-export const RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION = 3;
+/** Bump when JSON shape changes (for log parsers). v4 adds answer evidence decision metadata. */
+export const RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION = 4;
 
 export type VectorRecallBackend = "lancedb" | "memory";
 export type RetrievalDebugRuntime = "desktop" | "eval";
@@ -53,6 +53,13 @@ export interface RetrievalDebugPayload {
   answerFlags: {
     refusal: boolean;
     cautiousProcedural: boolean;
+  };
+  evidenceDecision?: {
+    mode: AnswerEvidenceMode;
+    reasonCode: AnswerEvidenceReasonCode;
+    reason: string;
+    citedChunkCount: number;
+    sourceDocumentCount: number;
   };
 }
 
@@ -126,6 +133,17 @@ export function buildRetrievalDebugPayload(
       refusal: detectRefusalAnswer(answer),
       cautiousProcedural: isCautiousProceduralAnswer(answer)
     },
+    ...(answer.evidenceDecision
+      ? {
+          evidenceDecision: {
+            mode: answer.evidenceDecision.mode,
+            reasonCode: answer.evidenceDecision.reasonCode,
+            reason: answer.evidenceDecision.reason,
+            citedChunkCount: answer.evidenceDecision.signals.citedChunkCount,
+            sourceDocumentCount: answer.evidenceDecision.signals.sourceDocumentCount
+          }
+        }
+      : {}),
     ...hints
   };
 }

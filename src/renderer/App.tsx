@@ -8,6 +8,7 @@ import { isCautiousProceduralAnswer } from "../lib/modules/answer/cautiousMarker
 import type {
   AppInfo,
   AppSettings,
+  AnswerEvidenceMode,
   ChatAnswer,
   Citation,
   EvalCaseDraft,
@@ -118,6 +119,16 @@ function buildDiagnosticsText(appInfo: AppInfo, systemStatus: SystemStatus): str
     `vectorIndexAvailable: ${systemStatus.vectorIndexAvailable ? "yes" : "no"}`,
     `vectorIndexReason: ${systemStatus.vectorIndexReason ?? "n/a"}`
   ].join("\n");
+}
+
+function formatEvidenceMode(mode: AnswerEvidenceMode): string {
+  if (mode === "grounded") return "可回答";
+  if (mode === "cautious") return "谨慎回答";
+  return "拒答";
+}
+
+function formatNullableScore(score: number | null | undefined): string {
+  return score === null || score === undefined ? "n/a" : score.toFixed(2);
 }
 
 function renderSourceExcerpt(fullText: string, startOffset: number, endOffset: number, radius = 280): ReactNode {
@@ -1566,6 +1577,23 @@ export function App() {
                         : `基于 ${displayedAnswer.sourceDocumentCount} 个文档`}
                     </p>
                   </div>
+                  {displayedAnswer.evidenceDecision && (
+                    <div className={`evidence-decision-card evidence-${displayedAnswer.evidenceDecision.mode}`}>
+                      <div>
+                        <p className="eyebrow">证据判定</p>
+                        <strong>{formatEvidenceMode(displayedAnswer.evidenceDecision.mode)}</strong>
+                        <p>{displayedAnswer.evidenceDecision.reason}</p>
+                      </div>
+                      <div className="evidence-signal-grid">
+                        <span>可用证据 {displayedAnswer.evidenceDecision.signals.usableResultCount}</span>
+                        <span>引用 {displayedAnswer.evidenceDecision.signals.citedChunkCount}</span>
+                        <span>Top {formatNullableScore(displayedAnswer.evidenceDecision.signals.topScore)}</span>
+                      </div>
+                      {displayedAnswer.evidenceDecision.suggestions.length > 0 && (
+                        <p className="muted">建议：{displayedAnswer.evidenceDecision.suggestions.join("；")}</p>
+                      )}
+                    </div>
+                  )}
                   <div className="support-panel">
                     <p className="eyebrow">关键支撑点</p>
                     <div className="support-list">
@@ -2039,9 +2067,15 @@ export function App() {
                     </div>
                     <div>
                       <p className="eyebrow">回答状态</p>
-                      <strong>{detectLoggedRefusal(selectedDebugLog.answer) ? "拒答" : "有依据回答"}</strong>
+                      <strong>
+                        {selectedDebugLog.retrievalDebug?.evidenceDecision
+                          ? formatEvidenceMode(selectedDebugLog.retrievalDebug.evidenceDecision.mode)
+                          : detectLoggedRefusal(selectedDebugLog.answer)
+                            ? "拒答"
+                            : "有依据回答"}
+                      </strong>
                       <p className="muted">
-                        {isCautiousProceduralAnswer(selectedDebugLog.answer) ? "谨慎流程模板" : "常规合成"} · citation {selectedDebugLog.citations.length}
+                        {selectedDebugLog.retrievalDebug?.evidenceDecision?.reasonCode ?? (isCautiousProceduralAnswer(selectedDebugLog.answer) ? "谨慎流程模板" : "常规合成")} · citation {selectedDebugLog.citations.length}
                       </p>
                     </div>
                     <div>
@@ -2059,6 +2093,19 @@ export function App() {
                       <span>扩展词：{selectedDebugHints.expandedTokens.slice(0, 14).join(" / ")}</span>
                     )}
                   </div>
+                  {selectedDebugLog.retrievalDebug?.evidenceDecision && (
+                    <div className="debug-result-card">
+                      <header>
+                        <strong>证据充分性</strong>
+                        <span>{selectedDebugLog.retrievalDebug.evidenceDecision.reasonCode}</span>
+                      </header>
+                      <p>{selectedDebugLog.retrievalDebug.evidenceDecision.reason}</p>
+                      <div className="debug-score-grid">
+                        <span>引用 {selectedDebugLog.retrievalDebug.evidenceDecision.citedChunkCount}</span>
+                        <span>文档 {selectedDebugLog.retrievalDebug.evidenceDecision.sourceDocumentCount}</span>
+                      </div>
+                    </div>
+                  )}
                   <div className="debug-result-list">
                     {selectedDebugLog.topResults.slice(0, 6).map((result, index) => {
                       const citationHit = selectedDebugCitationChunkIds.has(result.chunkId);

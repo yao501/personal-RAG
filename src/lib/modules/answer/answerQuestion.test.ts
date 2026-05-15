@@ -173,6 +173,14 @@ describe("answerQuestion", () => {
 
     expect(answer.directAnswer).toContain("I could not find grounded evidence");
     expect(answer.citations).toHaveLength(0);
+    expect(answer.evidenceDecision).toMatchObject({
+      mode: "refusal",
+      reasonCode: "insufficient_reliable_evidence",
+      signals: {
+        resultCount: 1,
+        usableResultCount: 0
+      }
+    });
   });
 
   it("allows low-quality DCS parameter-table chunks when exact technical identifiers match", () => {
@@ -235,6 +243,14 @@ describe("answerQuestion", () => {
 
     expect(answer.directAnswer).toContain("I could not find grounded evidence");
     expect(answer.citations).toHaveLength(0);
+    expect(answer.evidenceDecision).toMatchObject({
+      mode: "refusal",
+      reasonCode: "insufficient_reliable_evidence",
+      signals: {
+        resultCount: 1,
+        usableResultCount: 0
+      }
+    });
   });
 
   it("refuses when a domain-shaped question has unsupported specific anchors", () => {
@@ -265,6 +281,13 @@ describe("answerQuestion", () => {
 
     expect(answer.directAnswer).toContain("I could not find grounded evidence");
     expect(answer.citations).toHaveLength(0);
+    expect(answer.evidenceDecision).toMatchObject({
+      mode: "refusal",
+      reasonCode: "unsupported_specificity_gap",
+      signals: {
+        unsupportedAnchors: expect.arrayContaining(["量子", "纠缠", "脑机"])
+      }
+    });
   });
 
   it("summarizes DCS advanced operation blocks with their identifiers instead of procedural section boilerplate", () => {
@@ -759,6 +782,14 @@ describe("answerQuestion", () => {
 
     expect(answer.directAnswer).toContain("概述性");
     expect(answer.directAnswer).toContain("未形成可逐步执行的完整操作说明");
+    expect(answer.evidenceDecision).toMatchObject({
+      mode: "cautious",
+      reasonCode: "procedural_overview_only",
+      signals: {
+        citedChunkCount: 1,
+        intentWantsSteps: true
+      }
+    });
   });
 
   it("returns localized direct answers instead of English grounding boilerplate", () => {
@@ -789,5 +820,13 @@ describe("answerQuestion", () => {
 
     expect(answer.directAnswer).toContain("主要依据《软件安装》");
     expect(answer.directAnswer).not.toContain("This answer is primarily grounded");
+    expect(answer.evidenceDecision).toMatchObject({
+      mode: "grounded",
+      reasonCode: "reliable_evidence",
+      signals: {
+        citedChunkCount: 1,
+        usableResultCount: 1
+      }
+    });
   });
 });

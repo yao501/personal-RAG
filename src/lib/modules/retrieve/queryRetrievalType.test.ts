@@ -10,6 +10,25 @@ function emptyAnswer(): ChatAnswer {
     supportingPoints: [],
     sourceDocumentCount: 0,
     basedOnSingleDocument: false,
+    evidenceDecision: {
+      schemaVersion: 1,
+      mode: "refusal",
+      reasonCode: "no_results",
+      reason: "检索没有找到可用于回答的候选片段。",
+      suggestions: ["导入更多相关文档"],
+      signals: {
+        resultCount: 0,
+        usableResultCount: 0,
+        citedChunkCount: 0,
+        sourceDocumentCount: 0,
+        intentWantsSteps: false,
+        topScore: null,
+        topLexicalScore: null,
+        topSemanticScore: null,
+        topRerankScore: null,
+        topQualityScore: null
+      }
+    },
     citations: []
   };
 }
@@ -51,7 +70,7 @@ describe("resolveQueryRetrievalType", () => {
 });
 
 describe("buildRetrievalDebugPayload queryRetrievalType", () => {
-  it("includes queryRetrievalType in payload for logs (schema v3)", () => {
+  it("includes queryRetrievalType and evidence decision in payload for logs (schema v4)", () => {
     const payload = buildRetrievalDebugPayload(
       "编译和下装的顺序？",
       [],
@@ -65,7 +84,12 @@ describe("buildRetrievalDebugPayload queryRetrievalType", () => {
         queryRetrievalType: "compile_order"
       }
     );
-    expect(payload.schemaVersion).toBe(3);
+    expect(payload.schemaVersion).toBe(4);
     expect(payload.queryRetrievalType).toBe("compile_order");
+    expect(payload.evidenceDecision).toMatchObject({
+      mode: "refusal",
+      reasonCode: "no_results",
+      citedChunkCount: 0
+    });
   });
 });
