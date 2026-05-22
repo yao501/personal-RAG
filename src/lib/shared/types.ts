@@ -72,6 +72,34 @@ export interface Citation {
   importedAt: string;
 }
 
+export interface SearchScoreBreakdown {
+  lexicalContribution: number;
+  semanticContribution: number;
+  rerankContribution: number;
+  freshnessContribution: number;
+  qualityContribution: number;
+  penaltyContribution: number;
+  sectionRootBoost: number;
+  finalScore: number;
+}
+
+export type ChunkContentKind =
+  | "procedure"
+  | "definition"
+  | "parameter_reference"
+  | "troubleshooting"
+  | "table_like"
+  | "general";
+
+export interface ChunkContextMetadata {
+  manualFamilyId: string | null;
+  manualFamilyLabel: string | null;
+  sectionDepth: number;
+  sectionRoot: string | null;
+  contentKind: ChunkContentKind;
+  technicalTerms: string[];
+}
+
 export interface SearchResult extends Citation {
   text: string;
   lexicalScore: number;
@@ -79,6 +107,8 @@ export interface SearchResult extends Citation {
   freshnessScore: number;
   rerankScore: number;
   qualityScore: number;
+  scoreBreakdown?: SearchScoreBreakdown;
+  contextMetadata?: ChunkContextMetadata;
 }
 
 export interface DocumentQuestionMatch extends SearchResult {
@@ -122,6 +152,9 @@ export interface AnswerEvidenceDecision {
     topSemanticScore: number | null;
     topRerankScore: number | null;
     topQualityScore: number | null;
+    topContentKind?: ChunkContentKind | null;
+    topManualFamilyId?: string | null;
+    topTechnicalTerms?: string[];
     unsupportedAnchors?: string[];
   };
 }
@@ -177,6 +210,8 @@ export interface QueryLogRetrievalDebug {
     semanticScore: number;
     rerankScore: number;
     qualityScore: number;
+    scoreBreakdown?: SearchScoreBreakdown;
+    contextMetadata?: ChunkContextMetadata;
     sectionTitle: string | null;
     vectorHit?: boolean;
     selectionReasons?: string[];
@@ -194,6 +229,9 @@ export interface QueryLogRetrievalDebug {
     reason: string;
     citedChunkCount: number;
     sourceDocumentCount: number;
+    topContentKind?: ChunkContentKind | string | null;
+    topManualFamilyId?: string | null;
+    topTechnicalTerms?: string[];
   };
 }
 
@@ -393,6 +431,7 @@ export interface AppSnapshot {
 }
 
 export type SupportBundleExportResult = { canceled: true } | { canceled: false; path: string };
+export type QueryDebugExportResult = { canceled: true } | { canceled: false; path: string };
 
 export interface DesktopApi {
   getSnapshot(): Promise<AppSnapshot>;
@@ -412,6 +451,7 @@ export interface DesktopApi {
   openDocument(filePath: string): Promise<void>;
   getQueryLogs(limit?: number): Promise<QueryLogRecord[]>;
   updateQueryLogStatus(logId: string, status: QueryLogFeedbackStatus, note?: string | null): Promise<QueryLogRecord[]>;
+  exportQueryDebugSnapshot(options: { logId: string; anonymize?: boolean }): Promise<QueryDebugExportResult>;
   getEvalCandidateDrafts(limit?: number): Promise<EvalCaseDraft[]>;
   getLibraryHealth(): Promise<LibraryHealthReport>;
   reindexDocuments(documentIds: string[]): Promise<AppSnapshot>;

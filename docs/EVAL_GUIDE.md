@@ -146,7 +146,7 @@ PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run eval:rag:prod
 PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run eval:rag:product -- --profile dcs-core --require-realpdf
 ```
 
-`eval:rag:product` always runs the default fixture smoke benchmark and `benchmarks/refusal-gate.v1.json` first. The refusal gate covers no-match refusal, DCS-shaped unsupported questions, thin procedural evidence that must be cautious, and one grounded positive control. Product gate summaries are written under `evals/results/product-rag-gate-<date>-<seq>.md`. Files under `evals/results/` are gitignored because real-library runs may include absolute paths and source snippets.
+`eval:rag:product` always runs the default fixture smoke benchmark and `benchmarks/refusal-gate.v1.json` first. The refusal gate covers no-match refusal, DCS-shaped unsupported questions, private-credential questions, thin procedural evidence, definition-only procedural evidence that must be cautious, and one grounded positive control. Product gate summaries are written under `evals/results/product-rag-gate-<date>-<seq>.md`. Files under `evals/results/` are gitignored because real-library runs may include absolute paths and source snippets.
 
 Release-quality gate (tests + production build + `dcs-core` product gate):
 
@@ -235,7 +235,7 @@ For procedural-style questions (`detectQueryIntent.wantsSteps`), the app may emi
 
 If the retrieved evidence explicitly says it is overview/background material, lacks steps/commands/menu paths, or instructs users to consult the full manual, the cautious template is used before score-based overrides. Otherwise, if none of the strong-evidence score rules hold and the chunk text still lacks step-like markers, the cautious template is used. For two retrieved chunks, if the second score is **below** `0.58 × top.score`, the cautious path is preferred (Sprint 5.1 tightened from `0.62` to reduce unnecessary cautious answers when the runner-up is moderately strong).
 
-**Refusal/sufficiency gate:** validation now also includes `benchmarks/refusal-gate.v1.json`, which hard-checks unsupported specifics, private-credential style questions, thin procedural evidence, and a grounded positive control.
+**Refusal/sufficiency gate:** validation now also includes `benchmarks/refusal-gate.v1.json`, which hard-checks unsupported specifics, private-credential style questions, thin/definition-only procedural evidence, and a grounded positive control.
 
 ## Known limitations
 
@@ -264,7 +264,7 @@ export PKRAG_RETRIEVAL_DEBUG=1
 - **Electron**: each `askQuestion` logs **one JSON object per line** (stderr).
 - **Eval runner**: logs **one line per benchmark case** when the same env var is set (same schema for apples-to-apples inspection).
 
-Payload **`schemaVersion` is 6** (`RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION`). Fields include:
+Payload **`schemaVersion` is 9** (`RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION`). Fields include:
 
 - `vectorRecallBackend` (`lancedb` | `memory`), `runtime` (`desktop` | `eval`)
 - `queryRetrievalType` — coarse P0-B bucket (`procedural_full_flow` | `compile_order` | `definition` | `troubleshooting` | `default`) aligned with retrieval bias
@@ -272,12 +272,12 @@ Payload **`schemaVersion` is 6** (`RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION`). Fie
 - `vectorShortlistCount`, `candidateChunkCount`, `searchTopK`
 - `candidateSelection` — compact source summary for the candidate pool (`all_chunks_no_vector`, `hybrid_vector_lexical`, or `hybrid_vector_only_or_unknown`) plus vector/candidate/fallback counts where known
 - `rejectionDiagnostics` — compact `searchChunks` primary-rank filtering diagnostics: evaluated/kept/rejected counts plus sampled rejected candidates with scores, coverage, penalty, and reason codes. It intentionally excludes raw chunk text and evidence snippets.
-- `topResults` — top `searchTopK` rows with scores, vector-hit status, selection reason codes, citation status, and non-citation reason when applicable
+- `topResults` — top `searchTopK` rows with scores, weighted score contribution breakdowns, contextual chunk metadata, vector-hit status, selection reason codes, citation status, and non-citation reason when applicable
 - `answerCitationChunkIds`
 - `answerFlags.refusal` / `answerFlags.cautiousProcedural`
-- `evidenceDecision` — compact answer-layer decision metadata: `mode` (`grounded` | `cautious` | `refusal`), `reasonCode`, human-readable `reason`, cited chunk count, and source document count
+- `evidenceDecision` — compact answer-layer decision metadata: `mode` (`grounded` | `cautious` | `refusal`), `reasonCode`, human-readable `reason`, cited chunk count, source document count, and top evidence context signals when present
 
-The desktop app also exposes a **Settings → 最近真实提问 → 检索调试** panel based on persisted query logs. It shows query type, intent hints, token expansion, answer flags, evidence decision reason, candidate pool source, primary-rank rejection reasons, vector shortlist count, candidate chunk count, citation-hit count, selection reason codes, and score breakdowns for the stored top results. The chat answer view also shows the same evidence decision in user-facing language so refusal/cautious behavior is inspectable without opening developer logs.
+The desktop app also exposes a **Settings → 最近真实提问 → 检索调试** panel based on persisted query logs. It shows query type, intent hints, token expansion, answer flags, evidence decision reason, candidate pool source, primary-rank rejection reasons, vector shortlist count, candidate chunk count, citation-hit count, selection reason codes, and score breakdowns for the stored top results. Each row can export an anonymized single-query debug JSON snapshot; it excludes raw chunk text, snippets, evidence text, and answer text by default. The chat answer view also shows the same evidence decision in user-facing language so refusal/cautious behavior is inspectable without opening developer logs.
 
 ### Baseline comparability
 

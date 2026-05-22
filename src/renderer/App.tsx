@@ -300,6 +300,7 @@ export function App() {
   const [isDetailQuestionLoading, setIsDetailQuestionLoading] = useState(false);
   const [supportBundleAnonymize, setSupportBundleAnonymize] = useState(true);
   const [supportBundleFeedback, setSupportBundleFeedback] = useState("");
+  const [queryDebugExportFeedback, setQueryDebugExportFeedback] = useState("");
   const [selectedDebugLogId, setSelectedDebugLogId] = useState<string | null>(null);
 
   const filteredDocuments = useMemo(() => {
@@ -904,6 +905,28 @@ export function App() {
       const message = error instanceof Error ? error.message : "未知日志更新错误";
       setErrorMessage(message);
       setStatus("日志状态更新失败");
+    }
+  }
+
+  async function handleExportQueryDebugSnapshot(logId: string): Promise<void> {
+    try {
+      setQueryDebugExportFeedback("");
+      setErrorMessage("");
+      const api = getDesktopApi();
+      const result = await api.exportQueryDebugSnapshot({ logId, anonymize: true });
+      if (result.canceled) {
+        setQueryDebugExportFeedback("已取消导出。");
+        setStatus("已取消检索调试快照导出");
+        return;
+      }
+      setQueryDebugExportFeedback(`已保存：${result.path}`);
+      setStatus("检索调试快照已导出");
+    } catch (error) {
+      const info = extractRendererErrorInfo(error);
+      const message = info ? formatRendererError(info) : (error instanceof Error ? error.message : "未知导出错误");
+      setQueryDebugExportFeedback(message);
+      setErrorMessage(message);
+      setStatus("检索调试快照导出失败");
     }
   }
 
@@ -2051,7 +2074,7 @@ export function App() {
             </div>
             <div className="chunk-list">
               {queryLogs.length === 0 && <p className="muted">还没有真实提问日志。进入聊天页提问后，这里会自动沉淀检索与 citation 快照。</p>}
-              {selectedDebugLog && selectedDebugHints && (
+                  {selectedDebugLog && selectedDebugHints && (
                 <section className="retrieval-debug-panel">
                   <div className="panel-header compact-header">
                     <div>
@@ -2157,6 +2180,12 @@ export function App() {
                       <div className="debug-score-grid">
                         <span>引用 {selectedDebugLog.retrievalDebug.evidenceDecision.citedChunkCount}</span>
                         <span>文档 {selectedDebugLog.retrievalDebug.evidenceDecision.sourceDocumentCount}</span>
+                        {selectedDebugLog.retrievalDebug.evidenceDecision.topContentKind && (
+                          <span>top kind {selectedDebugLog.retrievalDebug.evidenceDecision.topContentKind}</span>
+                        )}
+                        {selectedDebugLog.retrievalDebug.evidenceDecision.topManualFamilyId && (
+                          <span>top source {selectedDebugLog.retrievalDebug.evidenceDecision.topManualFamilyId}</span>
+                        )}
                       </div>
                     </div>
                   )}
@@ -2174,6 +2203,8 @@ export function App() {
                             <span>{result.fileName}</span>
                             <span>{result.sectionTitle ?? "通用内容"}</span>
                             {result.locatorLabel && <span>{result.locatorLabel}</span>}
+                            {debugResult?.contextMetadata?.manualFamilyLabel && <span>{debugResult.contextMetadata.manualFamilyLabel}</span>}
+                            {debugResult?.contextMetadata?.contentKind && <span>{debugResult.contextMetadata.contentKind}</span>}
                           </div>
                           <div className="debug-score-grid">
                             <span>总分 {formatDebugScore(result.score)}</span>
@@ -2189,6 +2220,25 @@ export function App() {
                               ))}
                             </div>
                           )}
+                          {debugResult?.scoreBreakdown && (
+                            <div className="debug-score-grid">
+                              <span>词法贡献 {formatDebugScore(debugResult.scoreBreakdown.lexicalContribution)}</span>
+                              <span>语义贡献 {formatDebugScore(debugResult.scoreBreakdown.semanticContribution)}</span>
+                              <span>重排贡献 {formatDebugScore(debugResult.scoreBreakdown.rerankContribution)}</span>
+                              <span>质量贡献 {formatDebugScore(debugResult.scoreBreakdown.qualityContribution)}</span>
+                              <span>惩罚贡献 {formatDebugScore(debugResult.scoreBreakdown.penaltyContribution)}</span>
+                              {debugResult.scoreBreakdown.sectionRootBoost !== 0 && (
+                                <span>章节组 {formatDebugScore(debugResult.scoreBreakdown.sectionRootBoost)}</span>
+                              )}
+                            </div>
+                          )}
+                          {debugResult?.contextMetadata?.technicalTerms && debugResult.contextMetadata.technicalTerms.length > 0 && (
+                            <div className="debug-token-row">
+                              {debugResult.contextMetadata.technicalTerms.slice(0, 8).map((term) => (
+                                <span key={`${result.chunkId}-${term}`}>{term}</span>
+                              ))}
+                            </div>
+                          )}
                           {debugResult?.notCitedReason && !citationHit && (
                             <p className="muted">未引用原因：{debugResult.notCitedReason}</p>
                           )}
@@ -2198,6 +2248,11 @@ export function App() {
                     })}
                   </div>
                 </section>
+              )}
+              {queryDebugExportFeedback && (
+                <div className={`settings-note ${queryDebugExportFeedback.startsWith("已保存") ? "" : "error-text"}`}>
+                  {queryDebugExportFeedback}
+                </div>
               )}
               {queryLogs.map((log) => (
                 <article key={log.id} className="chunk-card">
@@ -2222,6 +2277,9 @@ export function App() {
                     </button>
                     <button type="button" className="secondary" onClick={() => setSelectedDebugLogId(log.id)}>
                       查看检索调试
+                    </button>
+                    <button type="button" className="secondary" onClick={() => void handleExportQueryDebugSnapshot(log.id)}>
+                      导出调试快照
                     </button>
                   </div>
                   {log.citations[0] && (

@@ -1,4 +1,4 @@
-import type { ChunkRecord, DocumentRecord, SearchResult } from "../../shared/types";
+import type { ChunkRecord, DocumentRecord, SearchResult, SearchScoreBreakdown } from "../../shared/types";
 import { cosineSimilarity as cosineSimilarityVector } from "../embed/localEmbedder";
 import { formatEvidenceAnchorLabel } from "../citation/locator";
 import { extractSectionRootLabel } from "../citation/sectionRoot";
@@ -6,6 +6,7 @@ import { detectQueryIntent } from "./queryIntent";
 import { retrievalHaystack } from "./retrievalHaystack";
 import { computeNoiseChunkPenalty } from "./noiseChunkPenalty";
 import { normalizeForLexicalMatch } from "./termNormalize";
+import { buildChunkContextMetadata } from "./chunkContextMetadata";
 import { expandQueryTokens, isRoleQuestion, maxConsecutiveTokenMatch, selectAnchorTokens } from "./queryFeatures";
 import {
   chunkQualityScore,
@@ -30,6 +31,7 @@ interface CandidateScore {
   rerankScore: number;
   qualityScore: number;
   score: number;
+  scoreBreakdown: SearchScoreBreakdown;
   penalty: number;
   coverage: number;
   evidenceCoverage: number;
@@ -98,10 +100,11 @@ function buildSearchRejectionReasons(input: {
   minimumCoverage: number;
   hasStrongSignal: boolean;
   anchorSatisfied: boolean;
+  highPenaltyAllowed: boolean;
 }): SearchRejectionReason[] {
   const reasons: SearchRejectionReason[] = [];
   if (input.score <= 0.02) reasons.push("very_low_score");
-  if (input.penalty >= 1.4) reasons.push("high_penalty");
+  if (input.penalty >= 1.4 && !input.highPenaltyAllowed) reasons.push("high_penalty");
   if (input.roleQuestionWithoutRoleEvidence) reasons.push("role_question_without_role_evidence");
   if (input.lowQualityWeakMatch) reasons.push("low_quality_weak_match");
   if (input.coverage < input.minimumCoverage && !input.hasStrongSignal) reasons.push("low_query_coverage");
@@ -629,6 +632,16 @@ export function searchChunks(
         freshnessScore * recencyWeight +
         qualityScore * 0.34 -
         penalty;
+      const scoreBreakdown: SearchScoreBreakdown = {
+        lexicalContribution: lexicalScore * 0.42,
+        semanticContribution: semanticScore * 0.31,
+        rerankContribution: rerankScore * 0.22,
+        freshnessContribution: freshnessScore * recencyWeight,
+        qualityContribution: qualityScore * 0.34,
+        penaltyContribution: -penalty,
+        sectionRootBoost: 0,
+        finalScore: score
+      };
       const minimumCoverage = queryTokens.length >= 3 ? 0.26 : 0.18;
       const roleLikeStrongSignal =
         isRoleQuestion(query) &&
@@ -656,7 +669,8 @@ export function searchChunks(
         coverage,
         minimumCoverage,
         hasStrongSignal,
-        anchorSatisfied
+        anchorSatisfied,
+        highPenaltyAllowed: hasStrongSignal && score >= 3
       });
       const keepInPrimaryRanking = rejectionReasons.length === 0;
 
@@ -671,6 +685,7 @@ export function searchChunks(
           rerankScore,
           qualityScore,
           score,
+          scoreBreakdown,
           penalty,
           coverage,
           evidenceCoverage,
@@ -701,10 +716,19 @@ export function searchChunks(
   const baseTopScore = primaryCandidates.reduce((max, candidate) => Math.max(max, candidate.score), 0);
   const sectionRootGroups = buildSectionRootGroupStats(primaryCandidates);
   const sortedCandidates = primaryCandidates
-    .map((candidate) => ({
-      ...candidate,
-      score: candidate.score + proceduralSectionRootBoost(intent, candidate, sectionRootGroups, baseTopScore)
-    }))
+    .map((candidate) => {
+      const sectionRootBoost = proceduralSectionRootBoost(intent, candidate, sectionRootGroups, baseTopScore);
+      const finalScore = candidate.score + sectionRootBoost;
+      return {
+        ...candidate,
+        score: finalScore,
+        scoreBreakdown: {
+          ...candidate.scoreBreakdown,
+          sectionRootBoost,
+          finalScore
+        }
+      };
+    })
     .sort((left, right) => right.score - left.score);
 
   const rescuedRoleCandidates = isRoleQuestion(query)
@@ -764,6 +788,8 @@ export function searchChunks(
         freshnessScore: candidate.freshnessScore,
         rerankScore: candidate.rerankScore,
         qualityScore: candidate.qualityScore,
+        scoreBreakdown: candidate.scoreBreakdown,
+        contextMetadata: buildChunkContextMetadata(document, chunk),
         sectionTitle: chunk.sectionTitle,
         sectionPath: chunk.sectionPath,
         sectionRootLabel: candidate.sectionRootLabel,

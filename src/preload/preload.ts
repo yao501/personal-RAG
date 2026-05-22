@@ -4,6 +4,7 @@ import type {
   DesktopApi,
   IpcResult,
   LibraryTaskProgress,
+  QueryDebugExportResult,
   QueryLogFeedbackStatus,
   RendererErrorInfo,
   SupportBundleExportResult
@@ -51,6 +52,8 @@ const api: DesktopApi = {
   getQueryLogs: (limit?: number) => invokeDesktop("query-logs:list", limit),
   updateQueryLogStatus: (logId: string, status: QueryLogFeedbackStatus, note?: string | null) =>
     invokeDesktop("query-logs:update-status", logId, status, note),
+  exportQueryDebugSnapshot: (options: { logId: string; anonymize?: boolean }) =>
+    invokeDesktop<QueryDebugExportResult>("query-logs:export-debug", options),
   getEvalCandidateDrafts: (limit?: number) => invokeDesktop("query-logs:eval-drafts", limit),
   getLibraryHealth: () => invokeDesktop("library:health"),
   reindexDocuments: (documentIds: string[]) => invokeDesktop("library:reindex-documents", documentIds),

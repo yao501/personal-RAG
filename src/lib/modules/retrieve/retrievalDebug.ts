@@ -1,4 +1,4 @@
-import type { AnswerEvidenceMode, AnswerEvidenceReasonCode, ChatAnswer, SearchResult } from "../../shared/types";
+import type { AnswerEvidenceMode, AnswerEvidenceReasonCode, ChatAnswer, ChunkContextMetadata, SearchResult } from "../../shared/types";
 import { isCautiousProceduralAnswer } from "../answer/cautiousMarkers";
 import { detectQueryIntent } from "./queryIntent";
 import { expandQueryTokens } from "./queryFeatures";
@@ -6,8 +6,8 @@ import type { QueryRetrievalType } from "./queryRetrievalType";
 import { resolveQueryRetrievalType } from "./queryRetrievalType";
 import type { SearchDiagnostics } from "./searchIndex";
 
-/** Bump when JSON shape changes (for log parsers). v6 adds primary-rank rejection diagnostics. */
-export const RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION = 6;
+/** Bump when JSON shape changes (for log parsers). v9 adds answer evidence context signals. */
+export const RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION = 9;
 
 export type VectorRecallBackend = "lancedb" | "memory";
 export type RetrievalDebugRuntime = "desktop" | "eval";
@@ -79,6 +79,17 @@ export interface RetrievalDebugPayload {
     semanticScore: number;
     rerankScore: number;
     qualityScore: number;
+    scoreBreakdown?: {
+      lexicalContribution: number;
+      semanticContribution: number;
+      rerankContribution: number;
+      freshnessContribution: number;
+      qualityContribution: number;
+      penaltyContribution: number;
+      sectionRootBoost: number;
+      finalScore: number;
+    };
+    contextMetadata?: ChunkContextMetadata;
     sectionTitle: string | null;
     vectorHit: boolean;
     selectionReasons: string[];
@@ -96,6 +107,9 @@ export interface RetrievalDebugPayload {
     reason: string;
     citedChunkCount: number;
     sourceDocumentCount: number;
+    topContentKind?: string | null;
+    topManualFamilyId?: string | null;
+    topTechnicalTerms?: string[];
   };
 }
 
@@ -272,6 +286,8 @@ export function buildRetrievalDebugPayload(
         semanticScore: result.semanticScore,
         rerankScore: result.rerankScore,
         qualityScore: result.qualityScore,
+        scoreBreakdown: result.scoreBreakdown,
+        contextMetadata: result.contextMetadata,
         sectionTitle: result.sectionTitle,
         vectorHit,
         ...reasonSummary
@@ -289,7 +305,10 @@ export function buildRetrievalDebugPayload(
             reasonCode: answer.evidenceDecision.reasonCode,
             reason: answer.evidenceDecision.reason,
             citedChunkCount: answer.evidenceDecision.signals.citedChunkCount,
-            sourceDocumentCount: answer.evidenceDecision.signals.sourceDocumentCount
+            sourceDocumentCount: answer.evidenceDecision.signals.sourceDocumentCount,
+            topContentKind: answer.evidenceDecision.signals.topContentKind ?? null,
+            topManualFamilyId: answer.evidenceDecision.signals.topManualFamilyId ?? null,
+            topTechnicalTerms: answer.evidenceDecision.signals.topTechnicalTerms ?? []
           }
         }
       : {}),

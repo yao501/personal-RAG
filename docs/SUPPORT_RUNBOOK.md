@@ -68,6 +68,24 @@ When anonymize is **off**, more path and preview text is present to speed up int
 4. Use **`ipc_errors_recent.json`** if the user reports UI actions failing (settings, import, etc.).
 5. Use **`query_logs_meta.json`** only for **volume and recency** of questions—do not expect answer content here.
 
+## Single-query retrieval debug export
+
+For a specific bad or surprising answer, ask the user to use **Settings → 最近真实提问 → 导出调试快照** on that query row.
+
+The exported JSON is separate from the support bundle. In the default anonymized mode it includes:
+
+- query-log ids, timestamps, feedback status, character counts, citation counts
+- citation and top-result metadata, scores, weighted score contribution breakdowns, contextual chunk metadata, locators, and section paths
+- persisted retrieval debug payload (`schemaVersion`, vector/candidate counts, evidence decision, candidate rejection diagnostics)
+
+It excludes by default:
+
+- raw imported document text
+- chunk bodies, snippets, full text, and evidence text
+- full answer text and the original question text
+
+Use this file when the support question is “why did retrieval choose or reject this evidence?” rather than general app health.
+
 ## Limitations
 
 - Task and IPC history are **in-memory ring buffers** since app start; long-running sessions may have incomplete early history.

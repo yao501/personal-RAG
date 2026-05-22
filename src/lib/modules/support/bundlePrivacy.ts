@@ -1,5 +1,5 @@
 import os from "node:os";
-import type { DocumentRecord, LibraryTaskProgress, QueryLogRecord } from "../../shared/types";
+import type { Citation, DocumentRecord, LibraryTaskProgress, QueryLogRecord, SearchResult } from "../../shared/types";
 
 export interface VectorIndexEventForBundle {
   recordedAt: string;
@@ -47,6 +47,88 @@ export function summarizeQueryLogsForBundle(logs: QueryLogRecord[], anonymize: b
     citationCount: log.citations.length,
     topResultCount: log.topResults.length
   }));
+}
+
+function summarizeCitationForDebugExport(citation: Citation): Record<string, unknown> {
+  return {
+    documentId: citation.documentId,
+    fileName: citation.fileName,
+    documentTitle: citation.documentTitle,
+    chunkId: citation.chunkId,
+    chunkIndex: citation.chunkIndex,
+    score: citation.score,
+    sectionTitle: citation.sectionTitle ?? null,
+    sectionPath: citation.sectionPath ?? null,
+    sectionRootLabel: citation.sectionRootLabel ?? null,
+    pageStart: citation.pageStart ?? null,
+    pageEnd: citation.pageEnd ?? null,
+    paragraphStart: citation.paragraphStart ?? null,
+    paragraphEnd: citation.paragraphEnd ?? null,
+    locatorLabel: citation.locatorLabel ?? null,
+    anchorLabel: citation.anchorLabel ?? null,
+    sourceUpdatedAt: citation.sourceUpdatedAt ?? null,
+    importedAt: citation.importedAt ?? null
+  };
+}
+
+function summarizeTopResultForDebugExport(result: SearchResult): Record<string, unknown> {
+  return {
+    ...summarizeCitationForDebugExport(result),
+    lexicalScore: result.lexicalScore,
+    semanticScore: result.semanticScore,
+    freshnessScore: result.freshnessScore,
+    rerankScore: result.rerankScore,
+    qualityScore: result.qualityScore,
+    scoreBreakdown: result.scoreBreakdown ?? null,
+    hasEvidenceText: Boolean(result.evidenceText?.trim()),
+    hasHighlight: result.highlightStart !== null && result.highlightStart !== undefined && result.highlightEnd !== null && result.highlightEnd !== undefined
+  };
+}
+
+export function summarizeQueryDebugSnapshotForExport(
+  log: QueryLogRecord,
+  anonymize: boolean
+): Record<string, unknown> {
+  const retrievalDebug = log.retrievalDebug
+    ? {
+        ...log.retrievalDebug,
+        question: anonymize ? "[REDACTED]" : log.retrievalDebug.question
+      }
+    : null;
+
+  return {
+    formatVersion: 1,
+    exportedAt: new Date().toISOString(),
+    privacy: {
+      anonymize,
+      rawDocumentContentIncluded: false,
+      rawChunkTextIncluded: false,
+      answerTextIncluded: !anonymize,
+      questionTextIncluded: !anonymize
+    },
+    queryLog: {
+      id: log.id,
+      sessionId: anonymize ? "[REDACTED]" : log.sessionId,
+      createdAt: log.createdAt,
+      feedbackStatus: log.feedbackStatus,
+      feedbackNote: anonymize ? null : log.feedbackNote,
+      questionCharCount: log.question.length,
+      questionPreview: anonymize ? "[REDACTED]" : log.question.slice(0, 500)
+    },
+    answer: {
+      mode: log.answer.evidenceDecision?.mode ?? null,
+      reasonCode: log.answer.evidenceDecision?.reasonCode ?? null,
+      directAnswer: anonymize ? null : log.answer.directAnswer,
+      answerCharCount: log.answer.answer.length,
+      supportingPointCount: log.answer.supportingPoints.length,
+      sourceDocumentCount: log.answer.sourceDocumentCount,
+      basedOnSingleDocument: log.answer.basedOnSingleDocument,
+      citationCount: log.citations.length
+    },
+    citations: log.citations.map(summarizeCitationForDebugExport),
+    topResults: log.topResults.map(summarizeTopResultForDebugExport),
+    retrievalDebug
+  };
 }
 
 export function summarizeTaskProgressForBundle(progress: LibraryTaskProgress, anonymize: boolean): LibraryTaskProgress {

@@ -226,7 +226,7 @@ Acceptance:
 
 ### P1.1 Retrieval quality improvements
 
-Status (Sprint 5 + 5.1 + 5.2 + evidence-decision pass + candidate-reasons pass + rejection-diagnostics pass): **eval–desktop retrieval shape aligned**, **tuned cautious-procedural thresholds**, **benchmark intent groups + failure buckets + `expectedAnswerMode`**, **`PKRAG_RETRIEVAL_DEBUG` schema v6** (`vectorRecallBackend` / `runtime` + tokens + flags + answer evidence decision + candidate/result selection reasons + primary-rank rejection diagnostics; eval runner can emit the same shape per case).
+Status (Sprint 5 + 5.1 + 5.2 + evidence-decision pass + candidate-reasons pass + rejection-diagnostics pass + score-contribution pass + context-metadata pass + evidence-context gate pass): **eval–desktop retrieval shape aligned**, **tuned cautious-procedural thresholds**, **benchmark intent groups + failure buckets + `expectedAnswerMode`**, **`PKRAG_RETRIEVAL_DEBUG` schema v9** (`vectorRecallBackend` / `runtime` + tokens + flags + answer evidence decision with top context + candidate/result selection reasons + primary-rank rejection diagnostics + weighted score contributions + contextual chunk metadata; eval runner can emit the same shape per case).
 
 Keep the current route:
 
@@ -248,11 +248,11 @@ Important:
 
 ### P1.2 Retrieval debug panel
 
-Status: **in-app version implemented** — Settings exposes recent-query debug details from persisted query logs: query type, intent hints, effective/expanded tokens, answer flags, evidence decision reasons, candidate pool source, primary-rank rejection reasons, citation-hit count, vector shortlist count, candidate chunk count, top-result selection reason codes, and score breakdowns. The chat answer view also shows the current answer's evidence decision.
+Status: **in-app version implemented** — Settings exposes recent-query debug details from persisted query logs: query type, intent hints, effective/expanded tokens, answer flags, evidence decision reasons, candidate pool source, primary-rank rejection reasons, citation-hit count, vector shortlist count, candidate chunk count, top-result selection reason codes, score breakdowns, and anonymized single-query debug export. The chat answer view also shows the current answer's evidence decision.
 
 Remaining scope:
 
-- export a single query debug snapshot
+- add optional full-content export guarded by explicit user consent if support ever needs it
 
 This will make retrieval iteration much faster and safer.
 

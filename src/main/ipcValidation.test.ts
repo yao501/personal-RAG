@@ -4,6 +4,7 @@ import {
   expectAbsolutePath,
   expectFeedbackStatus,
   expectOptionalPositiveInt,
+  expectQueryDebugExportOptions,
   expectSettingsPatch,
   expectStringArray,
   expectSupportBundleExportOptions
@@ -33,5 +34,12 @@ describe("ipcValidation", () => {
     expect(expectSupportBundleExportOptions([])).toEqual([false]);
     expect(expectSupportBundleExportOptions([{}])).toEqual([false]);
     expect(expectSupportBundleExportOptions([{ anonymize: true }])).toEqual([true]);
+  });
+
+  it("parses query debug export options", () => {
+    expect(expectQueryDebugExportOptions([{ logId: "log-1" }])).toEqual(["log-1", true]);
+    expect(expectQueryDebugExportOptions([{ logId: "log-1", anonymize: false }])).toEqual(["log-1", false]);
+    expect(() => expectQueryDebugExportOptions([])).toThrow(IpcValidationError);
+    expect(() => expectQueryDebugExportOptions([{ logId: "log-1", anonymize: "yes" }])).toThrow(IpcValidationError);
   });
 });

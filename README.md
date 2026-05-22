@@ -55,7 +55,7 @@ Implemented:
 - duplicate import skip for unchanged files
 - targeted repair flow for only the documents that need reindexing
 - local diagnostics in `Settings` for app version, data directory, and database path
-- in-app retrieval debug panel for recent query logs, including persisted pipeline counts, intent hints, token expansion, answer evidence decisions, candidate rejection reasons, and top-result score breakdowns
+- in-app retrieval debug panel for recent query logs, including persisted pipeline counts, intent hints, token expansion, answer evidence decisions, candidate rejection reasons, top-result score breakdowns, and anonymized single-query debug export
 - reindex support
 - **Support bundle export** from `Settings`：导出 ZIP（JSON + 说明文本），默认不包含原文与 chunk 正文；可选匿名化路径与提问预览（详见 `docs/SUPPORT_RUNBOOK.md`）
 
@@ -106,7 +106,7 @@ Suggested:
 3. Ask a question in the main prompt box
 4. Inspect the citation cards in `Chat`
 5. Open `Document Detail` to review the chunked source context
-6. Check `Settings` to inspect the latest real query logs, view retrieval debug details, mark benchmark candidates, copy auto-generated eval drafts, and mark promoted cases
+6. Check `Settings` to inspect the latest real query logs, view/export retrieval debug details, mark benchmark candidates, copy auto-generated eval drafts, and mark promoted cases
 7. Watch the left sidebar status card during import or reindex to track current stage, progress, and failed files
 8. In `Chat`, click `查看来源上下文` on a citation card to jump into the source chunk inside the app
 9. In `Chat`, click `打开原文` on a citation card to reopen the source file; PDFs with page anchors now try to jump to the cited page
@@ -159,7 +159,7 @@ PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run release:quali
 
 This runs unit tests, production build, then the `dcs-core` product RAG gate. Use `--require-realpdf` before sharing a candidate build that claims DCS manual validation.
 
-Sprint 5.x: the default benchmark path hydrates embeddings and runs the same **query embedding → top-24 vector shortlist → lexical merge → `searchChunks`** shape as the desktop app (LanceDB is replaced by in-memory cosine ranking in the script). Set **`PKRAG_RETRIEVAL_DEBUG=1`** for **schemaVersion 6** JSON: `vectorRecallBackend` (`lancedb` in the app, `memory` in `eval:rag`), `runtime` (`desktop` vs `eval`), tokens, scores, citation ids, refusal/cautious flags, answer evidence decision summaries, candidate/result selection reasons, and primary-rank rejection diagnostics (`docs/EVAL_GUIDE.md`). Benchmark cases can carry **`expectedAnswerMode`** / **`sourceType`** metadata for regression reports.
+Sprint 5.x: the default benchmark path hydrates embeddings and runs the same **query embedding → top-24 vector shortlist → lexical merge → `searchChunks`** shape as the desktop app (LanceDB is replaced by in-memory cosine ranking in the script). Set **`PKRAG_RETRIEVAL_DEBUG=1`** for **schemaVersion 9** JSON: `vectorRecallBackend` (`lancedb` in the app, `memory` in `eval:rag`), `runtime` (`desktop` vs `eval`), tokens, scores, citation ids, refusal/cautious flags, answer evidence decision summaries with top evidence context, candidate/result selection reasons, primary-rank rejection diagnostics, weighted score contributions, and contextual chunk metadata (`docs/EVAL_GUIDE.md`). Benchmark cases can carry **`expectedAnswerMode`** / **`sourceType`** metadata for regression reports.
 
 Included tests cover:
 
@@ -194,7 +194,7 @@ Notes:
 - Retrieval combines lexical match, metadata boosts, local embeddings, LanceDB candidate recall, and intent-aware reranking so the stack stays local while improving recall quality.
 - Answer generation is citation-first and grounded in retrieved chunks, with sentence-level evidence selection plus page/paragraph and sentence anchors to make citations easier to inspect.
 - Real query logs are persisted locally so future retrieval changes can be compared against both curated eval datasets and actual user questions, then promoted into sanitized benchmark v1 case drafts from the desktop app, including grounded, cautious, and refusal candidates.
-- Recent query logs now persist a local retrieval debug snapshot, making vector shortlist count, candidate count, candidate source mode, primary-rank rejection reasons, top-result score reasons, citation hits, query type, refusal/cautious answer flags, and evidence decision reasons inspectable before tuning retrieval behavior.
+- Recent query logs now persist a local retrieval debug snapshot, making vector shortlist count, candidate count, candidate source mode, primary-rank rejection reasons, top-result score reasons, citation hits, query type, refusal/cautious answer flags, and evidence decision reasons inspectable before tuning retrieval behavior. Individual query debug snapshots can be exported as anonymized JSON without raw chunk text by default.
 - Import and reindex now expose stage-level progress plus structured failure reasons, which makes large-library maintenance much safer for end users.
 - Vector index failures are recorded as diagnostics and surfaced as fallback state, so lexical retrieval can keep working while support can see why semantic vector recall degraded.
 - Busy-task and file-picker failures use stable structured error codes, and reindex failures surface in the same task issue panel as import failures.

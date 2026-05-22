@@ -183,6 +183,50 @@ describe("answerQuestion", () => {
     });
   });
 
+  it("uses context metadata to keep procedural questions cautious when evidence is only definitional", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-1",
+        fileName: "manual.pdf",
+        documentTitle: "操作手册",
+        chunkId: "definition-only",
+        snippet: "离线升级功能用于在无法联网时更新系统组件。",
+        score: 6,
+        chunkIndex: 0,
+        sectionTitle: "离线升级概述",
+        sectionPath: "操作手册 > 离线升级概述",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        importedAt: "2026-04-01T00:00:00.000Z",
+        text: "离线升级功能用于在无法联网时更新系统组件。本节只说明功能用途和适用范围。",
+        lexicalScore: 4,
+        semanticScore: 1,
+        freshnessScore: 0.5,
+        rerankScore: 1.6,
+        qualityScore: 1,
+        fullText: "离线升级功能用于在无法联网时更新系统组件。本节只说明功能用途和适用范围。",
+        contextMetadata: {
+          manualFamilyId: null,
+          manualFamilyLabel: null,
+          sectionDepth: 2,
+          sectionRoot: "操作手册",
+          contentKind: "definition",
+          technicalTerms: []
+        }
+      }
+    ];
+
+    const answer = answerQuestion("如何一步步完成离线升级？", results);
+
+    expect(answer.directAnswer).toContain("概述性内容");
+    expect(answer.evidenceDecision).toMatchObject({
+      mode: "cautious",
+      reasonCode: "procedural_overview_only",
+      signals: {
+        topContentKind: "definition"
+      }
+    });
+  });
+
   it("allows low-quality DCS parameter-table chunks when exact technical identifiers match", () => {
     const results: SearchResult[] = [
       {

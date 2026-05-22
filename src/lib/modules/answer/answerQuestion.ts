@@ -381,6 +381,17 @@ function needsProceduralEvidenceCaution(question: string, results: SearchResult[
     return true;
   }
 
+  const topContextKinds = results
+    .slice(0, 2)
+    .map((result) => result.contextMetadata?.contentKind)
+    .filter(Boolean);
+  if (
+    topContextKinds.length > 0 &&
+    !topContextKinds.some((kind) => kind === "procedure" || kind === "troubleshooting" || kind === "parameter_reference")
+  ) {
+    return true;
+  }
+
   if (evidenceCoverageHighEnough(question, results)) {
     return false;
   }
@@ -1980,6 +1991,9 @@ function createEvidenceDecision(
       topSemanticScore: top?.semanticScore ?? null,
       topRerankScore: top?.rerankScore ?? null,
       topQualityScore: top?.qualityScore ?? null,
+      topContentKind: top?.contextMetadata?.contentKind ?? null,
+      topManualFamilyId: top?.contextMetadata?.manualFamilyId ?? null,
+      topTechnicalTerms: top?.contextMetadata?.technicalTerms ?? [],
       ...(unsupportedAnchors.length > 0 ? { unsupportedAnchors } : {})
     }
   };

@@ -278,6 +278,33 @@ export class AppStore {
     }));
   }
 
+  getQueryLog(logId: string): QueryLogRecord | null {
+    const row = this.db
+      .prepare(
+        `SELECT id, sessionId, question, answerJson, citationsJson, topResultsJson, retrievalDebugJson, createdAt, feedbackStatus, feedbackNote
+         FROM query_logs
+         WHERE id = ?`
+      )
+      .get(logId) as DbRowMap["queryLogs"] | undefined;
+
+    if (!row) {
+      return null;
+    }
+
+    return {
+      id: row.id,
+      sessionId: row.sessionId,
+      question: row.question,
+      answer: JSON.parse(row.answerJson),
+      citations: JSON.parse(row.citationsJson),
+      topResults: JSON.parse(row.topResultsJson),
+      retrievalDebug: row.retrievalDebugJson ? JSON.parse(row.retrievalDebugJson) : null,
+      createdAt: row.createdAt,
+      feedbackStatus: row.feedbackStatus,
+      feedbackNote: row.feedbackNote
+    };
+  }
+
   saveChatTurn(turn: ChatTurn, nextSessionTitle?: string): void {
     const transaction = this.db.transaction(() => {
       this.db

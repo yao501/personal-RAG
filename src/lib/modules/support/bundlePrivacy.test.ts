@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   redactAbsolutePath,
   summarizeDocumentForBundle,
+  summarizeQueryDebugSnapshotForExport,
   summarizeQueryLogsForBundle,
   summarizeTaskProgressForBundle,
   summarizeVectorIndexEventsForBundle
@@ -135,5 +136,118 @@ describe("bundlePrivacy", () => {
 
     expect(redacted.details).toBeNull();
     expect(full.details).toMatchObject({ rowCount: 12 });
+  });
+
+  it("exports a single query debug snapshot without raw chunk text when anonymized", () => {
+    const log: QueryLogRecord = {
+      id: "q1",
+      sessionId: "s1",
+      question: "secret question about process",
+      answer: {
+        answer: "SECRET ANSWER BODY",
+        directAnswer: "SECRET DIRECT ANSWER",
+        supportingPoints: ["SECRET POINT"],
+        sourceDocumentCount: 1,
+        basedOnSingleDocument: true,
+        citations: [],
+        evidenceDecision: {
+          schemaVersion: 1,
+          mode: "grounded",
+          reasonCode: "reliable_evidence",
+          reason: "enough evidence",
+          suggestions: [],
+          signals: {
+            resultCount: 1,
+            usableResultCount: 1,
+            citedChunkCount: 1,
+            sourceDocumentCount: 1,
+            intentWantsSteps: false,
+            topScore: 1,
+            topLexicalScore: 1,
+            topSemanticScore: 1,
+            topRerankScore: 1,
+            topQualityScore: 1
+          }
+        }
+      },
+      citations: [],
+      topResults: [
+        {
+          documentId: "d1",
+          fileName: "manual.pdf",
+          documentTitle: "Manual",
+          chunkId: "c1",
+          chunkIndex: 0,
+          text: "SECRET CHUNK TEXT",
+          snippet: "SECRET SNIPPET",
+          evidenceText: "SECRET EVIDENCE",
+          fullText: "SECRET FULL TEXT",
+          highlightText: "SECRET HIGHLIGHT",
+          highlightStart: 0,
+          highlightEnd: 6,
+          score: 1,
+          lexicalScore: 1,
+          semanticScore: 1,
+          freshnessScore: 0,
+          rerankScore: 1,
+          qualityScore: 1,
+          sectionTitle: "Section",
+          sectionPath: "Manual > Section",
+          sectionRootLabel: "Manual",
+          pageStart: 1,
+          pageEnd: 1,
+          paragraphStart: null,
+          paragraphEnd: null,
+          locatorLabel: "p. 1",
+          anchorLabel: "p. 1 sentence 1",
+          sourceUpdatedAt: null,
+          importedAt: "2026-05-01T00:00:00.000Z"
+        }
+      ],
+      retrievalDebug: {
+        schemaVersion: 6,
+        kind: "pkrag.retrieval",
+        question: "secret question about process",
+        vectorRecallBackend: "memory",
+        runtime: "eval",
+        effectiveQueryTokens: ["process"],
+        expandedTokens: [],
+        intentPrimary: "general",
+        intentWantsSteps: false,
+        queryRetrievalType: "default",
+        vectorShortlistCount: 0,
+        candidateChunkCount: 1,
+        searchTopK: 6,
+        topResults: [],
+        answerCitationChunkIds: [],
+        answerFlags: { refusal: false, cautiousProcedural: false }
+      },
+      createdAt: "2026-05-01T00:00:00.000Z",
+      feedbackStatus: "pending",
+      feedbackNote: "SECRET NOTE"
+    };
+
+    const snapshot = summarizeQueryDebugSnapshotForExport(log, true);
+    const serialized = JSON.stringify(snapshot);
+
+    expect(serialized).not.toContain("SECRET CHUNK TEXT");
+    expect(serialized).not.toContain("SECRET SNIPPET");
+    expect(serialized).not.toContain("SECRET EVIDENCE");
+    expect(serialized).not.toContain("SECRET ANSWER BODY");
+    expect(serialized).not.toContain("secret question");
+    expect(snapshot).toMatchObject({
+      privacy: {
+        anonymize: true,
+        rawDocumentContentIncluded: false,
+        rawChunkTextIncluded: false
+      },
+      queryLog: {
+        id: "q1",
+        questionPreview: "[REDACTED]"
+      },
+      retrievalDebug: {
+        question: "[REDACTED]"
+      }
+    });
   });
 });

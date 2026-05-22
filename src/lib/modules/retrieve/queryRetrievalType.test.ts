@@ -70,12 +70,35 @@ describe("resolveQueryRetrievalType", () => {
 });
 
 describe("buildRetrievalDebugPayload queryRetrievalType", () => {
-  it("includes queryRetrievalType, evidence decision, and selection reasons in payload for logs (schema v6)", () => {
+  it("includes queryRetrievalType, evidence decision, and selection reasons in payload for logs (schema v9)", () => {
     const payload = buildRetrievalDebugPayload(
       "编译和下装的顺序？",
       ["x"],
       1,
-      [minimalResult({ chunkId: "x", evidenceText: "先编译，后下装。" })],
+      [
+        minimalResult({
+          chunkId: "x",
+          evidenceText: "先编译，后下装。",
+          scoreBreakdown: {
+            lexicalContribution: 0.42,
+            semanticContribution: 0.31,
+            rerankContribution: 0.22,
+            freshnessContribution: 0.1,
+            qualityContribution: 0.34,
+            penaltyContribution: 0,
+            sectionRootBoost: 0,
+            finalScore: 1.39
+          },
+          contextMetadata: {
+            manualFamilyId: "engineering",
+            manualFamilyLabel: "工程总控",
+            sectionDepth: 2,
+            sectionRoot: "工程总控",
+            contentKind: "procedure",
+            technicalTerms: ["DPU"]
+          }
+        })
+      ],
       emptyAnswer(),
       {
         searchLimit: 6,
@@ -107,7 +130,7 @@ describe("buildRetrievalDebugPayload queryRetrievalType", () => {
         }
       }
     );
-    expect(payload.schemaVersion).toBe(6);
+    expect(payload.schemaVersion).toBe(9);
     expect(payload.queryRetrievalType).toBe("compile_order");
     expect(payload.candidateSelection).toMatchObject({
       mode: "hybrid_vector_only_or_unknown",
@@ -119,7 +142,16 @@ describe("buildRetrievalDebugPayload queryRetrievalType", () => {
       vectorHit: true,
       citationStatus: "not_cited",
       notCitedReason: "answer_refused_or_no_citations",
-      selectionReasons: expect.arrayContaining(["vector_shortlist_hit", "sentence_evidence_selected"])
+      selectionReasons: expect.arrayContaining(["vector_shortlist_hit", "sentence_evidence_selected"]),
+      scoreBreakdown: expect.objectContaining({
+        lexicalContribution: 0.42,
+        finalScore: 1.39
+      }),
+      contextMetadata: expect.objectContaining({
+        manualFamilyLabel: "工程总控",
+        contentKind: "procedure",
+        technicalTerms: ["DPU"]
+      })
     });
     expect(payload.evidenceDecision).toMatchObject({
       mode: "refusal",

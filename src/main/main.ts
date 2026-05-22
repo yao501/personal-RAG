@@ -1,3 +1,4 @@
+import fs from "node:fs/promises";
 import path from "node:path";
 import { app, BrowserWindow, dialog, ipcMain, type IpcMainInvokeEvent } from "electron";
 import { fileURLToPath } from "node:url";
@@ -11,6 +12,7 @@ import {
   expectOptionalNullableString,
   expectOptionalPositiveInt,
   expectOptionalStringArray,
+  expectQueryDebugExportOptions,
   expectSettingsPatch,
   expectString,
   expectStringArray,
@@ -21,6 +23,7 @@ import { IpcForbiddenError, toRendererErrorInfo } from "./ipcErrors";
 import { recordIpcFailure } from "./diagnosticsBuffer";
 import { exportSupportBundleZip } from "./supportBundle";
 import { createImportError, isImportPipelineError } from "./importErrors";
+import { summarizeQueryDebugSnapshotForExport } from "../lib/modules/support/bundlePrivacy";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rendererUrl = process.env.ELECTRON_RENDERER_URL;
@@ -28,6 +31,14 @@ const rendererUrl = process.env.ELECTRON_RENDERER_URL;
 let mainWindow: BrowserWindow | null = null;
 const store = new AppStore();
 const knowledgeService = new KnowledgeService(store);
+
+function safeFileStem(value: string): string {
+  return value
+    .replace(/[^\p{L}\p{N}._-]+/gu, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80) || "query-debug";
+}
 
 function ensureTrustedSender(event: IpcMainInvokeEvent): void {
   const senderUrl = event.senderFrame?.url || event.sender.getURL();
@@ -217,6 +228,36 @@ function registerIpcHandlers(): void {
   );
   registerIpc("query-logs:eval-drafts", (args) => [expectOptionalPositiveInt(args[0], "limit")] as const, (_event, limit) =>
     knowledgeService.getEvalCandidateDrafts(limit)
+  );
+
+  registerIpc(
+    "query-logs:export-debug",
+    expectQueryDebugExportOptions,
+    async (event, logId, anonymize) => {
+      const log = knowledgeService.getQueryLog(logId);
+      if (!log) {
+        throw new Error(`Query log not found: ${logId}`);
+      }
+
+      const win = BrowserWindow.fromWebContents(event.sender) ?? mainWindow;
+      const createdAt = log.createdAt.replace(/[:.]/g, "-");
+      const saveOptions = {
+        title: "导出检索调试快照",
+        defaultPath: `personal-knowledge-rag-query-debug-${createdAt}-${safeFileStem(log.id)}.json`,
+        filters: [{ name: "JSON", extensions: ["json"] }]
+      } satisfies Electron.SaveDialogOptions;
+      const result = win
+        ? await dialog.showSaveDialog(win, saveOptions)
+        : await dialog.showSaveDialog(saveOptions);
+
+      if (result.canceled || !result.filePath) {
+        return { canceled: true as const };
+      }
+
+      const snapshot = summarizeQueryDebugSnapshotForExport(log, anonymize);
+      await fs.writeFile(result.filePath, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+      return { canceled: false as const, path: result.filePath };
+    }
   );
 
   registerIpc(

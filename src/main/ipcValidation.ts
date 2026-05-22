@@ -156,3 +156,21 @@ export function expectSupportBundleExportOptions(args: unknown[]): [boolean] {
 
   return [Boolean(record.anonymize)];
 }
+
+export function expectQueryDebugExportOptions(args: unknown[]): [string, boolean] {
+  if (args.length === 0) {
+    fail("query debug export options are required.");
+  }
+
+  const value = args[0];
+  if (!isRecord(value)) {
+    fail("query debug export options must be an object.");
+  }
+
+  const logId = expectString(value.logId, "logId");
+  if ("anonymize" in value && typeof value.anonymize !== "boolean") {
+    fail("anonymize must be a boolean.");
+  }
+
+  return [logId, value.anonymize !== false];
+}

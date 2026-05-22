@@ -75,6 +75,11 @@ describe("searchChunks", () => {
     const results = searchChunks("citations in chat", documents, chunks, 2);
 
     expect(results[0]?.chunkId).toBe("chunk-2");
+    expect(results[0]?.scoreBreakdown).toMatchObject({
+      sectionRootBoost: 0,
+      finalScore: results[0]?.score
+    });
+    expect(results[0]?.scoreBreakdown?.lexicalContribution).toBeGreaterThan(0);
   });
 
   it("prefers more recent chunks when the query asks for the latest status", () => {
@@ -740,7 +745,7 @@ describe("searchChunks", () => {
       {
         id: "doc-1",
         filePath: "/tmp/function-blocks.pdf",
-        fileName: "function-blocks.pdf",
+        fileName: "HOLLiAS_MACS_V6.5用户手册7_功能块.pdf",
         title: "HOLLiAS MACS V6.5 用户手册7 功能块",
         fileType: "pdf",
         content: "",
@@ -783,6 +788,13 @@ describe("searchChunks", () => {
 
     expect(results[0]?.chunkId).toBe("pid-range");
     expect(results[0]?.evidenceText).toContain("过程量上限");
+    expect(results[0]?.contextMetadata).toMatchObject({
+      manualFamilyId: "function_block",
+      manualFamilyLabel: "功能块",
+      contentKind: "parameter_reference",
+      sectionDepth: 3
+    });
+    expect(results[0]?.contextMetadata?.technicalTerms).toContain("PID");
   });
 
   it("uses DCS symbol library expansion to retrieve MOT and VAL equipment descriptions", () => {

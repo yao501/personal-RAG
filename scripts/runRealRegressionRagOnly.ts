@@ -131,7 +131,7 @@ async function loadFixtureCorpus(pathsRel: string[]): Promise<{ documents: Docum
 
 async function runOne(question: string, documents: DocumentRecord[], chunks: ChunkRecord[]) {
   const topK = DEFAULT_RETRIEVAL_LIMIT;
-  const { results: searchResults, vectorChunkIds, candidateChunks, queryRetrievalType } = await runRetrievalLikeDesktop(
+  const { results: searchResults, vectorChunkIds, candidateChunks, queryRetrievalType, searchDiagnostics } = await runRetrievalLikeDesktop(
     question,
     documents,
     chunks,
@@ -142,7 +142,9 @@ async function runOne(question: string, documents: DocumentRecord[], chunks: Chu
     searchLimit: topK,
     vectorRecallBackend: "memory",
     runtime: "eval",
-    queryRetrievalType
+    queryRetrievalType,
+    candidateChunkIds: candidateChunks.map((chunk) => chunk.id),
+    searchDiagnostics
   });
   return {
     direct_answer: answer.directAnswer,

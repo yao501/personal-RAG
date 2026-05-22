@@ -976,6 +976,10 @@ export class KnowledgeService {
     return this.store.listQueryLogs(limit);
   }
 
+  getQueryLog(logId: string): QueryLogRecord | null {
+    return this.store.getQueryLog(logId);
+  }
+
   updateQueryLogStatus(logId: string, status: QueryLogFeedbackStatus, note: string | null = null): QueryLogRecord[] {
     this.store.updateQueryLogStatus(logId, status, note);
     return this.store.listQueryLogs(50);

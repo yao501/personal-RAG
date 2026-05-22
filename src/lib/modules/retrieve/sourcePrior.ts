@@ -46,6 +46,13 @@ export function matchManualFamily(fileName: string): ManualFamilyId | null {
   return null;
 }
 
+export function getManualFamilyLabel(id: ManualFamilyId | null): string | null {
+  if (!id) {
+    return null;
+  }
+  return MANUAL_FAMILY_PATTERNS.find((row) => row.id === id)?.label ?? null;
+}
+
 function chainSignalInResult(r: SearchResult): boolean {
   const t = `${r.sectionTitle ?? ""}\n${r.text}`;
   return /(?:完整使用步骤依次为|先安装系统软件|软件使用步骤|创建工程|工程组态|编译工程|编译|下装|运行系统)/.test(t);

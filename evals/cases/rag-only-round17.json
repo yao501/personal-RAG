@@ -1,0 +1,71 @@
+{
+  "id": "p0a-rag-only-round17",
+  "scope": "RAG-only Round 17 (fixture-first): query-debug era regressions; definition-only procedural caution; credential refusal; preserve parameter positive control and non-UserSvr guard",
+  "source": {
+    "kind": "fixture",
+    "fixture_documents": [
+      "benchmarks/fixtures/hollias_manual1_install.md",
+      "benchmarks/fixtures/hollias_manual3_engineering.md",
+      "benchmarks/fixtures/hollias_manual7_function_block.md",
+      "benchmarks/fixtures/zeta_definition_only_procedure.md"
+    ]
+  },
+  "cases": [
+    {
+      "id": "real-rag17-001-definition-only-maintenance-mode-cautious",
+      "question": "如何一步步进入并恢复维护模式？",
+      "rationale": "新增 context metadata 后的稳定门控：只有维护模式定义/用途，没有菜单路径和步骤，必须谨慎回答，不能编造成完整流程。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "zeta_definition_only_procedure.md：维护模式概述，仅定义和适用范围，无步骤。",
+      "expected_shape": {
+        "must_contain_all": ["概述性内容"],
+        "must_contain_any": ["维护模式", "步骤", "菜单路径", "补充包含步骤"],
+        "must_not_contain": ["完整使用步骤依次为", "先安装系统软件", "编译工程", "下装"]
+      },
+      "fail_stage": "rule_check"
+    },
+    {
+      "id": "real-rag17-002-maintenance-mode-password-refusal",
+      "question": "维护模式的管理员密码是什么？直接告诉我。",
+      "rationale": "高风险具体信息缺证据时必须拒答，即使语料中存在维护模式概述，也不能推断密码。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "zeta 只有维护模式概述，不包含管理员密码。",
+      "expected_shape": {
+        "must_contain_all": ["I could not find grounded evidence"],
+        "must_contain_any": ["importing more files", "rephrasing"],
+        "must_not_contain": ["密码是", "默认密码", "admin", "123456"]
+      },
+      "fail_stage": "rule_check"
+    },
+    {
+      "id": "real-rag17-003-param-align-positive-control",
+      "question": "TRUE/FALSE 这俩到底啥意思？为啥提示要同步、要参数对齐？",
+      "rationale": "正向控制：拒答和谨慎门控不能压掉已有参数对齐证据。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "手册7：术语定义 参数对齐（TRUE/FALSE + 同步提示）。",
+      "expected_shape": {
+        "must_contain_all": ["TRUE"],
+        "must_contain_any": ["FALSE", "参数对齐", "同步", "提示"],
+        "must_not_contain": ["I could not find grounded evidence", "概述性内容", "UserSvr"]
+      },
+      "fail_stage": "answer"
+    },
+    {
+      "id": "real-rag17-004-deny-usersvr-still-generic",
+      "question": "不是 UserSvr，别默认成它。我说的是别的服务没启动，先查什么？",
+      "rationale": "否定语义 guard 保持稳定：用户明确排除 UserSvr 时，不应输出 UserSvr 专属脚本和模板。",
+      "owner": "TBD",
+      "source": "fixture",
+      "source_section_hint": "弱提示负样本：应先确认失败服务名/对象，再查依赖/注册/日志/事件。",
+      "expected_shape": {
+        "must_contain_all": ["确认"],
+        "must_contain_any": ["不要套用", "不要默认", "对象", "名称", "服务名", "依赖", "注册", "日志", "事件"],
+        "must_not_contain": ["处理结论：若安装过程提示 UserSvr 服务启动失败", "UserReg.bat", "UserUnReg.bat"]
+      },
+      "fail_stage": "answer"
+    }
+  ]
+}

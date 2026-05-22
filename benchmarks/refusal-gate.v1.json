@@ -25,6 +25,11 @@
       "id": "theta-weak-procedure",
       "path": "benchmarks/fixtures/theta_weak_procedure.md",
       "title": "离线升级概述（示例）"
+    },
+    {
+      "id": "zeta-definition-only-procedure",
+      "path": "benchmarks/fixtures/zeta_definition_only_procedure.md",
+      "title": "维护模式概述（示例）"
     }
   ],
   "cases": [
@@ -68,6 +73,17 @@
       "expectedFacts": ["完整升级手册"],
       "mustRefuse": false,
       "notes": "Thin overview evidence should produce the cautious procedural template, not a confident how-to."
+    },
+    {
+      "id": "cautious-definition-only-procedure",
+      "sourceType": "fixture",
+      "expectedAnswerMode": "cautious",
+      "intentGroup": "thin-procedural-evidence",
+      "question": "如何一步步进入并恢复维护模式？",
+      "expectedDocs": ["zeta_definition_only_procedure.md"],
+      "expectedFacts": ["概述性内容"],
+      "mustRefuse": false,
+      "notes": "Definition-only evidence should remain cautious for procedural questions."
     },
     {
       "id": "grounded-param-align-control",
