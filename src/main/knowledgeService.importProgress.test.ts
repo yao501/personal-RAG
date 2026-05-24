@@ -111,7 +111,20 @@ describe("KnowledgeService task progress diagnostics", () => {
       listChunks: () => [],
       getLibraryStats: () => ({ documentCount: 1, chunkCount: 0 }),
       listChatSessions: () => [],
-      getDatabasePath: () => path.join(dir, "app.db")
+      getDatabasePath: () => path.join(dir, "app.db"),
+      getDatabasePragmas: () => ({ user_version: 3, journal_mode: "wal", page_size: 4096 }),
+      getMigrationReport: () => ({
+        currentSchemaVersion: 3,
+        databaseUserVersionBefore: 3,
+        databaseUserVersionAfter: 3,
+        migrationNeeded: false,
+        migrationApplied: false,
+        backupCreated: false,
+        backupPath: null,
+        startedAt: "2026-01-01T00:00:00.000Z",
+        completedAt: "2026-01-01T00:00:00.000Z",
+        error: null
+      })
     };
     const service = new KnowledgeService(store as AppStore);
     (service as unknown as { lanceIndex: { rebuild: () => Promise<void> } }).lanceIndex = { rebuild: async () => {} };

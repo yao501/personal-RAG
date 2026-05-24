@@ -28,12 +28,13 @@ The support bundle helps triage desktop issues (import/reindex failures, health 
 | `app_runtime.json` | Node/Electron/Chrome versions, platform, arch, locale. |
 | `paths.json` | `userData`, SQLite DB path, LanceDB directory, temp dir (paths may be redacted). |
 | `sqlite.json` | SQLite `PRAGMA` snapshot (`user_version`, `journal_mode`, `page_size`) and DB file name. |
+| `migration.json` | Latest startup migration report: supported schema version, DB version before/after, whether a pre-migration backup was created, and any migration error. Added in support bundle format v3. |
 | `embedding.json` | Local embedding pipeline availability and reason if unavailable. |
 | `system_status.json` | Document/chunk counts, embedding availability, and vector-index availability as shown in the app. |
 | `vector_index.json` | Current vector-index availability plus recent rebuild/search events. Event `details` are omitted when anonymize is on. Added in support bundle format v2. |
 | `settings_safe.json` | Chunk size/overlap and optional library path (may be redacted). |
 | `library_health.json` | Full library health report (same shape as in-app health check). |
-| `documents_summary.json` | Per-document metadata: ids, titles, types, chunk counts, paths (paths redacted when anonymize is on). **No document body text.** |
+| `documents_summary.json` | Per-document metadata: ids, titles, types, chunk counts, import quality summaries, paths (paths redacted when anonymize is on). **No document body text.** |
 | `query_logs_meta.json` | Recent query logs as **metadata only** (counts, timestamps, short preview or redacted text). **No answers, citations, retrieval debug snapshots, or retrieval payloads.** |
 | `library_tasks_recent.json` | Recent import/reindex task progress snapshots (ring buffer). `currentFile` and structured issue `filePath` may be redacted. |
 | `ipc_errors_recent.json` | Recent structured IPC failures (channel, code, stage, message, suggestion). `details` omitted when anonymize is on. |
@@ -62,11 +63,12 @@ When anonymize is **off**, more path and preview text is present to speed up int
 
 ## How support should use the bundle
 
-1. **Start with** `manifest.json`, `app_runtime.json`, `paths.json`, `sqlite.json`, `embedding.json`, and `vector_index.json` to confirm environment and storage layout.
+1. **Start with** `manifest.json`, `app_runtime.json`, `paths.json`, `sqlite.json`, `migration.json`, `embedding.json`, and `vector_index.json` to confirm environment and storage layout.
 2. Check **`library_health.json`** for actionable issues (missing sources, stale files, missing embeddings).
-3. Review **`library_tasks_recent.json`** for the last import/reindex timeline and failure phases.
-4. Use **`ipc_errors_recent.json`** if the user reports UI actions failing (settings, import, etc.).
-5. Use **`query_logs_meta.json`** only for **volume and recency** of questions—do not expect answer content here.
+3. Check **`documents_summary.json`** → `ingestionQuality` for low text density, possible scanned PDFs, garbled text, or unusual chunk distribution.
+4. Review **`library_tasks_recent.json`** for the last import/reindex timeline and failure phases.
+5. Use **`ipc_errors_recent.json`** if the user reports UI actions failing (settings, import, etc.).
+6. Use **`query_logs_meta.json`** only for **volume and recency** of questions—do not expect answer content here.
 
 ## Single-query retrieval debug export
 

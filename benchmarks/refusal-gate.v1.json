@@ -30,6 +30,11 @@
       "id": "zeta-definition-only-procedure",
       "path": "benchmarks/fixtures/zeta_definition_only_procedure.md",
       "title": "维护模式概述（示例）"
+    },
+    {
+      "id": "iota-conflicting-policy",
+      "path": "benchmarks/fixtures/iota_conflicting_policy.md",
+      "title": "维护模式远程确认策略（冲突示例）"
     }
   ],
   "cases": [
@@ -84,6 +89,16 @@
       "expectedFacts": ["概述性内容"],
       "mustRefuse": false,
       "notes": "Definition-only evidence should remain cautious for procedural questions."
+    },
+    {
+      "id": "cautious-conflicting-policy",
+      "sourceType": "fixture",
+      "intentGroup": "conflicting-evidence",
+      "question": "维护模式是否允许启用远程确认？",
+      "expectedDocs": ["iota_conflicting_policy.md"],
+      "expectedFacts": ["证据存在正反结论"],
+      "mustRefuse": false,
+      "notes": "Comparable positive/negative policy evidence should produce a cautious conflict answer instead of choosing one side."
     },
     {
       "id": "grounded-param-align-control",

@@ -6,8 +6,8 @@ import type { QueryRetrievalType } from "./queryRetrievalType";
 import { resolveQueryRetrievalType } from "./queryRetrievalType";
 import type { SearchDiagnostics } from "./searchIndex";
 
-/** Bump when JSON shape changes (for log parsers). v9 adds answer evidence context signals. */
-export const RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION = 9;
+/** Bump when JSON shape changes (for log parsers). v10 adds conflict-evidence signals. */
+export const RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION = 10;
 
 export type VectorRecallBackend = "lancedb" | "memory";
 export type RetrievalDebugRuntime = "desktop" | "eval";
@@ -110,6 +110,7 @@ export interface RetrievalDebugPayload {
     topContentKind?: string | null;
     topManualFamilyId?: string | null;
     topTechnicalTerms?: string[];
+    conflictEvidenceChunkIds?: string[];
   };
 }
 
@@ -308,7 +309,8 @@ export function buildRetrievalDebugPayload(
             sourceDocumentCount: answer.evidenceDecision.signals.sourceDocumentCount,
             topContentKind: answer.evidenceDecision.signals.topContentKind ?? null,
             topManualFamilyId: answer.evidenceDecision.signals.topManualFamilyId ?? null,
-            topTechnicalTerms: answer.evidenceDecision.signals.topTechnicalTerms ?? []
+            topTechnicalTerms: answer.evidenceDecision.signals.topTechnicalTerms ?? [],
+            conflictEvidenceChunkIds: answer.evidenceDecision.signals.conflictEvidenceChunkIds ?? []
           }
         }
       : {}),

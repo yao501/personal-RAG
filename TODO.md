@@ -106,8 +106,8 @@ Scope:
 
 - define standard error codes (**foundation in place; continue expanding for new real-world failures**)
 - map each import/index failure stage to stable error codes (**foundation in place for preflight/parsing/chunking/embedding/indexing/storage**)
-- unify how errors appear in UI, logs, and diagnostics (**IPC envelope, task issue panel, support bundle recent errors, vector-index fallback diagnostics, corrected import completion counts, and missing-source reindex regression coverage are in place**)
-- add stronger pre-import checks
+- unify how errors appear in UI, logs, and diagnostics (**IPC envelope, task issue panel, support bundle recent errors, vector-index fallback diagnostics, corrected import completion counts, ingestion quality summaries, migration reports, and missing-source reindex regression coverage are in place**)
+- add stronger pre-import checks (**initial import quality report is in place; OCR remains explicit follow-up**)
 - improve per-file retry and repair flows
 - deepen library consistency checks
 
@@ -151,7 +151,7 @@ Acceptance:
 
 ### P0.4 Regression-quality evaluation
 
-Status (Sprint 3 / 5.3): **foundation in place** — versioned benchmark JSON (`benchmarks/benchmark.v1.json`), `npm run eval:rag`, deterministic metrics, Markdown reports under `reports/rag-eval/`, and [docs/EVAL_GUIDE.md](docs/EVAL_GUIDE.md). Current default baseline on 2026-05-14 is **16/16**, including grounded paraphrase cases and synthetic refusal cases. `npm run eval:rag:product` now acts as the product gate: fixture smoke plus refusal/sufficiency gate first, then local DCS Manual 7 Phase B when `PKRAG_REALPDF_DIR` is available; `--profile dcs-core` adds the 8-case cross-volume DCS core gate for release-quality local validation.
+Status (Sprint 3 / 5.3+): **foundation in place** — versioned benchmark JSON (`benchmarks/benchmark.v1.json`), `npm run eval:rag`, deterministic metrics, Markdown/JSON reports under `reports/rag-eval/`, before/after comparison via `npm run eval:rag:compare`, and [docs/EVAL_GUIDE.md](docs/EVAL_GUIDE.md). Current default baseline on 2026-05-14 is **16/16**, including grounded paraphrase cases and synthetic refusal cases. `npm run eval:rag:product` now acts as the product gate: fixture smoke plus refusal/sufficiency gate first, then local DCS Manual 7 Phase B when `PKRAG_REALPDF_DIR` is available; `--profile dcs-core` adds the 8-case cross-volume DCS core gate for release-quality local validation.
 
 Why this is P0:
 
@@ -226,7 +226,7 @@ Acceptance:
 
 ### P1.1 Retrieval quality improvements
 
-Status (Sprint 5 + 5.1 + 5.2 + evidence-decision pass + candidate-reasons pass + rejection-diagnostics pass + score-contribution pass + context-metadata pass + evidence-context gate pass): **eval–desktop retrieval shape aligned**, **tuned cautious-procedural thresholds**, **benchmark intent groups + failure buckets + `expectedAnswerMode`**, **`PKRAG_RETRIEVAL_DEBUG` schema v9** (`vectorRecallBackend` / `runtime` + tokens + flags + answer evidence decision with top context + candidate/result selection reasons + primary-rank rejection diagnostics + weighted score contributions + contextual chunk metadata; eval runner can emit the same shape per case).
+Status (Sprint 5 + 5.1 + 5.2 + evidence-decision pass + candidate-reasons pass + rejection-diagnostics pass + score-contribution pass + context-metadata pass + evidence-context gate pass + conflict-evidence pass): **eval–desktop retrieval shape aligned**, **tuned cautious-procedural thresholds**, **benchmark intent groups + failure buckets + `expectedAnswerMode`**, **`PKRAG_RETRIEVAL_DEBUG` schema v10** (`vectorRecallBackend` / `runtime` + tokens + flags + answer evidence decision with top context and conflict ids + candidate/result selection reasons + primary-rank rejection diagnostics + weighted score contributions + contextual chunk metadata; eval runner can emit the same shape per case).
 
 Keep the current route:
 
@@ -313,10 +313,10 @@ These are valid but intentionally later:
 
 If we want the highest-value next sprint based on the current repo, do this:
 
-1. Harden Electron security settings and IPC validation.
-2. Introduce stable import/index error codes and a unified error envelope.
-3. Add support bundle export using the diagnostics and health data that already exist.
-4. Upgrade `eval:rag` into a more formal benchmark/report flow.
+1. Continue import/OCR hardening with explicit scanned-PDF handling and user-facing remediation.
+2. Expand sanitized real-question regression cases, then compare before/after JSON reports for every retrieval change.
+3. Deepen evidence sufficiency gates for conflict evidence, weak procedural evidence, and high-risk unsupported specifics.
+4. Keep Apple signing/notarization as a separate delivery track when product decides to resume it.
 
 ## Definition Of “Done” For This Phase
 

@@ -12,6 +12,36 @@ export interface ParsedDocumentContent {
   pageSpans?: SourcePageSpan[];
 }
 
+export type DocumentIngestionQualityWarningCode =
+  | "very_short_content"
+  | "low_text_density_pdf"
+  | "missing_pdf_page_spans"
+  | "possible_garbled_text"
+  | "few_chunks_for_large_document"
+  | "large_chunk_size_variance";
+
+export interface DocumentIngestionQualityWarning {
+  code: DocumentIngestionQualityWarningCode;
+  severity: "info" | "warning" | "error";
+  message: string;
+  suggestion: string | null;
+}
+
+export interface DocumentIngestionQualityReport {
+  schemaVersion: 1;
+  generatedAt: string;
+  fileType: SupportedFileType;
+  characterCount: number;
+  nonWhitespaceCharacterCount: number;
+  lineCount: number;
+  pageCount: number | null;
+  chunkCount: number;
+  averageChunkTokens: number;
+  minChunkTokens: number;
+  maxChunkTokens: number;
+  warnings: DocumentIngestionQualityWarning[];
+}
+
 export interface DocumentRecord {
   id: string;
   filePath: string;
@@ -25,6 +55,7 @@ export interface DocumentRecord {
   sourceUpdatedAt: string | null;
   indexConfigSignature?: string | null;
   chunkCount: number;
+  ingestionQuality?: DocumentIngestionQualityReport | null;
 }
 
 export interface ChunkRecord {
@@ -133,7 +164,8 @@ export type AnswerEvidenceReasonCode =
   | "no_results"
   | "unsupported_specificity_gap"
   | "insufficient_reliable_evidence"
-  | "procedural_overview_only";
+  | "procedural_overview_only"
+  | "conflicting_evidence";
 
 export interface AnswerEvidenceDecision {
   schemaVersion: number;
@@ -155,6 +187,7 @@ export interface AnswerEvidenceDecision {
     topContentKind?: ChunkContentKind | null;
     topManualFamilyId?: string | null;
     topTechnicalTerms?: string[];
+    conflictEvidenceChunkIds?: string[];
     unsupportedAnchors?: string[];
   };
 }
@@ -232,6 +265,7 @@ export interface QueryLogRetrievalDebug {
     topContentKind?: ChunkContentKind | string | null;
     topManualFamilyId?: string | null;
     topTechnicalTerms?: string[];
+    conflictEvidenceChunkIds?: string[];
   };
 }
 
@@ -294,6 +328,21 @@ export interface AppInfo {
   platform: string;
   userDataPath: string;
   databasePath: string;
+  databaseSchemaVersion: number;
+  latestMigration: DatabaseMigrationReport;
+}
+
+export interface DatabaseMigrationReport {
+  currentSchemaVersion: number;
+  databaseUserVersionBefore: number;
+  databaseUserVersionAfter: number;
+  migrationNeeded: boolean;
+  migrationApplied: boolean;
+  backupCreated: boolean;
+  backupPath: string | null;
+  startedAt: string;
+  completedAt: string | null;
+  error: string | null;
 }
 
 export type AppErrorCode =

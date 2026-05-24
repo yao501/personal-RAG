@@ -2,11 +2,27 @@ import fs from "node:fs";
 import path from "node:path";
 import { app } from "electron";
 import Database from "better-sqlite3";
-import type { AppSettings, ChatSession, ChatTurn, ChunkRecord, DocumentRecord, QueryLogRecord, QueryLogFeedbackStatus } from "../lib/shared/types";
+import type {
+  AppSettings,
+  ChatSession,
+  ChatTurn,
+  ChunkRecord,
+  DatabaseMigrationReport,
+  DocumentIngestionQualityReport,
+  DocumentRecord,
+  QueryLogFeedbackStatus,
+  QueryLogRecord
+} from "../lib/shared/types";
+
+export const CURRENT_DATABASE_SCHEMA_VERSION = 3;
+
+type DocumentRow = Omit<DocumentRecord, "ingestionQuality"> & {
+  ingestionQualityJson?: string | null;
+};
 
 interface DbRowMap {
   settings: { key: string; value: string };
-  documents: DocumentRecord;
+  documents: DocumentRow;
   chunks: ChunkRecord;
   chatSessions: ChatSession;
   chatTurns: { id: string; sessionId: string; question: string; answerJson: string; createdAt: string };
@@ -24,16 +40,99 @@ interface DbRowMap {
   };
 }
 
+function timestampForFileName(value = new Date()): string {
+  return value.toISOString().replace(/[:.]/g, "-");
+}
+
+function readDatabaseUserVersion(dbPath: string): number {
+  if (!fs.existsSync(dbPath)) {
+    return 0;
+  }
+  const probe = new Database(dbPath, { readonly: true, fileMustExist: true });
+  try {
+    const row = probe.prepare("PRAGMA user_version").get() as { user_version: number };
+    return row.user_version;
+  } finally {
+    probe.close();
+  }
+}
+
+function copyIfExists(sourcePath: string, targetPath: string): boolean {
+  if (!fs.existsSync(sourcePath)) {
+    return false;
+  }
+  fs.copyFileSync(sourcePath, targetPath);
+  return true;
+}
+
+function createMigrationBackup(dbPath: string, fromVersion: number, toVersion: number): string | null {
+  if (!fs.existsSync(dbPath)) {
+    return null;
+  }
+  const stat = fs.statSync(dbPath);
+  if (stat.size === 0) {
+    return null;
+  }
+
+  const backupDir = path.join(path.dirname(dbPath), "backups");
+  fs.mkdirSync(backupDir, { recursive: true });
+  const stem = `knowledge-rag.pre-migration-v${fromVersion}-to-v${toVersion}.${timestampForFileName()}`;
+  const backupPath = path.join(backupDir, `${stem}.db`);
+  copyIfExists(dbPath, backupPath);
+  copyIfExists(`${dbPath}-wal`, path.join(backupDir, `${stem}.db-wal`));
+  copyIfExists(`${dbPath}-shm`, path.join(backupDir, `${stem}.db-shm`));
+  return backupPath;
+}
+
+export function prepareDatabaseMigration(dbPath: string, currentSchemaVersion: number): DatabaseMigrationReport {
+  const startedAt = new Date().toISOString();
+  const databaseUserVersionBefore = readDatabaseUserVersion(dbPath);
+  if (databaseUserVersionBefore > currentSchemaVersion) {
+    return {
+      currentSchemaVersion,
+      databaseUserVersionBefore,
+      databaseUserVersionAfter: databaseUserVersionBefore,
+      migrationNeeded: false,
+      migrationApplied: false,
+      backupCreated: false,
+      backupPath: null,
+      startedAt,
+      completedAt: null,
+      error: `Database schema version ${databaseUserVersionBefore} is newer than this app supports (${currentSchemaVersion}).`
+    };
+  }
+
+  const migrationNeeded = databaseUserVersionBefore < currentSchemaVersion;
+  const backupPath = migrationNeeded
+    ? createMigrationBackup(dbPath, databaseUserVersionBefore, currentSchemaVersion)
+    : null;
+
+  return {
+    currentSchemaVersion,
+    databaseUserVersionBefore,
+    databaseUserVersionAfter: databaseUserVersionBefore,
+    migrationNeeded,
+    migrationApplied: false,
+    backupCreated: Boolean(backupPath),
+    backupPath,
+    startedAt,
+    completedAt: null,
+    error: null
+  };
+}
+
 export class AppStore {
   private db: any;
   private readonly dbPath: string;
+  private migrationReport: DatabaseMigrationReport;
 
   constructor() {
     const basePath = app.getPath("userData");
     fs.mkdirSync(basePath, { recursive: true });
     this.dbPath = path.join(basePath, "knowledge-rag.db");
+    this.migrationReport = prepareDatabaseMigration(this.dbPath, CURRENT_DATABASE_SCHEMA_VERSION);
     this.db = new Database(this.dbPath);
-    this.migrate();
+    this.migrate(this.migrationReport.databaseUserVersionBefore);
     this.seedSettings();
   }
 
@@ -41,8 +140,20 @@ export class AppStore {
     return this.dbPath;
   }
 
-  private migrate(): void {
-    this.db.exec(`
+  getMigrationReport(): DatabaseMigrationReport {
+    return { ...this.migrationReport };
+  }
+
+  private migrate(previousUserVersion: number): void {
+    const startedAt = this.migrationReport.startedAt;
+    try {
+      if (previousUserVersion > CURRENT_DATABASE_SCHEMA_VERSION) {
+        throw new Error(
+          `Database schema version ${previousUserVersion} is newer than this app supports (${CURRENT_DATABASE_SCHEMA_VERSION}).`
+        );
+      }
+
+      this.db.exec(`
       CREATE TABLE IF NOT EXISTS settings (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
@@ -60,7 +171,8 @@ export class AppStore {
         sourceCreatedAt TEXT,
         sourceUpdatedAt TEXT,
         indexConfigSignature TEXT,
-        chunkCount INTEGER NOT NULL
+        chunkCount INTEGER NOT NULL,
+        ingestionQualityJson TEXT
       );
 
       CREATE TABLE IF NOT EXISTS chunks (
@@ -113,22 +225,42 @@ export class AppStore {
       );
     `);
 
-    this.ensureColumn("documents", "title", "TEXT NOT NULL DEFAULT ''");
-    this.ensureColumn("documents", "sourceCreatedAt", "TEXT");
-    this.ensureColumn("documents", "sourceUpdatedAt", "TEXT");
-    this.ensureColumn("documents", "indexConfigSignature", "TEXT");
-    this.ensureColumn("chunks", "sectionTitle", "TEXT");
-    this.ensureColumn("chunks", "sectionPath", "TEXT");
-    this.ensureColumn("chunks", "headingTrail", "TEXT");
-    this.ensureColumn("chunks", "pageStart", "INTEGER");
-    this.ensureColumn("chunks", "pageEnd", "INTEGER");
-    this.ensureColumn("chunks", "paragraphStart", "INTEGER");
-    this.ensureColumn("chunks", "paragraphEnd", "INTEGER");
-    this.ensureColumn("chunks", "locatorLabel", "TEXT");
-    this.ensureColumn("chunks", "embedding", "TEXT");
-    this.ensureColumn("query_logs", "retrievalDebugJson", "TEXT");
+      this.ensureColumn("documents", "title", "TEXT NOT NULL DEFAULT ''");
+      this.ensureColumn("documents", "sourceCreatedAt", "TEXT");
+      this.ensureColumn("documents", "sourceUpdatedAt", "TEXT");
+      this.ensureColumn("documents", "indexConfigSignature", "TEXT");
+      this.ensureColumn("documents", "ingestionQualityJson", "TEXT");
+      this.ensureColumn("chunks", "sectionTitle", "TEXT");
+      this.ensureColumn("chunks", "sectionPath", "TEXT");
+      this.ensureColumn("chunks", "headingTrail", "TEXT");
+      this.ensureColumn("chunks", "pageStart", "INTEGER");
+      this.ensureColumn("chunks", "pageEnd", "INTEGER");
+      this.ensureColumn("chunks", "paragraphStart", "INTEGER");
+      this.ensureColumn("chunks", "paragraphEnd", "INTEGER");
+      this.ensureColumn("chunks", "locatorLabel", "TEXT");
+      this.ensureColumn("chunks", "embedding", "TEXT");
+      this.ensureColumn("query_logs", "retrievalDebugJson", "TEXT");
 
-    this.db.pragma("user_version = 2");
+      this.db.pragma(`user_version = ${CURRENT_DATABASE_SCHEMA_VERSION}`);
+      const userVersionAfter = this.readCurrentUserVersion();
+      this.migrationReport = {
+        ...this.migrationReport,
+        databaseUserVersionAfter: userVersionAfter,
+        migrationApplied: previousUserVersion !== userVersionAfter,
+        completedAt: new Date().toISOString(),
+        error: null
+      };
+    } catch (error) {
+      this.migrationReport = {
+        ...this.migrationReport,
+        databaseUserVersionAfter: previousUserVersion,
+        migrationApplied: false,
+        completedAt: new Date().toISOString(),
+        error: error instanceof Error ? error.message : String(error),
+        startedAt
+      };
+      throw error;
+    }
   }
 
   getDatabasePragmas(): { user_version: number; journal_mode: string; page_size: number } {
@@ -140,6 +272,11 @@ export class AppStore {
       journal_mode: journalMode.journal_mode,
       page_size: pageSize.page_size
     };
+  }
+
+  private readCurrentUserVersion(): number {
+    const userVersion = this.db.prepare("PRAGMA user_version").get() as { user_version: number };
+    return userVersion.user_version;
   }
 
   private ensureColumn(tableName: "documents" | "chunks" | "query_logs", columnName: string, definition: string): void {
@@ -180,12 +317,35 @@ export class AppStore {
     return this.getSettings();
   }
 
+  private parseDocumentQuality(raw: string | null | undefined): DocumentIngestionQualityReport | null {
+    if (!raw) {
+      return null;
+    }
+    try {
+      return JSON.parse(raw) as DocumentIngestionQualityReport;
+    } catch {
+      return null;
+    }
+  }
+
+  private mapDocumentRow(row: DocumentRow): DocumentRecord {
+    const { ingestionQualityJson, ...document } = row;
+    return {
+      ...document,
+      ingestionQuality: this.parseDocumentQuality(ingestionQualityJson)
+    };
+  }
+
   listDocuments(): DocumentRecord[] {
-    return this.db.prepare("SELECT * FROM documents ORDER BY COALESCE(sourceUpdatedAt, updatedAt) DESC").all() as DocumentRecord[];
+    const rows = this.db
+      .prepare("SELECT * FROM documents ORDER BY COALESCE(sourceUpdatedAt, updatedAt) DESC")
+      .all() as DocumentRow[];
+    return rows.map((row) => this.mapDocumentRow(row));
   }
 
   getDocument(documentId: string): DocumentRecord | null {
-    return (this.db.prepare("SELECT * FROM documents WHERE id = ?").get(documentId) as DocumentRecord | undefined) ?? null;
+    const row = this.db.prepare("SELECT * FROM documents WHERE id = ?").get(documentId) as DocumentRow | undefined;
+    return row ? this.mapDocumentRow(row) : null;
   }
 
   listChunks(documentId?: string): ChunkRecord[] {
@@ -389,11 +549,16 @@ export class AppStore {
   }
 
   upsertDocument(document: DocumentRecord, chunks: ChunkRecord[]): void {
+    const { ingestionQuality, ...documentFields } = document;
+    const documentRow = {
+      ...documentFields,
+      ingestionQualityJson: ingestionQuality ? JSON.stringify(ingestionQuality) : null
+    };
     const transaction = this.db.transaction(() => {
       this.db
         .prepare(
-          `INSERT INTO documents (id, filePath, fileName, title, fileType, content, importedAt, updatedAt, sourceCreatedAt, sourceUpdatedAt, indexConfigSignature, chunkCount)
-           VALUES (@id, @filePath, @fileName, @title, @fileType, @content, @importedAt, @updatedAt, @sourceCreatedAt, @sourceUpdatedAt, @indexConfigSignature, @chunkCount)
+          `INSERT INTO documents (id, filePath, fileName, title, fileType, content, importedAt, updatedAt, sourceCreatedAt, sourceUpdatedAt, indexConfigSignature, chunkCount, ingestionQualityJson)
+           VALUES (@id, @filePath, @fileName, @title, @fileType, @content, @importedAt, @updatedAt, @sourceCreatedAt, @sourceUpdatedAt, @indexConfigSignature, @chunkCount, @ingestionQualityJson)
            ON CONFLICT(id) DO UPDATE SET
              filePath = excluded.filePath,
              fileName = excluded.fileName,
@@ -404,9 +569,10 @@ export class AppStore {
              sourceCreatedAt = excluded.sourceCreatedAt,
              sourceUpdatedAt = excluded.sourceUpdatedAt,
              indexConfigSignature = excluded.indexConfigSignature,
-             chunkCount = excluded.chunkCount`
+             chunkCount = excluded.chunkCount,
+             ingestionQualityJson = excluded.ingestionQualityJson`
         )
-        .run(document);
+        .run(documentRow);
 
       this.db.prepare("DELETE FROM chunks WHERE documentId = ?").run(document.id);
       const insertChunk = this.db.prepare(

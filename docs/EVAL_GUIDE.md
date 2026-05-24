@@ -166,6 +166,14 @@ Explicit benchmark file:
 ./node_modules/.bin/vite-node scripts/runRagEval.ts benchmarks/benchmark.v1.json
 ```
 
+Before/after comparison for two JSON reports from `npm run eval:rag`:
+
+```bash
+npm run eval:rag:compare -- reports/rag-eval/eval-before.json reports/rag-eval/eval-after.json
+```
+
+The comparison report highlights pass-rate deltas, mean recall deltas, failure-bucket movement, fixed cases, and pass-to-fail regressions. It exits non-zero when a previously passing case fails, which makes it suitable for local release checks or future CI.
+
 Legacy retrieval-only datasets (optional, may require local paths in `scripts/ragEval.config.ts`):
 
 ```bash
@@ -178,7 +186,7 @@ Markdown reports are written to:
 
 `reports/rag-eval/eval-<ISO-timestamp>.md`
 
-Generated reports are gitignored by default (`reports/rag-eval/*.md`).
+Generated reports are gitignored by default (`reports/rag-eval/*.md` and `reports/rag-eval/*.json`).
 
 ## Metrics (current)
 
@@ -194,6 +202,7 @@ Generated reports are gitignored by default (`reports/rag-eval/*.md`).
 - **Expected facts**: each listed substring appears in combined answer text.
 - **Citation hit rate**: share of `expectedCitations` substrings found in citation text.
 - **Cautious procedural** (informational): whether `directAnswer` contains the cautious template marker (`概述性内容` in `cautiousMarkers.ts`). Shown per case in the report; not a failure by itself.
+- **Conflict evidence**: binary/policy-style questions can now produce a cautious `conflicting_evidence` decision when top evidence contains both positive and negative claims with comparable scores.
 
 ### Report extras (Sprint 5.1 / 5.2)
 
@@ -235,7 +244,7 @@ For procedural-style questions (`detectQueryIntent.wantsSteps`), the app may emi
 
 If the retrieved evidence explicitly says it is overview/background material, lacks steps/commands/menu paths, or instructs users to consult the full manual, the cautious template is used before score-based overrides. Otherwise, if none of the strong-evidence score rules hold and the chunk text still lacks step-like markers, the cautious template is used. For two retrieved chunks, if the second score is **below** `0.58 × top.score`, the cautious path is preferred (Sprint 5.1 tightened from `0.62` to reduce unnecessary cautious answers when the runner-up is moderately strong).
 
-**Refusal/sufficiency gate:** validation now also includes `benchmarks/refusal-gate.v1.json`, which hard-checks unsupported specifics, private-credential style questions, thin/definition-only procedural evidence, and a grounded positive control.
+**Refusal/sufficiency gate:** validation now also includes `benchmarks/refusal-gate.v1.json`, which hard-checks unsupported specifics, private-credential style questions, thin/definition-only procedural evidence, conflicting evidence behavior, and a grounded positive control.
 
 ## Known limitations
 
@@ -264,7 +273,7 @@ export PKRAG_RETRIEVAL_DEBUG=1
 - **Electron**: each `askQuestion` logs **one JSON object per line** (stderr).
 - **Eval runner**: logs **one line per benchmark case** when the same env var is set (same schema for apples-to-apples inspection).
 
-Payload **`schemaVersion` is 9** (`RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION`). Fields include:
+Payload **`schemaVersion` is 10** (`RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION`). Fields include:
 
 - `vectorRecallBackend` (`lancedb` | `memory`), `runtime` (`desktop` | `eval`)
 - `queryRetrievalType` — coarse P0-B bucket (`procedural_full_flow` | `compile_order` | `definition` | `troubleshooting` | `default`) aligned with retrieval bias
@@ -275,7 +284,7 @@ Payload **`schemaVersion` is 9** (`RETRIEVAL_DEBUG_PAYLOAD_SCHEMA_VERSION`). Fie
 - `topResults` — top `searchTopK` rows with scores, weighted score contribution breakdowns, contextual chunk metadata, vector-hit status, selection reason codes, citation status, and non-citation reason when applicable
 - `answerCitationChunkIds`
 - `answerFlags.refusal` / `answerFlags.cautiousProcedural`
-- `evidenceDecision` — compact answer-layer decision metadata: `mode` (`grounded` | `cautious` | `refusal`), `reasonCode`, human-readable `reason`, cited chunk count, source document count, and top evidence context signals when present
+- `evidenceDecision` — compact answer-layer decision metadata: `mode` (`grounded` | `cautious` | `refusal`), `reasonCode`, human-readable `reason`, cited chunk count, source document count, top evidence context signals, and conflict-evidence chunk ids when present
 
 The desktop app also exposes a **Settings → 最近真实提问 → 检索调试** panel based on persisted query logs. It shows query type, intent hints, token expansion, answer flags, evidence decision reason, candidate pool source, primary-rank rejection reasons, vector shortlist count, candidate chunk count, citation-hit count, selection reason codes, and score breakdowns for the stored top results. Each row can export an anonymized single-query debug JSON snapshot; it excludes raw chunk text, snippets, evidence text, and answer text by default. The chat answer view also shows the same evidence decision in user-facing language so refusal/cautious behavior is inspectable without opening developer logs.
 

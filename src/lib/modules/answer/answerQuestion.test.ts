@@ -227,6 +227,149 @@ describe("answerQuestion", () => {
     });
   });
 
+  it("switches to cautious mode when binary evidence conflicts", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-positive",
+        fileName: "policy-a.md",
+        documentTitle: "策略 A",
+        chunkId: "allow",
+        snippet: "维护模式允许在检修窗口内启用远程确认。",
+        score: 4.2,
+        chunkIndex: 0,
+        sectionTitle: "维护模式",
+        sectionPath: "策略 A > 维护模式",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        importedAt: "2026-04-01T00:00:00.000Z",
+        text: "维护模式允许在检修窗口内启用远程确认。",
+        lexicalScore: 3,
+        semanticScore: 1,
+        freshnessScore: 0.5,
+        rerankScore: 1.2,
+        qualityScore: 1,
+        fullText: "维护模式允许在检修窗口内启用远程确认。"
+      },
+      {
+        documentId: "doc-negative",
+        fileName: "policy-b.md",
+        documentTitle: "策略 B",
+        chunkId: "deny",
+        snippet: "维护模式不允许启用远程确认，需改为现场确认。",
+        score: 3.8,
+        chunkIndex: 0,
+        sectionTitle: "维护模式限制",
+        sectionPath: "策略 B > 维护模式限制",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        importedAt: "2026-04-01T00:00:00.000Z",
+        text: "维护模式不允许启用远程确认，需改为现场确认。",
+        lexicalScore: 2.8,
+        semanticScore: 1,
+        freshnessScore: 0.5,
+        rerankScore: 1.1,
+        qualityScore: 1,
+        fullText: "维护模式不允许启用远程确认，需改为现场确认。"
+      }
+    ];
+
+    const answer = answerQuestion("维护模式是否允许启用远程确认？", results);
+
+    expect(answer.directAnswer).toContain("证据存在正反结论");
+    expect(answer.citations.map((citation) => citation.chunkId)).toEqual(["allow", "deny"]);
+    expect(answer.evidenceDecision).toMatchObject({
+      mode: "cautious",
+      reasonCode: "conflicting_evidence",
+      signals: {
+        conflictEvidenceChunkIds: ["allow", "deny"]
+      }
+    });
+  });
+
+  it("treats scoped support boundaries as grounded instead of conflicting", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-engineering",
+        fileName: "manual3.pdf",
+        documentTitle: "工程总控",
+        chunkId: "grouping-overview",
+        snippet: "分组功能可实现将同一局域网中的计算机分成不同的组。",
+        score: 8.2,
+        chunkIndex: 210,
+        sectionTitle: "第11章 分组功能",
+        sectionPath: "工程总控 > 第11章 分组功能",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        importedAt: "2026-04-08T00:00:00.000Z",
+        text: "分组功能可实现将同一局域网中的计算机分成不同的组，不同组之间的操作相互独立、互不影响。",
+        lexicalScore: 6,
+        semanticScore: 1,
+        freshnessScore: 0.4,
+        rerankScore: 1.8,
+        qualityScore: 1,
+        fullText: "分组功能可实现将同一局域网中的计算机分成不同的组，不同组之间的操作相互独立、互不影响。"
+      },
+      {
+        documentId: "doc-engineering",
+        fileName: "manual3.pdf",
+        documentTitle: "工程总控",
+        chunkId: "grouping-scope",
+        snippet: "分组功能仅适用于 HiaSimuRTS 仿真运行，真实控制器不支持。",
+        score: 7.8,
+        chunkIndex: 211,
+        sectionTitle: "第11章 分组功能",
+        sectionPath: "工程总控 > 第11章 分组功能",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        importedAt: "2026-04-08T00:00:00.000Z",
+        text: "分组功能仅适用于 HiaSimuRTS 仿真运行场景，真实控制器不支持；配置时需要核对 IP、组号、AT 和下装边界。",
+        lexicalScore: 5.6,
+        semanticScore: 1,
+        freshnessScore: 0.4,
+        rerankScore: 1.7,
+        qualityScore: 1,
+        fullText: "分组功能仅适用于 HiaSimuRTS 仿真运行场景，真实控制器不支持；配置时需要核对 IP、组号、AT 和下装边界。"
+      }
+    ];
+
+    const answer = answerQuestion("分组功能适用范围是什么？真实控制器支持吗？", results);
+
+    expect(answer.directAnswer).not.toContain("证据存在正反结论");
+    expect(answer.directAnswer).toContain("HiaSimuRTS");
+    expect(answer.directAnswer).toContain("真实控制器");
+    expect(answer.evidenceDecision?.mode).toBe("grounded");
+  });
+
+  it("extracts engineering-control compile triggers from nearby evidence", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-engineering",
+        fileName: "manual3.pdf",
+        documentTitle: "工程总控",
+        chunkId: "compile-trigger",
+        snippet: "修改测点、模块、域间引用、流程图和总貌后需要编译工程总控。",
+        score: 9.4,
+        chunkIndex: 320,
+        sectionTitle: "第13章 常见问题",
+        sectionPath: "工程总控 > 第13章 常见问题",
+        sourceUpdatedAt: "2026-04-01T00:00:00.000Z",
+        importedAt: "2026-04-08T00:00:00.000Z",
+        text: "Q：什么情况下需要编译工程总控？修改测点、数据库点、模块、域间引用、流程图、总貌、控制分组、趋势组或参数成组后，需要重新编译工程总控。",
+        lexicalScore: 7,
+        semanticScore: 1,
+        freshnessScore: 0.4,
+        rerankScore: 2,
+        qualityScore: 1,
+        fullText: "Q：什么情况下需要编译工程总控？修改测点、数据库点、模块、域间引用、流程图、总貌、控制分组、趋势组或参数成组后，需要重新编译工程总控。"
+      }
+    ];
+
+    const answer = answerQuestion("什么情况下需要编译工程总控？", results);
+
+    expect(answer.directAnswer).toContain("工程总控");
+    expect(answer.directAnswer).toContain("测点");
+    expect(answer.directAnswer).toContain("模块");
+    expect(answer.directAnswer).toContain("域间");
+    expect(answer.directAnswer).toMatch(/流程图|总貌/);
+    expect(answer.evidenceDecision?.mode).toBe("grounded");
+  });
+
   it("allows low-quality DCS parameter-table chunks when exact technical identifiers match", () => {
     const results: SearchResult[] = [
       {

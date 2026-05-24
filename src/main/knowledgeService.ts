@@ -5,6 +5,7 @@ import { chunkText } from "../lib/modules/chunk/chunkText";
 import { createStableId } from "../lib/modules/core/id";
 import { embedTexts, getEmbeddingStatus } from "../lib/modules/embed/localEmbedder";
 import { answerQuestion } from "../lib/modules/answer/answerQuestion";
+import { buildIngestionQualityReport } from "../lib/modules/parse/ingestionQuality";
 import { parseDocument } from "../lib/modules/parse/parseDocument";
 import { buildRetrievalDebugPayload } from "../lib/modules/retrieve/retrievalDebug";
 import { resolveQueryRetrievalType } from "../lib/modules/retrieve/queryRetrievalType";
@@ -124,8 +125,17 @@ export class KnowledgeService {
       const title = document.title || deriveDocumentTitle(document.fileName, parsed.content);
       const baseChunks = chunkText(document.id, parsed.content, { ...settings, documentTitle: title, pageSpans: parsed.pageSpans });
       const hydratedChunks = await this.attachEmbeddings(baseChunks);
+      const ingestionQuality = buildIngestionQualityReport(parsed, hydratedChunks);
       this.store.upsertDocument(
-        { ...document, title, content: parsed.content, indexConfigSignature, chunkCount: hydratedChunks.length, updatedAt: document.updatedAt },
+        {
+          ...document,
+          title,
+          content: parsed.content,
+          ingestionQuality,
+          indexConfigSignature,
+          chunkCount: hydratedChunks.length,
+          updatedAt: document.updatedAt
+        },
         hydratedChunks
       );
     }
@@ -279,7 +289,9 @@ export class KnowledgeService {
         version: electronApp.getVersion(),
         platform: process.platform,
         userDataPath: electronApp.getPath("userData"),
-        databasePath: this.store.getDatabasePath()
+        databasePath: this.store.getDatabasePath(),
+        databaseSchemaVersion: this.store.getDatabasePragmas().user_version,
+        latestMigration: this.store.getMigrationReport()
       }
     };
   }
@@ -459,6 +471,7 @@ export class KnowledgeService {
             skipped: skippedCount
           });
           const chunks = await this.attachEmbeddings(baseChunks);
+          const ingestionQuality = buildIngestionQualityReport(parsed, chunks);
 
           const document: DocumentRecord = {
             id: documentId,
@@ -472,7 +485,8 @@ export class KnowledgeService {
             sourceCreatedAt: existing?.sourceCreatedAt ?? new Date(fileStats.birthtimeMs).toISOString(),
             sourceUpdatedAt,
             indexConfigSignature,
-            chunkCount: chunks.length
+            chunkCount: chunks.length,
+            ingestionQuality
           };
 
           this.store.upsertDocument(document, chunks);
@@ -683,10 +697,12 @@ export class KnowledgeService {
             skipped
           });
           const chunks = await this.attachEmbeddings(baseChunks);
+          const ingestionQuality = buildIngestionQualityReport(parsed, chunks);
           this.store.upsertDocument({
             ...document,
             title,
             content: parsed.content,
+            ingestionQuality,
             sourceUpdatedAt,
             indexConfigSignature,
             chunkCount: chunks.length,

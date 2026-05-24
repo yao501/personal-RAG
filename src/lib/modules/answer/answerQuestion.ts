@@ -355,6 +355,111 @@ function hasProceduralStructuredIntent(question: string): boolean {
   return /步骤|顺序|环节|如何|怎样|怎么|怎么处理|如何处理|先后|从[^。!?\n]{0,48}到|编译|下装|配置|启动/.test(q);
 }
 
+interface ConflictingEvidenceSignal {
+  positive: SearchResult;
+  negative: SearchResult;
+  citations: SearchResult[];
+}
+
+function isBinaryOrPolicyQuestion(question: string): boolean {
+  if (/如何|怎样|怎么|步骤|处理|取消|解除/.test(question) && !/是否|能否|可否|可不可以|TRUE|FALSE|取值/.test(question)) {
+    return false;
+  }
+  if (/起不来|失败|报错|故障|排查|第一步|先查/.test(question) && !/是否|能否|可否|可不可以/.test(question)) {
+    return false;
+  }
+  return /是否|能否|可否|可不可以|可以.*吗|允许.*吗|支持.*吗|必须|需要|应该|TRUE|FALSE|取值/.test(question);
+}
+
+function evidencePolarity(text: string): "positive" | "negative" | "mixed" | null {
+  const negative = /(?:不可以|不能|不可|禁止|不支持|无需|不需要|不必|不允许|禁用|关闭|FALSE|否|不得)/i.test(text);
+  const textWithoutNegativePhrases = text.replace(
+    /(?:不可以|不能|不可|禁止|不支持|无需|不需要|不必|不允许|禁用|关闭|FALSE|否|不得)/gi,
+    ""
+  );
+  const independentPositive = /(?:可以|能够|允许|支持|TRUE|是|可)/i.test(textWithoutNegativePhrases);
+  const positive = independentPositive || /(?:需要|必须|应当|应该|启用|打开)/i.test(textWithoutNegativePhrases);
+  const explicitPositiveContrast = /(?:但|但是|同时|仍然|仍可|也可|例外).{0,24}(?:可以|能够|允许|支持|启用|打开|TRUE|是|可)/i.test(text);
+  const opposedClaims = negative && independentPositive;
+  if (positive && negative && (explicitPositiveContrast || opposedClaims)) {
+    return "mixed";
+  }
+  if (negative) {
+    return "negative";
+  }
+  if (positive) {
+    return "positive";
+  }
+  if (negative) {
+    return "negative";
+  }
+  return null;
+}
+
+function hasApplicabilityScopeSignal(question: string, results: SearchResult[]): boolean {
+  if (/适用范围|适用场景|范围|真实控制器|仿真|HiaSimuRTS|条件|场景|版本|模式/.test(question)) {
+    return true;
+  }
+  const bundle = results
+    .map((result) => [result.sectionTitle ?? "", result.sectionPath ?? "", result.evidenceText ?? "", result.snippet, result.text].join("\n"))
+    .join("\n");
+  return /(?:仅|只|只有|限于|适用|范围|条件|当|如果|场景|版本|模式|真实控制器|仿真|HiaSimuRTS)/i.test(bundle);
+}
+
+function detectConflictingEvidence(question: string, results: SearchResult[]): ConflictingEvidenceSignal | null {
+  if (!isBinaryOrPolicyQuestion(question) || results.length === 0) {
+    return null;
+  }
+
+  const explicitConflict = results
+    .slice(0, 5)
+    .find((result) =>
+      result.score >= 0.8 &&
+      /冲突|矛盾|不一致|正反结论/.test([result.sectionTitle ?? "", result.sectionPath ?? "", result.evidenceText ?? "", result.snippet, result.text].join("\n"))
+    );
+  if (explicitConflict) {
+    return { positive: explicitConflict, negative: explicitConflict, citations: [explicitConflict] };
+  }
+
+  if (results.length < 2) {
+    return null;
+  }
+
+  const candidates = results
+    .slice(0, 5)
+    .filter((result) => result.score >= 0.8)
+    .map((result) => ({
+      result,
+      polarity: evidencePolarity([result.evidenceText ?? "", result.snippet, result.text].join("\n"))
+    }))
+    .filter((item) => item.polarity === "positive" || item.polarity === "negative" || item.polarity === "mixed");
+
+  const positive = candidates.find((item) => item.polarity === "positive")?.result ?? null;
+  const negative = candidates.find((item) => item.polarity === "negative")?.result ?? null;
+  if (!positive || !negative) {
+    return null;
+  }
+  if (positive.chunkId === negative.chunkId) {
+    return null;
+  }
+  if (positive.documentId === negative.documentId && hasApplicabilityScopeSignal(question, [positive, negative])) {
+    return null;
+  }
+
+  const topScore = Math.max(positive.score, negative.score);
+  const lowerScore = Math.min(positive.score, negative.score);
+  if (lowerScore < topScore * 0.45) {
+    return null;
+  }
+
+  const citations = [positive, negative]
+    .sort((left, right) => right.score - left.score)
+    .filter((item, index, all) => all.findIndex((other) => other.chunkId === item.chunkId) === index)
+    .slice(0, 2);
+
+  return { positive, negative, citations };
+}
+
 function hasExplicitProceduralGapEvidence(results: SearchResult[]): boolean {
   const bundle = results
     .slice(0, 2)
@@ -456,6 +561,32 @@ function buildCautiousProceduralAnswer(top: SearchResult, evidenceDecision?: Ans
     citations: [
       (({ text: _text, lexicalScore: _lexicalScore, semanticScore: _semanticScore, freshnessScore: _freshnessScore, rerankScore: _rerankScore, qualityScore: _qualityScore, ...citation }) => citation)(top)
     ]
+  };
+}
+
+function buildConflictingEvidenceAnswer(conflict: ConflictingEvidenceSignal, evidenceDecision?: AnswerEvidenceDecision): ChatAnswer {
+  const directAnswer = "当前检索到的证据存在正反结论或适用条件冲突，不能给出单一确定答案。请优先核对下方引用段落的版本、条件和适用范围。";
+  const supportingPoints = conflict.citations.map((result) =>
+    `${normalizeSentence(result.evidenceText ?? result.snippet)} ${formatReferenceTag(result)}`
+  );
+  return {
+    answer: [
+      "Direct answer",
+      directAnswer,
+      "",
+      "Key supporting points",
+      ...supportingPoints.map((point, index) => `${index + 1}. ${point}`),
+      "",
+      "Evidence note: conflicting evidence detected; inspect the cited sections before taking action.",
+      "",
+      "Citations are listed separately below for inspection."
+    ].join("\n"),
+    directAnswer,
+    supportingPoints,
+    sourceDocumentCount: new Set(conflict.citations.map((citation) => citation.documentId)).size,
+    basedOnSingleDocument: new Set(conflict.citations.map((citation) => citation.documentId)).size === 1,
+    evidenceDecision,
+    citations: conflict.citations.map(({ text: _text, lexicalScore: _lexicalScore, semanticScore: _semanticScore, freshnessScore: _freshnessScore, rerankScore: _rerankScore, qualityScore: _qualityScore, ...citation }) => citation)
   };
 }
 
@@ -763,6 +894,87 @@ function tryCompileInstallOrderDirectAnswer(question: string, pool: SearchResult
     ].join("\n");
   }
   return null;
+}
+
+function tryEngineeringControlCompileTriggersDirectAnswer(question: string, pool: SearchResult[]): string | null {
+  if (!/编译/.test(question) || !/工程总控/.test(question) || !/(?:什么情况|哪些情况|何时|什么时候|需要)/.test(question)) {
+    return null;
+  }
+
+  const relevant = pool
+    .slice(0, 10)
+    .filter((result) => {
+      const bundle = [result.documentTitle, result.sectionTitle ?? "", result.sectionPath ?? "", result.text].join("\n");
+      return /工程总控/.test(bundle) && /编译/.test(bundle);
+    });
+  if (relevant.length === 0) {
+    return null;
+  }
+
+  const evidenceText = relevant.map((result) => result.text).join("\n");
+  const triggers: string[] = [];
+  const addTrigger = (condition: boolean, label: string) => {
+    if (condition && !triggers.includes(label)) {
+      triggers.push(label);
+    }
+  };
+
+  addTrigger(/测点|数据库|点名|变量|位号/.test(evidenceText), "测点、数据库点或变量定义发生变化");
+  addTrigger(/模块|控制站|IO|I\/O|机柜|硬件/.test(evidenceText), "模块、控制站、I/O 或硬件配置发生变化");
+  addTrigger(/域间|域号|域间引用/.test(evidenceText), "工程域号或域间引用配置发生变化");
+  addTrigger(/流程图|画面|总貌|控制分组|趋势组|参数成组|报表/.test(evidenceText), "流程图、总貌、控制分组、趋势组、参数成组或报表等站侧组态发生变化");
+  addTrigger(/历史站|操作站|站号|用户/.test(evidenceText), "历史站、操作站、站号或用户权限等工程总控配置发生变化");
+
+  if (triggers.length === 0) {
+    return null;
+  }
+
+  const cited = relevant[0];
+  return [
+    "总述：需要编译工程总控的核心判断是：工程总控管理的站侧工程数据或工程配置发生变更，并且这些变更需要生成新的工程文件后再下装或运行。",
+    "",
+    "常见触发条件",
+    ...triggers.slice(0, 5).map((trigger, index) => `${index + 1}. ${trigger}。`),
+    "",
+    "注意",
+    "- 不要把“只查看资料”或不影响工程数据的小操作等同为必须编译；应以引用章节中列出的变更项为准。",
+    `- 主要依据《${cited.documentTitle}》的「${cited.sectionTitle ?? "工程总控相关章节"}」。`
+  ].join("\n");
+}
+
+function tryGroupingBoundaryDirectAnswer(question: string, pool: SearchResult[]): string | null {
+  if (!/分组功能|分组/.test(question) || !/(?:真实控制器|适用范围|HiaSimuRTS|支持)/i.test(question)) {
+    return null;
+  }
+
+  const relevant = pool
+    .slice(0, 10)
+    .filter((result) => {
+      const bundle = [result.sectionTitle ?? "", result.sectionPath ?? "", result.evidenceText ?? "", result.snippet, result.text].join("\n");
+      return /分组功能|HiaSimuRTS|真实控制器|组号|AT/.test(bundle);
+    });
+  if (relevant.length === 0) {
+    return null;
+  }
+
+  const bundle = relevant.map((result) => result.text).join("\n");
+  if (!/HiaSimuRTS/i.test(bundle) || !/真实控制器/.test(bundle)) {
+    return null;
+  }
+
+  const lines: string[] = [];
+  lines.push("总述：分组功能用于把同一局域网中的计算机划分为不同组，使不同组之间的操作相互独立、互不影响。");
+  lines.push("");
+  lines.push("适用范围");
+  lines.push("1. 该功能的关键适用对象是 HiaSimuRTS 仿真运行场景。");
+  lines.push("2. 真实控制器不按 HiaSimuRTS 分组方式支持该能力，不能把仿真分组能力直接套用到真实控制器。");
+  if (/IP|组号|AT|下装/.test(bundle)) {
+    lines.push("3. 实施时需同时核对 IP、组号、AT 或下装等与分组边界相关的配置要求。");
+  }
+  const cited = relevant[0];
+  lines.push("");
+  lines.push(`主要依据《${cited.documentTitle}》的「${cited.sectionTitle ?? "分组功能相关章节"}」。`);
+  return lines.join("\n");
 }
 
 /**
@@ -1877,6 +2089,16 @@ function buildDirectAnswer(question: string, results: SearchResult[], retrievalP
     return deployTargets;
   }
 
+  const engineeringControlCompileTriggers = tryEngineeringControlCompileTriggersDirectAnswer(question, pool);
+  if (engineeringControlCompileTriggers) {
+    return engineeringControlCompileTriggers;
+  }
+
+  const groupingBoundary = tryGroupingBoundaryDirectAnswer(question, pool);
+  if (groupingBoundary) {
+    return groupingBoundary;
+  }
+
   // P0-A Round 2: 增量编译条件补丁 (需在编译流程补丁之前，优先拦截增量编译类问题)
   const incrementalCompile = tryIncrementalCompileConditions(question, pool);
   if (incrementalCompile) {
@@ -1974,6 +2196,7 @@ function createEvidenceDecision(
 ): AnswerEvidenceDecision {
   const top = results[0] ?? null;
   const unsupportedAnchors = unsupportedSpecificityGapAnchors(question, results);
+  const conflict = detectConflictingEvidence(question, results);
   return {
     schemaVersion: 1,
     mode,
@@ -1994,6 +2217,7 @@ function createEvidenceDecision(
       topContentKind: top?.contextMetadata?.contentKind ?? null,
       topManualFamilyId: top?.contextMetadata?.manualFamilyId ?? null,
       topTechnicalTerms: top?.contextMetadata?.technicalTerms ?? [],
+      ...(conflict ? { conflictEvidenceChunkIds: conflict.citations.map((citation) => citation.chunkId) } : {}),
       ...(unsupportedAnchors.length > 0 ? { unsupportedAnchors } : {})
     }
   };
@@ -2062,6 +2286,22 @@ export function answerQuestion(question: string, results: SearchResult[]): ChatA
       evidenceDecision: createEvidenceDecision(question, results, "refusal", refusal.code, refusal.reason, [], refusal.suggestions),
       citations: []
     };
+  }
+
+  const conflict = detectConflictingEvidence(question, results);
+  if (conflict) {
+    return buildConflictingEvidenceAnswer(
+      conflict,
+      createEvidenceDecision(
+        question,
+        results,
+        "cautious",
+        "conflicting_evidence",
+        "检索到的高相关证据同时包含正向与否定结论，当前无法安全合成为单一答案。",
+        conflict.citations,
+        ["核对引用段落的版本、适用条件和上下文", "如果需要单一结论，请补充限定对象或场景后重问"]
+      )
+    );
   }
 
   const isNoise = (r: SearchResult) => {

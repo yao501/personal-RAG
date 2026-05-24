@@ -53,7 +53,20 @@ const EMPTY_APP_INFO: AppInfo = {
   version: "0.0.0",
   platform: "unknown",
   userDataPath: "",
-  databasePath: ""
+  databasePath: "",
+  databaseSchemaVersion: 0,
+  latestMigration: {
+    currentSchemaVersion: 0,
+    databaseUserVersionBefore: 0,
+    databaseUserVersionAfter: 0,
+    migrationNeeded: false,
+    migrationApplied: false,
+    backupCreated: false,
+    backupPath: null,
+    startedAt: "",
+    completedAt: null,
+    error: null
+  }
 };
 
 const EMPTY_LIBRARY_HEALTH: LibraryHealthReport = {
@@ -112,6 +125,10 @@ function buildDiagnosticsText(appInfo: AppInfo, systemStatus: SystemStatus): str
     `platform: ${appInfo.platform}`,
     `userDataPath: ${appInfo.userDataPath}`,
     `databasePath: ${appInfo.databasePath}`,
+    `databaseSchemaVersion: ${appInfo.databaseSchemaVersion}`,
+    `migrationNeeded: ${appInfo.latestMigration.migrationNeeded ? "yes" : "no"}`,
+    `migrationApplied: ${appInfo.latestMigration.migrationApplied ? "yes" : "no"}`,
+    `migrationBackupCreated: ${appInfo.latestMigration.backupCreated ? "yes" : "no"}`,
     `documentCount: ${systemStatus.documentCount}`,
     `chunkCount: ${systemStatus.chunkCount}`,
     `embeddingAvailable: ${systemStatus.embeddingAvailable ? "yes" : "no"}`,
@@ -125,6 +142,12 @@ function formatEvidenceMode(mode: AnswerEvidenceMode): string {
   if (mode === "grounded") return "可回答";
   if (mode === "cautious") return "谨慎回答";
   return "拒答";
+}
+
+function formatQualitySeverity(severity: "info" | "warning" | "error"): string {
+  if (severity === "error") return "错误";
+  if (severity === "warning") return "警告";
+  return "提示";
 }
 
 function formatNullableScore(score: number | null | undefined): string {
@@ -1885,6 +1908,33 @@ export function App() {
               {selectedDocument?.sourceUpdatedAt && <span>更新于 {new Date(selectedDocument.sourceUpdatedAt).toLocaleString()}</span>}
               <span>{selectedDocument?.filePath}</span>
             </div>
+            {selectedDocument?.ingestionQuality && (
+              <div className="answer-layout">
+                <div className="answer-summary">
+                  <p className="eyebrow">导入质量</p>
+                  <p className="direct-answer">
+                    {selectedDocument.ingestionQuality.warnings.length === 0
+                      ? "未发现明显解析质量风险"
+                      : `发现 ${selectedDocument.ingestionQuality.warnings.length} 条解析质量提示`}
+                  </p>
+                  <p className="muted">可索引字符：{selectedDocument.ingestionQuality.nonWhitespaceCharacterCount}</p>
+                  <p className="muted">页数：{selectedDocument.ingestionQuality.pageCount ?? "n/a"}</p>
+                  <p className="muted">平均 chunk tokens：{selectedDocument.ingestionQuality.averageChunkTokens.toFixed(1)}</p>
+                </div>
+                <div className="support-panel">
+                  <p className="eyebrow">解析提示</p>
+                  <div className="support-list">
+                    {selectedDocument.ingestionQuality.warnings.length === 0 && <p>当前文档的文本密度、chunk 数量和基础字符检查正常。</p>}
+                    {selectedDocument.ingestionQuality.warnings.map((warning) => (
+                      <p key={warning.code}>
+                        {formatQualitySeverity(warning.severity)}：{warning.message}
+                        {warning.suggestion ? ` ${warning.suggestion}` : ""}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="chunk-list">
               {detailChunkGroups.map((group, groupIndex) => {
                 const groupKey = buildCitationGroupKey(group.label, groupIndex);
@@ -1979,7 +2029,14 @@ export function App() {
               </div>
               <div className="settings-note">版本：{appInfo.version} · 平台：{appInfo.platform}</div>
               <div className="settings-note">数据目录：{appInfo.userDataPath}</div>
-              <div className="settings-note">本地数据库：{appInfo.databasePath}</div>
+              <div className="settings-note">
+                本地数据库：{appInfo.databasePath} · schema v{appInfo.databaseSchemaVersion}
+              </div>
+              <div className="settings-note">
+                最近迁移：{appInfo.latestMigration.migrationApplied ? "已执行" : "无需执行"}
+                {appInfo.latestMigration.backupCreated ? " · 已创建迁移前备份" : ""}
+                {appInfo.latestMigration.error ? ` · 错误：${appInfo.latestMigration.error}` : ""}
+              </div>
               <button type="button" className="secondary" onClick={() => void handleCopyDiagnostics()}>
                 复制诊断信息
               </button>

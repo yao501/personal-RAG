@@ -70,7 +70,7 @@ describe("resolveQueryRetrievalType", () => {
 });
 
 describe("buildRetrievalDebugPayload queryRetrievalType", () => {
-  it("includes queryRetrievalType, evidence decision, and selection reasons in payload for logs (schema v9)", () => {
+  it("includes queryRetrievalType, evidence decision, and selection reasons in payload for logs (schema v10)", () => {
     const payload = buildRetrievalDebugPayload(
       "编译和下装的顺序？",
       ["x"],
@@ -130,7 +130,7 @@ describe("buildRetrievalDebugPayload queryRetrievalType", () => {
         }
       }
     );
-    expect(payload.schemaVersion).toBe(9);
+    expect(payload.schemaVersion).toBe(10);
     expect(payload.queryRetrievalType).toBe("compile_order");
     expect(payload.candidateSelection).toMatchObject({
       mode: "hybrid_vector_only_or_unknown",

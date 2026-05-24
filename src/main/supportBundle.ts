@@ -16,7 +16,7 @@ import {
 import { getRecentIpcErrors, getRecentTaskEvents, getRecentVectorIndexEvents } from "./diagnosticsBuffer";
 import type { AppStore } from "./store";
 
-export const SUPPORT_BUNDLE_FORMAT_VERSION = 2;
+export const SUPPORT_BUNDLE_FORMAT_VERSION = 3;
 
 export interface ExportSupportBundleParams {
   store: AppStore;
@@ -105,6 +105,14 @@ export async function exportSupportBundleZip(params: ExportSupportBundleParams):
     await writeJson(bundleDir, "sqlite.json", {
       ...pragmas,
       databaseFileName: path.basename(store.getDatabasePath())
+    });
+
+    const migrationReport = store.getMigrationReport();
+    await writeJson(bundleDir, "migration.json", {
+      ...migrationReport,
+      backupPath: migrationReport.backupPath
+        ? redactAbsolutePath(migrationReport.backupPath, anonymize)
+        : null
     });
 
     await writeJson(bundleDir, "embedding.json", embeddingStatus);

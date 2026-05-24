@@ -49,19 +49,21 @@ Implemented:
 - recent query log capture for real-user eval feedback loops
 - import and reindex task progress with stage-level feedback plus skipped-file reasons
 - import and reindex task progress can carry structured issue details, so failed files remain visible after the task finishes
+- imported documents carry a content-free ingestion quality report for text density, page count, chunk distribution, possible scan/OCR needs, and garbled text warnings
 - incremental reindex that skips unchanged documents when chunk settings and source timestamps have not changed
 - library health inspection for missing files, stale sources, index drift, and missing embeddings
 - retry flow for failed imports
 - duplicate import skip for unchanged files
 - targeted repair flow for only the documents that need reindexing
 - local diagnostics in `Settings` for app version, data directory, and database path
+- startup database migration reports and pre-migration backups for additive SQLite schema upgrades
 - in-app retrieval debug panel for recent query logs, including persisted pipeline counts, intent hints, token expansion, answer evidence decisions, candidate rejection reasons, top-result score breakdowns, and anonymized single-query debug export
 - reindex support
 - **Support bundle export** from `Settings`：导出 ZIP（JSON + 说明文本），默认不包含原文与 chunk 正文；可选匿名化路径与提问预览（详见 `docs/SUPPORT_RUNBOOK.md`）
 
 Still next:
 
-- expand eval benchmark coverage and regression comparisons beyond the Sprint 3 smoke set (`docs/EVAL_GUIDE.md`)
+- expand eval benchmark coverage beyond the current fixture/real-query gates (`docs/EVAL_GUIDE.md`)
 - Apple signing / notarization / stapling and optional CI release uploads (release **packaging** foundation is in `docs/RELEASE.md`; install notes in `docs/INSTALLATION.md`)
 - continued refinement of import/reindex error coverage as new failure modes appear in real deployments
 
@@ -159,7 +161,13 @@ PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run release:quali
 
 This runs unit tests, production build, then the `dcs-core` product RAG gate. Use `--require-realpdf` before sharing a candidate build that claims DCS manual validation.
 
-Sprint 5.x: the default benchmark path hydrates embeddings and runs the same **query embedding → top-24 vector shortlist → lexical merge → `searchChunks`** shape as the desktop app (LanceDB is replaced by in-memory cosine ranking in the script). Set **`PKRAG_RETRIEVAL_DEBUG=1`** for **schemaVersion 9** JSON: `vectorRecallBackend` (`lancedb` in the app, `memory` in `eval:rag`), `runtime` (`desktop` vs `eval`), tokens, scores, citation ids, refusal/cautious flags, answer evidence decision summaries with top evidence context, candidate/result selection reasons, primary-rank rejection diagnostics, weighted score contributions, and contextual chunk metadata (`docs/EVAL_GUIDE.md`). Benchmark cases can carry **`expectedAnswerMode`** / **`sourceType`** metadata for regression reports.
+Sprint 5.x: the default benchmark path hydrates embeddings and runs the same **query embedding → top-24 vector shortlist → lexical merge → `searchChunks`** shape as the desktop app (LanceDB is replaced by in-memory cosine ranking in the script). Set **`PKRAG_RETRIEVAL_DEBUG=1`** for **schemaVersion 10** JSON: `vectorRecallBackend` (`lancedb` in the app, `memory` in `eval:rag`), `runtime` (`desktop` vs `eval`), tokens, scores, citation ids, refusal/cautious flags, answer evidence decision summaries with top evidence context and conflict-evidence ids, candidate/result selection reasons, primary-rank rejection diagnostics, weighted score contributions, and contextual chunk metadata (`docs/EVAL_GUIDE.md`). Benchmark cases can carry **`expectedAnswerMode`** / **`sourceType`** metadata for regression reports.
+
+Compare two benchmark JSON reports:
+
+```bash
+npm run eval:rag:compare -- reports/rag-eval/eval-before.json reports/rag-eval/eval-after.json
+```
 
 Included tests cover:
 

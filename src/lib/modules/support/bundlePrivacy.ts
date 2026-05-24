@@ -32,6 +32,21 @@ export function summarizeDocumentForBundle(document: DocumentRecord, anonymize: 
     updatedAt: document.updatedAt,
     sourceUpdatedAt: document.sourceUpdatedAt,
     indexConfigSignature: document.indexConfigSignature ?? null,
+    ingestionQuality: document.ingestionQuality
+      ? {
+          schemaVersion: document.ingestionQuality.schemaVersion,
+          generatedAt: document.ingestionQuality.generatedAt,
+          characterCount: document.ingestionQuality.characterCount,
+          nonWhitespaceCharacterCount: document.ingestionQuality.nonWhitespaceCharacterCount,
+          lineCount: document.ingestionQuality.lineCount,
+          pageCount: document.ingestionQuality.pageCount,
+          averageChunkTokens: document.ingestionQuality.averageChunkTokens,
+          minChunkTokens: document.ingestionQuality.minChunkTokens,
+          maxChunkTokens: document.ingestionQuality.maxChunkTokens,
+          warningCount: document.ingestionQuality.warnings.length,
+          warnings: document.ingestionQuality.warnings
+        }
+      : null,
     filePath: redactAbsolutePath(document.filePath, anonymize)
   };
 }
