@@ -107,7 +107,7 @@ Scope:
 - define standard error codes (**foundation in place; continue expanding for new real-world failures**)
 - map each import/index failure stage to stable error codes (**foundation in place for preflight/parsing/chunking/embedding/indexing/storage**)
 - unify how errors appear in UI, logs, and diagnostics (**IPC envelope, task issue panel, support bundle recent errors, vector-index fallback diagnostics, corrected import completion counts, ingestion quality summaries, OCR recommendation warnings, migration reports, and missing-source reindex regression coverage are in place**)
-- add stronger pre-import checks (**initial import quality report and low-text-density PDF OCR recommendation warning are in place; automatic OCR remains explicit follow-up**)
+- add stronger pre-import checks (**initial import quality report, low-text-density PDF OCR recommendation warning, and explicit external-preprocess OCR policy are in place; automatic OCR remains explicit follow-up**)
 - improve per-file retry and repair flows
 - deepen library consistency checks
 
@@ -313,7 +313,7 @@ These are valid but intentionally later:
 
 If we want the highest-value next sprint based on the current repo, do this:
 
-1. Decide whether to add an approved local OCR pipeline or keep OCR as an external enterprise preprocessing step.
+1. Define acceptance criteria for any future approved local OCR pipeline; current policy is external enterprise preprocessing with local diagnostics.
 2. Expand sanitized real-question regression cases, then compare before/after JSON reports for every retrieval change.
 3. Deepen evidence sufficiency gates for conflict evidence, weak procedural evidence, and high-risk unsupported specifics.
 4. Keep Apple signing/notarization as a separate delivery track when product decides to resume it.

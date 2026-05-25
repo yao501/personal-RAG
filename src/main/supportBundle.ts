@@ -6,6 +6,7 @@ import path from "node:path";
 import { app } from "electron";
 import type { AppSnapshot, LibraryHealthReport } from "../lib/shared/types";
 import { getEmbeddingStatus } from "../lib/modules/embed/localEmbedder";
+import { getOcrPolicySnapshot } from "../lib/modules/parse/ocrPolicy";
 import {
   redactAbsolutePath,
   summarizeDocumentForBundle,
@@ -16,7 +17,7 @@ import {
 import { getRecentIpcErrors, getRecentTaskEvents, getRecentVectorIndexEvents } from "./diagnosticsBuffer";
 import type { AppStore } from "./store";
 
-export const SUPPORT_BUNDLE_FORMAT_VERSION = 3;
+export const SUPPORT_BUNDLE_FORMAT_VERSION = 4;
 
 export interface ExportSupportBundleParams {
   store: AppStore;
@@ -137,6 +138,8 @@ export async function exportSupportBundleZip(params: ExportSupportBundleParams):
       chunkOverlap: snapshot.settings.chunkOverlap,
       libraryPath: snapshot.settings.libraryPath ? redactAbsolutePath(snapshot.settings.libraryPath, anonymize) : null
     });
+
+    await writeJson(bundleDir, "ocr_policy.json", getOcrPolicySnapshot());
 
     await writeJson(bundleDir, "library_health.json", health);
 

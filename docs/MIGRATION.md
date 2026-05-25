@@ -23,6 +23,7 @@ Purpose:
 Compatibility note:
 
 - `ingestionQualityJson` is intentionally nullable JSON. The report schema can evolve without a SQLite `user_version` bump; report schema v2 adds `textDensityPerPage`, `ocrRecommended`, and `ocrConfidence` while older v1 rows remain readable.
+- OCR policy is exported as support-bundle metadata (`ocr_policy.json`) rather than persisted per document, so changing policy text or thresholds does not require a database migration.
 
 Migration safety:
 

@@ -33,6 +33,7 @@ The support bundle helps triage desktop issues (import/reindex failures, health 
 | `system_status.json` | Document/chunk counts, embedding availability, and vector-index availability as shown in the app. |
 | `vector_index.json` | Current vector-index availability plus recent rebuild/search events. Event `details` are omitted when anonymize is on. Added in support bundle format v2. |
 | `settings_safe.json` | Chunk size/overlap and optional library path (may be redacted). |
+| `ocr_policy.json` | Current OCR handling policy: automatic OCR status, text-density thresholds, supported file types, remediation text, and privacy note. Added in support bundle format v4. |
 | `library_health.json` | Full library health report (same shape as in-app health check). |
 | `documents_summary.json` | Per-document metadata: ids, titles, types, chunk counts, import quality summaries including `textDensityPerPage`, `ocrRecommended`, and `ocrConfidence`, paths (paths redacted when anonymize is on). **No document body text.** |
 | `query_logs_meta.json` | Recent query logs as **metadata only** (counts, timestamps, short preview or redacted text). **No answers, citations, retrieval debug snapshots, or retrieval payloads.** |
@@ -65,10 +66,11 @@ When anonymize is **off**, more path and preview text is present to speed up int
 
 1. **Start with** `manifest.json`, `app_runtime.json`, `paths.json`, `sqlite.json`, `migration.json`, `embedding.json`, and `vector_index.json` to confirm environment and storage layout.
 2. Check **`library_health.json`** for actionable issues (missing sources, stale files, missing embeddings).
-3. Check **`documents_summary.json`** → `ingestionQuality` for `ocrRecommended`, low text density, possible scanned PDFs, garbled text, or unusual chunk distribution.
-4. Review **`library_tasks_recent.json`** for the last import/reindex timeline and failure phases.
-5. Use **`ipc_errors_recent.json`** if the user reports UI actions failing (settings, import, etc.).
-6. Use **`query_logs_meta.json`** only for **volume and recency** of questions—do not expect answer content here.
+3. Check **`ocr_policy.json`** to confirm whether OCR is automatic or external preprocessing for this build.
+4. Check **`documents_summary.json`** → `ingestionQuality` for `ocrRecommended`, low text density, possible scanned PDFs, garbled text, or unusual chunk distribution.
+5. Review **`library_tasks_recent.json`** for the last import/reindex timeline and failure phases.
+6. Use **`ipc_errors_recent.json`** if the user reports UI actions failing (settings, import, etc.).
+7. Use **`query_logs_meta.json`** only for **volume and recency** of questions—do not expect answer content here.
 
 ## Single-query retrieval debug export
 

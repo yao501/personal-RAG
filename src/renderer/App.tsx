@@ -5,6 +5,7 @@ import { detectQueryIntent } from "../lib/modules/retrieve/queryIntent";
 import { expandQueryTokens } from "../lib/modules/retrieve/queryFeatures";
 import { resolveQueryRetrievalType } from "../lib/modules/retrieve/queryRetrievalType";
 import { isCautiousProceduralAnswer } from "../lib/modules/answer/cautiousMarkers";
+import { getOcrPolicySnapshot } from "../lib/modules/parse/ocrPolicy";
 import type {
   AppInfo,
   AppSettings,
@@ -30,6 +31,8 @@ import type {
 
 type Screen = "library" | "chat" | "detail" | "settings";
 type DetailSortMode = "structure" | "question";
+
+const OCR_POLICY = getOcrPolicySnapshot();
 
 const EMPTY_ANSWER: ChatAnswer = {
   answer: "",
@@ -2061,7 +2064,9 @@ export function App() {
                 />
               </label>
               <div className="settings-note">
-                当前版本已经支持文档管理、会话历史、混合检索、定位型 citation，以及真实 query log 留存。后续仍可继续增强模型缓存、导入进度和更强的本地语义检索。
+                OCR 策略：外部预处理 · 自动 OCR：关闭 · 强提示阈值：
+                {OCR_POLICY.strongTextDensityThreshold} 字/页 · 抽查阈值：
+                {OCR_POLICY.possibleTextDensityThreshold} 字/页
               </div>
               <div className="settings-note">版本：{appInfo.version} · 平台：{appInfo.platform}</div>
               <div className="settings-note">数据目录：{appInfo.userDataPath}</div>

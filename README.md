@@ -51,6 +51,7 @@ Implemented:
 - import and reindex task progress can carry structured issue details, so failed files remain visible after the task finishes
 - imported documents carry a content-free ingestion quality report for text density, page count, chunk distribution, OCR recommendation, possible scan/image-PDF needs, and garbled text warnings
 - import and reindex surface low-text-density PDFs as structured `pdf_ocr_recommended` warnings without treating successful imports as failures
+- OCR handling is an explicit enterprise policy: automatic OCR is disabled for now, low-text-density PDFs are diagnosed locally, and approved OCR preprocessing is expected before reimport
 - incremental reindex that skips unchanged documents when chunk settings and source timestamps have not changed
 - library health inspection for missing files, stale sources, index drift, and missing embeddings
 - retry flow for failed imports

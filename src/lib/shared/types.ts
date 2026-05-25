@@ -29,6 +29,20 @@ export interface DocumentIngestionQualityWarning {
 
 export type DocumentIngestionQualityOcrConfidence = "none" | "possible" | "strong";
 
+export type OcrHandlingMode = "external_preprocess";
+
+export interface OcrPolicySnapshot {
+  schemaVersion: 1;
+  mode: OcrHandlingMode;
+  automaticOcrEnabled: false;
+  supportedFileTypes: SupportedFileType[];
+  strongTextDensityThreshold: number;
+  possibleTextDensityThreshold: number;
+  textDensityUnit: "non_whitespace_characters_per_page";
+  remediation: string;
+  privacyNote: string;
+}
+
 export interface DocumentIngestionQualityReport {
   schemaVersion: 1 | 2;
   generatedAt: string;

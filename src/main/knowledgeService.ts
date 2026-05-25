@@ -6,6 +6,7 @@ import { createStableId } from "../lib/modules/core/id";
 import { embedTexts, getEmbeddingStatus } from "../lib/modules/embed/localEmbedder";
 import { answerQuestion } from "../lib/modules/answer/answerQuestion";
 import { buildIngestionQualityReport } from "../lib/modules/parse/ingestionQuality";
+import { OCR_REMEDIATION } from "../lib/modules/parse/ocrPolicy";
 import { parseDocument } from "../lib/modules/parse/parseDocument";
 import { buildRetrievalDebugPayload } from "../lib/modules/retrieve/retrievalDebug";
 import { resolveQueryRetrievalType } from "../lib/modules/retrieve/queryRetrievalType";
@@ -89,7 +90,7 @@ function buildOcrRecommendedIssue(filePath: string, quality: DocumentIngestionQu
       code: "pdf_ocr_recommended",
       stage: "parsing",
       message: `PDF 可能需要 OCR 后再导入：${path.basename(filePath)}（文本密度 ${density} 字/页）。`,
-      suggestion: "请用企业认可的 OCR 工具生成可复制文本 PDF，再重新导入或重建索引。",
+      suggestion: OCR_REMEDIATION,
       retryable: false
     })
   );
