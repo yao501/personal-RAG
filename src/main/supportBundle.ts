@@ -14,10 +14,11 @@ import {
   summarizeTaskProgressForBundle,
   summarizeVectorIndexEventsForBundle
 } from "../lib/modules/support/bundlePrivacy";
+import { buildSupportTriageSummary } from "../lib/modules/support/bundleTriage";
 import { getRecentIpcErrors, getRecentTaskEvents, getRecentVectorIndexEvents } from "./diagnosticsBuffer";
 import type { AppStore } from "./store";
 
-export const SUPPORT_BUNDLE_FORMAT_VERSION = 4;
+export const SUPPORT_BUNDLE_FORMAT_VERSION = 5;
 
 export interface ExportSupportBundleParams {
   store: AppStore;
@@ -55,6 +56,9 @@ export async function exportSupportBundleZip(params: ExportSupportBundleParams):
   const taskEvents = getRecentTaskEvents();
   const ipcFailures = getRecentIpcErrors();
   const vectorIndexEvents = getRecentVectorIndexEvents();
+  const documentSummaries = snapshot.documents.map((document) => summarizeDocumentForBundle(document, anonymize));
+  const ocrRecommendedDocumentCount = snapshot.documents.filter((document) => document.ingestionQuality?.ocrRecommended).length;
+  const migrationReport = store.getMigrationReport();
 
   const userDataPath = app.getPath("userData");
   const lanceDbPath = path.join(userDataPath, "lancedb");
@@ -86,6 +90,16 @@ export async function exportSupportBundleZip(params: ExportSupportBundleParams):
       note: "Excludes raw document text, chunk bodies, embeddings, and chat/query payloads by default."
     });
 
+    await writeJson(bundleDir, "triage_summary.json", buildSupportTriageSummary({
+      anonymize,
+      systemStatus: snapshot.systemStatus,
+      health,
+      migration: migrationReport,
+      recentTasks: taskEvents.map((event) => event.progress),
+      recentIpcErrorCount: ipcFailures.length,
+      ocrRecommendedDocumentCount
+    }));
+
     await writeJson(bundleDir, "app_runtime.json", {
       platform: process.platform,
       arch: process.arch,
@@ -108,7 +122,6 @@ export async function exportSupportBundleZip(params: ExportSupportBundleParams):
       databaseFileName: path.basename(store.getDatabasePath())
     });
 
-    const migrationReport = store.getMigrationReport();
     await writeJson(bundleDir, "migration.json", {
       ...migrationReport,
       backupPath: migrationReport.backupPath
@@ -146,7 +159,7 @@ export async function exportSupportBundleZip(params: ExportSupportBundleParams):
     await writeJson(
       bundleDir,
       "documents_summary.json",
-      snapshot.documents.map((document) => summarizeDocumentForBundle(document, anonymize))
+      documentSummaries
     );
 
     await writeJson(bundleDir, "query_logs_meta.json", summarizeQueryLogsForBundle(recentLogs, anonymize));

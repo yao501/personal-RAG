@@ -25,6 +25,7 @@ The support bundle helps triage desktop issues (import/reindex failures, health 
 |------|-------------|
 | `00-README.txt` | Short human-readable note about what is included / excluded. |
 | `manifest.json` | Bundle metadata: format version, timestamps, anonymize flag, app name/version. |
+| `triage_summary.json` | Content-free support self-check summary: privacy flags, key counts, check statuses, suggested next file, and next action. Added in support bundle format v5. |
 | `app_runtime.json` | Node/Electron/Chrome versions, platform, arch, locale. |
 | `paths.json` | `userData`, SQLite DB path, LanceDB directory, temp dir (paths may be redacted). |
 | `sqlite.json` | SQLite `PRAGMA` snapshot (`user_version`, `journal_mode`, `page_size`) and DB file name. |
@@ -64,13 +65,14 @@ When anonymize is **off**, more path and preview text is present to speed up int
 
 ## How support should use the bundle
 
-1. **Start with** `manifest.json`, `app_runtime.json`, `paths.json`, `sqlite.json`, `migration.json`, `embedding.json`, and `vector_index.json` to confirm environment and storage layout.
-2. Check **`library_health.json`** for actionable issues (missing sources, stale files, missing embeddings).
-3. Check **`ocr_policy.json`** to confirm whether OCR is automatic or external preprocessing for this build.
-4. Check **`documents_summary.json`** → `ingestionQuality` for `ocrRecommended`, low text density, possible scanned PDFs, garbled text, or unusual chunk distribution.
-5. Review **`library_tasks_recent.json`** for the last import/reindex timeline, import `preflightSummary`, failure phases, and `repairAction` hints.
-6. Use **`ipc_errors_recent.json`** if the user reports UI actions failing (settings, import, etc.).
-7. Use **`query_logs_meta.json`** only for **volume and recency** of questions—do not expect answer content here.
+1. **Start with** `triage_summary.json` for the content-free self-check: status, suggested next file, and suggested next action.
+2. Then use `manifest.json`, `app_runtime.json`, `paths.json`, `sqlite.json`, `migration.json`, `embedding.json`, and `vector_index.json` to confirm environment and storage layout.
+3. Check **`library_health.json`** for actionable issues (missing sources, stale files, missing embeddings).
+4. Check **`ocr_policy.json`** to confirm whether OCR is automatic or external preprocessing for this build.
+5. Check **`documents_summary.json`** → `ingestionQuality` for `ocrRecommended`, low text density, possible scanned PDFs, garbled text, or unusual chunk distribution.
+6. Review **`library_tasks_recent.json`** for the last import/reindex timeline, import `preflightSummary`, failure phases, and `repairAction` hints.
+7. Use **`ipc_errors_recent.json`** if the user reports UI actions failing (settings, import, etc.).
+8. Use **`query_logs_meta.json`** only for **volume and recency** of questions—do not expect answer content here.
 
 ## Single-query retrieval debug export
 

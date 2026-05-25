@@ -134,7 +134,7 @@ Why this is now:
 Scope:
 
 - add one-click support bundle export
-- include app version, build info, OS, data paths, DB path/schema version, recent task summaries, health results, and recent errors
+- include app version, build info, OS, data paths, DB path/schema version, recent task summaries, health results, recent errors, and a content-free triage self-check summary
 - exclude raw document content by default
 - allow anonymized export mode
 - strengthen the Settings diagnostics view

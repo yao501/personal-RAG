@@ -66,6 +66,7 @@ Implemented:
 - refusal gating now treats unsupported private credential requests, including passwords, API tokens, access tokens, and private keys, as insufficient evidence unless directly cited
 - reindex support
 - **Support bundle export** from `Settings`：导出 ZIP（JSON + 说明文本），默认不包含原文与 chunk 正文；可选匿名化路径与提问预览（详见 `docs/SUPPORT_RUNBOOK.md`）
+- support bundles include a content-free `triage_summary.json` self-check so support can start from status, next file, and next action without reading every JSON first
 
 Still next:
 
