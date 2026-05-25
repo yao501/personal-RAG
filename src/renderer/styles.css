@@ -606,6 +606,12 @@ select {
   line-height: 1.4;
 }
 
+.warning-text {
+  color: #8a5a10;
+  margin-top: 10px;
+  line-height: 1.4;
+}
+
 .task-progress-card {
   margin: 12px 0 14px;
   padding: 14px;

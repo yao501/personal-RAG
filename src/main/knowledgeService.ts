@@ -18,6 +18,7 @@ import type {
   ChatSession,
   ChatTurn,
   ChunkRecord,
+  DocumentIngestionQualityReport,
   DocumentQuestionMatch,
   DocumentRecord,
   EvalCaseDraft,
@@ -71,6 +72,27 @@ function hasUsableChunkState(document: DocumentRecord, chunks: ChunkRecord[]): b
 
 function isEffectivelyEmptyContent(content: string): boolean {
   return content.replace(/\s+/g, "").length === 0;
+}
+
+function buildOcrRecommendedIssue(filePath: string, quality: DocumentIngestionQualityReport): ImportIssueDetail | null {
+  if (!quality.ocrRecommended) {
+    return null;
+  }
+  const density =
+    quality.textDensityPerPage === null || quality.textDensityPerPage === undefined
+      ? "n/a"
+      : quality.textDensityPerPage.toFixed(1);
+  return toImportIssueDetail(
+    filePath,
+    "warning",
+    createImportError({
+      code: "pdf_ocr_recommended",
+      stage: "parsing",
+      message: `PDF 可能需要 OCR 后再导入：${path.basename(filePath)}（文本密度 ${density} 字/页）。`,
+      suggestion: "请用企业认可的 OCR 工具生成可复制文本 PDF，再重新导入或重建索引。",
+      retryable: false
+    })
+  );
 }
 
 export class KnowledgeService {
@@ -341,6 +363,7 @@ export class KnowledgeService {
     const skippedDetails: ImportIssueDetail[] = [];
     let failedCount = 0;
     let skippedCount = 0;
+    let warningCount = 0;
     const { taskId } = task;
 
     try {
@@ -472,6 +495,7 @@ export class KnowledgeService {
           });
           const chunks = await this.attachEmbeddings(baseChunks);
           const ingestionQuality = buildIngestionQualityReport(parsed, chunks);
+          const qualityIssue = buildOcrRecommendedIssue(filePath, ingestionQuality);
 
           const document: DocumentRecord = {
             id: documentId,
@@ -491,18 +515,25 @@ export class KnowledgeService {
 
           this.store.upsertDocument(document, chunks);
           imported.push(document);
+          if (qualityIssue) {
+            warningCount += 1;
+            skippedDetails.push(qualityIssue);
+          }
           this.emitTaskProgress(emitProgress, {
             taskId,
             kind: "import",
             phase: "saving",
-            message: `已写入 ${path.basename(filePath)}`,
+            message: qualityIssue
+              ? `已写入 ${path.basename(filePath)}，但建议先做 OCR`
+              : `已写入 ${path.basename(filePath)}`,
             current: index + 1,
             total: filePaths.length,
             currentFile: filePath,
             processed: imported.length + failedCount + skippedCount,
             succeeded: imported.length,
             failed: failedCount,
-            skipped: skippedCount
+            skipped: skippedCount,
+            issue: qualityIssue
           });
         } catch (error) {
           const normalizedError = normalizeImportError(error, filePath, "unknown");
@@ -545,7 +576,9 @@ export class KnowledgeService {
         taskId,
         kind: "import",
         phase: "completed",
-        message: `导入完成：成功 ${imported.length}，跳过 ${skippedCount}，失败 ${failedCount}`,
+        message: warningCount > 0
+          ? `导入完成：成功 ${imported.length}，提示 ${warningCount}，跳过 ${skippedCount}，失败 ${failedCount}`
+          : `导入完成：成功 ${imported.length}，跳过 ${skippedCount}，失败 ${failedCount}`,
         current: filePaths.length,
         total: filePaths.length,
         currentFile: null,
@@ -602,6 +635,7 @@ export class KnowledgeService {
       let succeeded = 0;
       let failed = 0;
       let skipped = 0;
+      let warnings = 0;
 
       for (const [index, document] of documents.entries()) {
         try {
@@ -698,6 +732,7 @@ export class KnowledgeService {
           });
           const chunks = await this.attachEmbeddings(baseChunks);
           const ingestionQuality = buildIngestionQualityReport(parsed, chunks);
+          const qualityIssue = buildOcrRecommendedIssue(document.filePath, ingestionQuality);
           this.store.upsertDocument({
             ...document,
             title,
@@ -709,18 +744,24 @@ export class KnowledgeService {
             updatedAt: new Date().toISOString()
           }, chunks);
           succeeded += 1;
+          if (qualityIssue) {
+            warnings += 1;
+          }
           this.emitTaskProgress(emitProgress, {
             taskId,
             kind: "reindex",
             phase: "saving",
-            message: `已更新 ${document.fileName}`,
+            message: qualityIssue
+              ? `已更新 ${document.fileName}，但建议先做 OCR`
+              : `已更新 ${document.fileName}`,
             current: index + 1,
             total: documents.length,
             currentFile: document.filePath,
             processed: succeeded + failed + skipped,
             succeeded,
             failed,
-            skipped
+            skipped,
+            issue: qualityIssue
           });
         } catch (error) {
           const normalizedError = normalizeImportError(error, document.filePath, "unknown");
@@ -761,7 +802,9 @@ export class KnowledgeService {
         taskId,
         kind: "reindex",
         phase: "completed",
-        message: `重建索引完成：更新 ${succeeded}，跳过 ${skipped}，失败 ${failed}`,
+        message: warnings > 0
+          ? `重建索引完成：更新 ${succeeded}，提示 ${warnings}，跳过 ${skipped}，失败 ${failed}`
+          : `重建索引完成：更新 ${succeeded}，跳过 ${skipped}，失败 ${failed}`,
         current: documents.length,
         total: documents.length,
         currentFile: null,

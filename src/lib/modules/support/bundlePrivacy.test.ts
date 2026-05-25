@@ -40,11 +40,41 @@ describe("bundlePrivacy", () => {
       sourceCreatedAt: null,
       sourceUpdatedAt: null,
       indexConfigSignature: "{}",
-      chunkCount: 3
+      chunkCount: 3,
+      ingestionQuality: {
+        schemaVersion: 2,
+        generatedAt: "2026-05-25T00:00:00.000Z",
+        fileType: "pdf",
+        characterCount: 10,
+        nonWhitespaceCharacterCount: 8,
+        lineCount: 1,
+        pageCount: 4,
+        textDensityPerPage: 2,
+        ocrRecommended: true,
+        ocrConfidence: "strong",
+        chunkCount: 1,
+        averageChunkTokens: 8,
+        minChunkTokens: 8,
+        maxChunkTokens: 8,
+        warnings: [
+          {
+            code: "low_text_density_pdf",
+            severity: "error",
+            message: "PDF 每页可提取文本极少，很可能是扫描版或图片型 PDF。",
+            suggestion: "OCR"
+          }
+        ]
+      }
     };
     const summary = summarizeDocumentForBundle(document, true);
     expect(summary).not.toHaveProperty("content");
     expect(String(summary.filePath)).toContain("[USER]");
+    expect(summary.ingestionQuality).toMatchObject({
+      textDensityPerPage: 2,
+      ocrRecommended: true,
+      ocrConfidence: "strong",
+      warningCount: 1
+    });
   });
 
   it("redacts query log previews when anonymize is true", () => {

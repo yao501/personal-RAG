@@ -1,5 +1,6 @@
 import type {
   ChunkRecord,
+  DocumentIngestionQualityOcrConfidence,
   DocumentIngestionQualityReport,
   DocumentIngestionQualityWarning,
   ParsedDocumentContent
@@ -27,6 +28,19 @@ function countReplacementOrControlCharacters(content: string): number {
   return replacementChars + suspiciousControlChars;
 }
 
+function classifyOcrNeed(textDensityPerPage: number | null): DocumentIngestionQualityOcrConfidence {
+  if (textDensityPerPage === null) {
+    return "none";
+  }
+  if (textDensityPerPage < 25) {
+    return "strong";
+  }
+  if (textDensityPerPage < 80) {
+    return "possible";
+  }
+  return "none";
+}
+
 export function buildIngestionQualityReport(
   parsed: ParsedDocumentContent,
   chunks: ChunkRecord[],
@@ -34,6 +48,12 @@ export function buildIngestionQualityReport(
 ): DocumentIngestionQualityReport {
   const nonWhitespaceCharacterCount = parsed.content.replace(/\s+/g, "").length;
   const pageCount = parsed.pageSpans?.length ?? null;
+  const textDensityPerPage =
+    parsed.fileType === "pdf" && pageCount !== null && pageCount > 0
+      ? nonWhitespaceCharacterCount / pageCount
+      : null;
+  const ocrConfidence = classifyOcrNeed(textDensityPerPage);
+  const ocrRecommended = ocrConfidence !== "none";
   const tokenCounts = chunks.map((chunk) => chunk.tokenCount);
   const averageChunkTokens =
     tokenCounts.length === 0 ? 0 : tokenCounts.reduce((sum, count) => sum + count, 0) / tokenCounts.length;
@@ -63,14 +83,15 @@ export function buildIngestionQualityReport(
     );
   }
 
-  if (parsed.fileType === "pdf" && pageCount !== null && pageCount > 0) {
-    const textDensity = nonWhitespaceCharacterCount / pageCount;
-    if (textDensity < 80) {
+  if (parsed.fileType === "pdf" && textDensityPerPage !== null) {
+    if (ocrRecommended) {
       warnings.push(
         warning(
           "low_text_density_pdf",
-          "warning",
-          "PDF 每页可提取文本密度偏低，可能是扫描版或图片型 PDF。",
+          ocrConfidence === "strong" ? "error" : "warning",
+          ocrConfidence === "strong"
+            ? "PDF 每页可提取文本极少，很可能是扫描版或图片型 PDF。"
+            : "PDF 每页可提取文本密度偏低，可能是扫描版或图片型 PDF。",
           "当前版本不会自动 OCR；建议先用企业认可的 OCR 工具生成可复制文本 PDF 后再导入。"
         )
       );
@@ -112,13 +133,16 @@ export function buildIngestionQualityReport(
   }
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt,
     fileType: parsed.fileType,
     characterCount: parsed.content.length,
     nonWhitespaceCharacterCount,
     lineCount: countLines(parsed.content),
     pageCount,
+    textDensityPerPage,
+    ocrRecommended,
+    ocrConfidence,
     chunkCount: chunks.length,
     averageChunkTokens,
     minChunkTokens,

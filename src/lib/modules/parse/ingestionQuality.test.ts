@@ -33,14 +33,39 @@ describe("buildIngestionQualityReport", () => {
     const report = buildIngestionQualityReport(parsed, [chunk({ tokenCount: 8 })], "2026-05-24T00:00:00.000Z");
 
     expect(report).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       generatedAt: "2026-05-24T00:00:00.000Z",
       fileType: "pdf",
       pageCount: 3,
+      textDensityPerPage: 1.3333333333333333,
+      ocrRecommended: true,
+      ocrConfidence: "strong",
       chunkCount: 1
     });
-    expect(report.warnings.map((warning) => warning.code)).toContain("low_text_density_pdf");
+    expect(report.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "low_text_density_pdf", severity: "error" })
+      ])
+    );
     expect(JSON.stringify(report)).not.toContain(parsed.content);
+  });
+
+  it("keeps OCR recommendation off for text-dense PDFs", () => {
+    const parsed: ParsedDocumentContent = {
+      fileType: "pdf",
+      content: "可复制文本".repeat(300),
+      pageSpans: [
+        { pageNumber: 1, startOffset: 0, endOffset: 600 },
+        { pageNumber: 2, startOffset: 600, endOffset: 1200 }
+      ]
+    };
+
+    const report = buildIngestionQualityReport(parsed, [chunk({ tokenCount: 120 })], "2026-05-25T00:00:00.000Z");
+
+    expect(report.ocrRecommended).toBe(false);
+    expect(report.ocrConfidence).toBe("none");
+    expect(report.textDensityPerPage).toBeGreaterThan(80);
+    expect(report.warnings.map((warning) => warning.code)).not.toContain("low_text_density_pdf");
   });
 
   it("summarizes chunk token distribution", () => {

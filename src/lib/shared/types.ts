@@ -27,14 +27,19 @@ export interface DocumentIngestionQualityWarning {
   suggestion: string | null;
 }
 
+export type DocumentIngestionQualityOcrConfidence = "none" | "possible" | "strong";
+
 export interface DocumentIngestionQualityReport {
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
   generatedAt: string;
   fileType: SupportedFileType;
   characterCount: number;
   nonWhitespaceCharacterCount: number;
   lineCount: number;
   pageCount: number | null;
+  textDensityPerPage?: number | null;
+  ocrRecommended?: boolean;
+  ocrConfidence?: DocumentIngestionQualityOcrConfidence;
   chunkCount: number;
   averageChunkTokens: number;
   minChunkTokens: number;
@@ -351,6 +356,7 @@ export type AppErrorCode =
   | "unsupported_file_type"
   | "file_corrupted"
   | "pdf_unreadable"
+  | "pdf_ocr_recommended"
   | "empty_content"
   | "chunk_failed"
   | "embedding_failed"
@@ -398,7 +404,7 @@ export type IpcResult<T> = { ok: true; data: T } | { ok: false; error: RendererE
 export interface ImportIssueDetail extends AppErrorInfo {
   filePath: string;
   reason: string;
-  disposition: "skipped" | "failed";
+  disposition: "skipped" | "failed" | "warning";
 }
 
 export interface ImportResult {

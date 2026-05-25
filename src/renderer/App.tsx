@@ -150,6 +150,12 @@ function formatQualitySeverity(severity: "info" | "warning" | "error"): string {
   return "提示";
 }
 
+function formatOcrConfidence(confidence: "none" | "possible" | "strong" | undefined): string {
+  if (confidence === "strong") return "强烈建议 OCR";
+  if (confidence === "possible") return "建议抽查并考虑 OCR";
+  return "不需要 OCR";
+}
+
 function formatNullableScore(score: number | null | undefined): string {
   return score === null || score === undefined ? "n/a" : score.toFixed(2);
 }
@@ -487,6 +493,10 @@ export function App() {
     () => recentTaskSkippedDetails.filter((item) => item.disposition === "skipped"),
     [recentTaskSkippedDetails]
   );
+  const recentWarningImports = useMemo(
+    () => recentTaskSkippedDetails.filter((item) => item.disposition === "warning"),
+    [recentTaskSkippedDetails]
+  );
   const canRetryRecentFailedImports = recentFailedImports.length > 0 && libraryTaskProgress?.kind !== "reindex";
 
   useEffect(() => {
@@ -816,14 +826,17 @@ export function App() {
 
       const failedDetails = result.skippedDetails.filter((item) => item.disposition === "failed");
       const skippedDetails = result.skippedDetails.filter((item) => item.disposition === "skipped");
+      const warningDetails = result.skippedDetails.filter((item) => item.disposition === "warning");
 
       if (failedDetails.length > 0) {
         setErrorMessage(`部分文件导入失败：${failedDetails.map((item) => `${item.filePath} [${item.code}]`).join(", ")}`);
+      } else if (warningDetails.length > 0) {
+        setErrorMessage("");
       } else if (skippedDetails.length > 0) {
         setErrorMessage("");
       }
 
-      setStatus(`导入完成：新增 ${result.imported.length}，跳过 ${skippedDetails.length}，失败 ${failedDetails.length}`);
+      setStatus(`导入完成：新增 ${result.imported.length}，提示 ${warningDetails.length}，跳过 ${skippedDetails.length}，失败 ${failedDetails.length}`);
     } catch (error) {
       const info = extractRendererErrorInfo(error);
       const message = info ? formatRendererError(info) : (error instanceof Error ? error.message : "未知导入错误");
@@ -849,14 +862,17 @@ export function App() {
 
       const failedDetails = result.skippedDetails.filter((item) => item.disposition === "failed");
       const skippedDetails = result.skippedDetails.filter((item) => item.disposition === "skipped");
+      const warningDetails = result.skippedDetails.filter((item) => item.disposition === "warning");
 
       if (failedDetails.length > 0) {
         setErrorMessage(`仍有文件导入失败：${failedDetails.map((item) => `${item.filePath} [${item.code}]`).join(", ")}`);
+      } else if (warningDetails.length > 0) {
+        setErrorMessage("");
       } else if (skippedDetails.length > 0) {
         setErrorMessage("");
       }
 
-      setStatus(`重试完成：成功 ${result.imported.length}，跳过 ${skippedDetails.length}，失败 ${failedDetails.length}`);
+      setStatus(`重试完成：成功 ${result.imported.length}，提示 ${warningDetails.length}，跳过 ${skippedDetails.length}，失败 ${failedDetails.length}`);
     } catch (error) {
       const info = extractRendererErrorInfo(error);
       const message = info ? formatRendererError(info) : (error instanceof Error ? error.message : "未知重试错误");
@@ -1453,7 +1469,7 @@ export function App() {
           {!systemStatus.vectorIndexAvailable && systemStatus.vectorIndexReason && (
             <p className="error-text">索引状态：{systemStatus.vectorIndexReason}</p>
           )}
-          {(recentFailedImports.length > 0 || recentSkippedImports.length > 0) && (
+          {(recentFailedImports.length > 0 || recentWarningImports.length > 0 || recentSkippedImports.length > 0) && (
             <div className="task-issues">
               <p className="eyebrow">最近任务记录</p>
               {recentFailedImports.length > 0 && (
@@ -1468,6 +1484,15 @@ export function App() {
                   {recentFailedImports.slice(0, 3).map((item) => (
                     <p key={`${item.filePath}-${item.reason}`} className="error-text">
                       {item.filePath}: {formatImportIssueSummary(item)}
+                    </p>
+                  ))}
+                </>
+              )}
+              {recentWarningImports.length > 0 && (
+                <>
+                  {recentWarningImports.slice(0, 3).map((item) => (
+                    <p key={`${item.filePath}-${item.reason}`} className="warning-text">
+                      提示：{item.filePath} · {formatImportIssueSummary(item)}
                     </p>
                   ))}
                 </>
@@ -1919,7 +1944,18 @@ export function App() {
                   </p>
                   <p className="muted">可索引字符：{selectedDocument.ingestionQuality.nonWhitespaceCharacterCount}</p>
                   <p className="muted">页数：{selectedDocument.ingestionQuality.pageCount ?? "n/a"}</p>
+                  <p className="muted">
+                    文本密度：
+                    {selectedDocument.ingestionQuality.textDensityPerPage === null || selectedDocument.ingestionQuality.textDensityPerPage === undefined
+                      ? "n/a"
+                      : `${selectedDocument.ingestionQuality.textDensityPerPage.toFixed(1)} 字/页`}
+                  </p>
                   <p className="muted">平均 chunk tokens：{selectedDocument.ingestionQuality.averageChunkTokens.toFixed(1)}</p>
+                  {selectedDocument.ingestionQuality.fileType === "pdf" && (
+                    <p className={selectedDocument.ingestionQuality.ocrRecommended ? "warning-text" : "muted"}>
+                      OCR：{formatOcrConfidence(selectedDocument.ingestionQuality.ocrConfidence)}
+                    </p>
+                  )}
                 </div>
                 <div className="support-panel">
                   <p className="eyebrow">解析提示</p>

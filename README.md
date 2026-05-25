@@ -49,7 +49,8 @@ Implemented:
 - recent query log capture for real-user eval feedback loops
 - import and reindex task progress with stage-level feedback plus skipped-file reasons
 - import and reindex task progress can carry structured issue details, so failed files remain visible after the task finishes
-- imported documents carry a content-free ingestion quality report for text density, page count, chunk distribution, possible scan/OCR needs, and garbled text warnings
+- imported documents carry a content-free ingestion quality report for text density, page count, chunk distribution, OCR recommendation, possible scan/image-PDF needs, and garbled text warnings
+- import and reindex surface low-text-density PDFs as structured `pdf_ocr_recommended` warnings without treating successful imports as failures
 - incremental reindex that skips unchanged documents when chunk settings and source timestamps have not changed
 - library health inspection for missing files, stale sources, index drift, and missing embeddings
 - retry flow for failed imports

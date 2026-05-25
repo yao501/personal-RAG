@@ -142,7 +142,7 @@ export function normalizeImportError(error: unknown, filePath: string, stage: Ap
 
 export function toImportIssueDetail(
   filePath: string,
-  disposition: "skipped" | "failed",
+  disposition: "skipped" | "failed" | "warning",
   error: AppErrorInfo
 ): ImportIssueDetail {
   return {

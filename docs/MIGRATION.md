@@ -17,8 +17,12 @@ Added nullable column:
 Purpose:
 
 - Persist a compact, content-free import quality report for each document.
-- Surface page count, text density, chunk token distribution, and warnings such as possible scanned PDFs or garbled text.
+- Surface page count, text density, chunk token distribution, OCR recommendation fields, and warnings such as possible scanned PDFs or garbled text.
 - Include the same metadata in document detail and support bundles without exporting raw document text.
+
+Compatibility note:
+
+- `ingestionQualityJson` is intentionally nullable JSON. The report schema can evolve without a SQLite `user_version` bump; report schema v2 adds `textDensityPerPage`, `ocrRecommended`, and `ocrConfidence` while older v1 rows remain readable.
 
 Migration safety:
 

@@ -49,6 +49,7 @@
 ### 2.4 PDF 文本抽取质量
 - `pdf-parse` 库对中文 PDF 抽取存在 TT undefined function 警告
 - 部分表格数据以碎片化文本出现，缺少结构信息
+- 扫描版或图片型 PDF 不会自动 OCR；导入/重建索引会根据每页可提取文本密度给出 `pdf_ocr_recommended` 结构化提示，并建议先使用企业认可的 OCR 工具生成可复制文本 PDF
 - 无 TOC ghost text 问题（当前正则过滤有效）
 
 ### 2.5 手册7高级运算功能块正文抽取仍依赖 sectionPath
