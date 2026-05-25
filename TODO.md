@@ -151,7 +151,7 @@ Acceptance:
 
 ### P0.4 Regression-quality evaluation
 
-Status (Sprint 3 / 5.3+): **foundation in place** — versioned benchmark JSON (`benchmarks/benchmark.v1.json`), `npm run eval:rag`, deterministic metrics, Markdown/JSON reports under `reports/rag-eval/`, before/after comparison via `npm run eval:rag:compare`, and [docs/EVAL_GUIDE.md](docs/EVAL_GUIDE.md). Current default baseline on 2026-05-14 is **16/16**, including grounded paraphrase cases and synthetic refusal cases. `npm run eval:rag:product` now acts as the product gate: fixture smoke plus refusal/sufficiency gate first, then local DCS Manual 7 Phase B when `PKRAG_REALPDF_DIR` is available; `--profile dcs-core` adds the 8-case cross-volume DCS core gate for release-quality local validation.
+Status (Sprint 3 / 5.3+): **foundation in place** — versioned benchmark JSON (`benchmarks/benchmark.v1.json`), `npm run eval:rag`, deterministic metrics, Markdown/JSON reports under `reports/rag-eval/`, before/after comparison via `npm run eval:rag:compare`, and [docs/EVAL_GUIDE.md](docs/EVAL_GUIDE.md). Current default baseline on 2026-05-25 is **17/17**, including grounded paraphrase cases, a library-health missing-embedding repair case, and synthetic refusal cases. `npm run eval:rag:product` now acts as the product gate: fixture smoke plus refusal/sufficiency gate first, then local DCS Manual 7 Phase B when `PKRAG_REALPDF_DIR` is available; `--profile dcs-core` adds the 8-case cross-volume DCS core gate for release-quality local validation.
 
 Why this is P0:
 

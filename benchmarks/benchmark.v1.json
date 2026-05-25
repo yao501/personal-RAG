@@ -180,6 +180,17 @@
       "notes": "Navigational / where-to-click style."
     },
     {
+      "id": "ops-health-missing-embedding-repair",
+      "sourceType": "fixture",
+      "expectedAnswerMode": "cautious",
+      "intentGroup": "library-health",
+      "question": "资料库健康提示嵌入缺失时应该怎么修复？",
+      "expectedDocs": ["delta_library_ops.md"],
+      "expectedFacts": ["嵌入缺失", "问题文档", "重建"],
+      "mustRefuse": false,
+      "notes": "Real-style maintenance question for missing embedding repair; current fixture has the recovery direction but not full step-by-step procedure, so cautious answer mode is expected."
+    },
+    {
       "id": "epsilon-procedural-gap",
       "sourceType": "fixture",
       "expectedAnswerMode": "cautious",
