@@ -169,7 +169,15 @@ const HIGH_RISK_UNSUPPORTED_ANCHORS = [
   "管理员密码",
   "vpn",
   "password",
-  "secret"
+  "secret",
+  "secret key",
+  "api key",
+  "api token",
+  "access token",
+  "密钥",
+  "私钥",
+  "令牌",
+  "访问令牌"
 ];
 
 function hasUnsupportedSpecificityGap(question: string, results: SearchResult[]): boolean {

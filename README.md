@@ -63,6 +63,7 @@ Implemented:
 - local diagnostics in `Settings` for app version, data directory, and database path
 - startup database migration reports and pre-migration backups for additive SQLite schema upgrades
 - in-app retrieval debug panel for recent query logs, including persisted pipeline counts, intent hints, token expansion, answer evidence decisions, candidate rejection reasons, top-result score breakdowns, and anonymized single-query debug export
+- refusal gating now treats unsupported private credential requests, including passwords, API tokens, access tokens, and private keys, as insufficient evidence unless directly cited
 - reindex support
 - **Support bundle export** from `Settings`：导出 ZIP（JSON + 说明文本），默认不包含原文与 chunk 正文；可选匿名化路径与提问预览（详见 `docs/SUPPORT_RUNBOOK.md`）
 

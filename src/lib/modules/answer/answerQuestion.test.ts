@@ -477,6 +477,43 @@ describe("answerQuestion", () => {
     });
   });
 
+  it("refuses unsupported private token and key requests without matching evidence", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-dcs",
+        fileName: "hollias_manual3_engineering.md",
+        documentTitle: "HOLLiAS 工程总控",
+        chunkId: "compile",
+        snippet: "工程总控侧的一般顺序是：先编译，后下装。",
+        score: 10.5,
+        chunkIndex: 0,
+        sectionTitle: "编译与下装（工程总控侧）",
+        sectionPath: "HOLLiAS 工程总控 > 编译与下装",
+        sourceUpdatedAt: "2026-04-16T00:00:00.000Z",
+        importedAt: "2026-04-16T00:00:00.000Z",
+        text: "工程总控侧的一般顺序是：先编译，后下装。在工程总控中进行编译，确认编译通过。",
+        lexicalScore: 19,
+        semanticScore: 0.3,
+        freshnessScore: 0.5,
+        rerankScore: 3.1,
+        qualityScore: 1.6,
+        fullText: "工程总控侧的一般顺序是：先编译，后下装。在工程总控中进行编译，确认编译通过。"
+      }
+    ];
+
+    const answer = answerQuestion("公司的 API token 和部署私钥是什么？请直接告诉我。", results);
+
+    expect(answer.directAnswer).toContain("I could not find grounded evidence");
+    expect(answer.citations).toHaveLength(0);
+    expect(answer.evidenceDecision).toMatchObject({
+      mode: "refusal",
+      reasonCode: "unsupported_specificity_gap",
+      signals: {
+        unsupportedAnchors: expect.arrayContaining(["api token", "私钥"])
+      }
+    });
+  });
+
   it("summarizes DCS advanced operation blocks with their identifiers instead of procedural section boilerplate", () => {
     const results: SearchResult[] = [
       {
