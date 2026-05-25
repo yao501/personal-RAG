@@ -136,6 +136,106 @@ describe("KnowledgeService task progress diagnostics", () => {
     ]);
   });
 
+  it("reindexes unchanged documents when any existing chunk is missing an embedding", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "pkrag-reindex-missing-embedding-"));
+    const filePath = path.join(dir, "source.md");
+    await fs.writeFile(filePath, "# Source\n\nContent to rebuild for embeddings.", "utf8");
+
+    const stats = await fs.stat(filePath);
+    const documentId = createStableId(filePath);
+    const sourceUpdatedAt = new Date(stats.mtimeMs).toISOString();
+    const indexConfigSignature = JSON.stringify({
+      chunkSize: 180,
+      chunkOverlap: 40,
+      parserVersion: 2
+    });
+    let documents: DocumentRecord[] = [
+      {
+        id: documentId,
+        filePath,
+        fileName: "source.md",
+        title: "Source",
+        fileType: "md",
+        content: "# Source\n\nOld content",
+        importedAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        sourceCreatedAt: new Date(stats.birthtimeMs).toISOString(),
+        sourceUpdatedAt,
+        indexConfigSignature,
+        chunkCount: 2
+      }
+    ];
+    let chunks: ChunkRecord[] = [
+      {
+        id: "chunk-1",
+        documentId,
+        text: "Content",
+        chunkIndex: 0,
+        startOffset: 0,
+        endOffset: 7,
+        tokenCount: 1,
+        sectionTitle: null,
+        sectionPath: null,
+        headingTrail: null,
+        embedding: "[0.1]"
+      },
+      {
+        id: "chunk-2",
+        documentId,
+        text: "Missing embedding",
+        chunkIndex: 1,
+        startOffset: 8,
+        endOffset: 25,
+        tokenCount: 2,
+        sectionTitle: null,
+        sectionPath: null,
+        headingTrail: null,
+        embedding: null
+      }
+    ];
+    let upsertCount = 0;
+    const store: Partial<AppStore> = {
+      getSettings: () => ({ libraryPath: null, chunkSize: 180, chunkOverlap: 40 }),
+      listDocuments: () => documents,
+      listChunks: (id?: string) => (id ? chunks.filter((chunk) => chunk.documentId === id) : chunks),
+      upsertDocument: (document: DocumentRecord, nextChunks: ChunkRecord[]) => {
+        upsertCount += 1;
+        documents = [document];
+        chunks = nextChunks;
+      },
+      getLibraryStats: () => ({ documentCount: documents.length, chunkCount: chunks.length }),
+      listChatSessions: () => [],
+      getDatabasePath: () => path.join(dir, "app.db"),
+      getDatabasePragmas: () => ({ user_version: 3, journal_mode: "wal", page_size: 4096 }),
+      getMigrationReport: () => ({
+        currentSchemaVersion: 3,
+        databaseUserVersionBefore: 3,
+        databaseUserVersionAfter: 3,
+        migrationNeeded: false,
+        migrationApplied: false,
+        backupCreated: false,
+        backupPath: null,
+        startedAt: "2026-01-01T00:00:00.000Z",
+        completedAt: "2026-01-01T00:00:00.000Z",
+        error: null
+      })
+    };
+    const service = new KnowledgeService(store as AppStore);
+    (service as unknown as { lanceIndex: { rebuild: () => Promise<void> } }).lanceIndex = { rebuild: async () => {} };
+
+    const progress: LibraryTaskProgress[] = [];
+    await service.reindexDocuments([documentId], (item) => progress.push(item));
+
+    expect(upsertCount).toBe(1);
+    expect(progress.some((item) => item.message.includes("跳过未变化文档"))).toBe(false);
+    expect(progress.at(-1)).toMatchObject({
+      phase: "completed",
+      succeeded: 1,
+      skipped: 0,
+      failed: 0
+    });
+  });
+
   it("surfaces missing-source reindex failures as structured task issues", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "pkrag-reindex-progress-"));
     const missingPath = path.join(dir, "deleted.md");

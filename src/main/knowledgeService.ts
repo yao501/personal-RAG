@@ -827,7 +827,7 @@ export class KnowledgeService {
           const sourceUpdatedAt = new Date(fileStats.mtimeMs).toISOString();
           const existingChunks = this.store.listChunks(document.id);
           const hasChunkCoverage = existingChunks.length > 0 && existingChunks.length === document.chunkCount;
-          const hasEmbeddings = existingChunks.some((chunk) => Boolean(chunk.embedding));
+          const hasEmbeddings = existingChunks.length > 0 && existingChunks.every((chunk) => Boolean(chunk.embedding));
           const shouldSkip =
             document.sourceUpdatedAt === sourceUpdatedAt &&
             document.indexConfigSignature === indexConfigSignature &&

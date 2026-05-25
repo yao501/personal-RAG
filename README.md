@@ -59,6 +59,7 @@ Implemented:
 - retry flow for failed imports
 - duplicate import skip for unchanged files
 - targeted repair flow for only the documents that need reindexing
+- targeted reindex repair now rebuilds documents when any chunk is missing embeddings, even if the source file and chunk count appear unchanged
 - local diagnostics in `Settings` for app version, data directory, and database path
 - startup database migration reports and pre-migration backups for additive SQLite schema upgrades
 - in-app retrieval debug panel for recent query logs, including persisted pipeline counts, intent hints, token expansion, answer evidence decisions, candidate rejection reasons, top-result score breakdowns, and anonymized single-query debug export
@@ -213,6 +214,6 @@ Notes:
 - Busy-task and file-picker failures use stable structured error codes, and reindex failures surface in the same task issue panel as import failures.
 - Reindex is now incremental-aware, so unchanged documents are skipped when their source timestamp and indexing signature still match, which reduces maintenance cost for larger libraries.
 - The app now includes a library-health layer that can detect missing source files, stale source updates, index-config drift, and missing embeddings so maintenance problems are visible before retrieval quality degrades.
-- Health issues can now be repaired selectively, so documents that need reindexing can be fixed without rebuilding the whole library.
+- Health issues can now be repaired selectively, and missing-embedding repairs force a document rebuild instead of being skipped as unchanged.
 - Settings now surface local diagnostics so packaging, support, and on-device troubleshooting are easier during delivery.
 - The module boundaries leave room for future functions such as `searchKnowledge()`, `answerQuestion()`, and `reindexLibrary()` to support later automation or agent-like features without introducing them now.
