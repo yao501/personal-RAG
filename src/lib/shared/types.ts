@@ -31,8 +31,18 @@ export type DocumentIngestionQualityOcrConfidence = "none" | "possible" | "stron
 
 export type OcrHandlingMode = "external_preprocess";
 
+export type OcrAcceptanceCriterionStatus = "required_before_enablement";
+
+export interface OcrAcceptanceCriterion {
+  id: string;
+  status: OcrAcceptanceCriterionStatus;
+  requirement: string;
+  validation: string;
+  releaseGate: boolean;
+}
+
 export interface OcrPolicySnapshot {
-  schemaVersion: 1;
+  schemaVersion: 2;
   mode: OcrHandlingMode;
   automaticOcrEnabled: false;
   supportedFileTypes: SupportedFileType[];
@@ -41,6 +51,7 @@ export interface OcrPolicySnapshot {
   textDensityUnit: "non_whitespace_characters_per_page";
   remediation: string;
   privacyNote: string;
+  bundledOcrAcceptanceCriteria: OcrAcceptanceCriterion[];
 }
 
 export interface DocumentIngestionQualityReport {

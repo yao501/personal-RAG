@@ -24,7 +24,7 @@ The support bundle helps triage desktop issues (import/reindex failures, health 
 | File | Description |
 |------|-------------|
 | `00-README.txt` | Short human-readable note about what is included / excluded. |
-| `manifest.json` | Bundle metadata: format version, timestamps, anonymize flag, app name/version. |
+| `manifest.json` | Bundle metadata: format version, timestamps, anonymize flag, app name/version. Current bundle format version: v6. |
 | `triage_summary.json` | Content-free support self-check summary: privacy flags, key counts, check statuses, suggested next file, and next action. Added in support bundle format v5. |
 | `app_runtime.json` | Node/Electron/Chrome versions, platform, arch, locale. |
 | `paths.json` | `userData`, SQLite DB path, LanceDB directory, temp dir (paths may be redacted). |
@@ -34,7 +34,7 @@ The support bundle helps triage desktop issues (import/reindex failures, health 
 | `system_status.json` | Document/chunk counts, embedding availability, and vector-index availability as shown in the app. |
 | `vector_index.json` | Current vector-index availability plus recent rebuild/search events. Event `details` are omitted when anonymize is on. Added in support bundle format v2. |
 | `settings_safe.json` | Chunk size/overlap and optional library path (may be redacted). |
-| `ocr_policy.json` | Current OCR handling policy: automatic OCR status, text-density thresholds, supported file types, remediation text, and privacy note. Added in support bundle format v4. |
+| `ocr_policy.json` | Current OCR handling policy: automatic OCR status, text-density thresholds, supported file types, remediation text, privacy note, and bundled-OCR acceptance criteria. Added in support bundle format v4; acceptance criteria added in OCR policy schema v2 / bundle format v6. |
 | `library_health.json` | Full library health report (same shape as in-app health check). |
 | `documents_summary.json` | Per-document metadata: ids, titles, types, chunk counts, import quality summaries including `textDensityPerPage`, `ocrRecommended`, and `ocrConfidence`, paths (paths redacted when anonymize is on). **No document body text.** |
 | `query_logs_meta.json` | Recent query logs as **metadata only** (counts, timestamps, short preview or redacted text). **No answers, citations, retrieval debug snapshots, or retrieval payloads.** |
@@ -68,7 +68,7 @@ When anonymize is **off**, more path and preview text is present to speed up int
 1. **Start with** `triage_summary.json` for the content-free self-check: status, suggested next file, and suggested next action.
 2. Then use `manifest.json`, `app_runtime.json`, `paths.json`, `sqlite.json`, `migration.json`, `embedding.json`, and `vector_index.json` to confirm environment and storage layout.
 3. Check **`library_health.json`** for actionable issues (missing sources, stale files, missing embeddings).
-4. Check **`ocr_policy.json`** to confirm whether OCR is automatic or external preprocessing for this build.
+4. Check **`ocr_policy.json`** to confirm whether OCR is automatic or external preprocessing for this build, and whether bundled-OCR acceptance criteria are still release blockers.
 5. Check **`documents_summary.json`** → `ingestionQuality` for `ocrRecommended`, low text density, possible scanned PDFs, garbled text, or unusual chunk distribution.
 6. Review **`library_tasks_recent.json`** for the last import/reindex timeline, import `preflightSummary`, failure phases, and `repairAction` hints.
 7. Use **`ipc_errors_recent.json`** if the user reports UI actions failing (settings, import, etc.).

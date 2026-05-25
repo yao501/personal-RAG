@@ -314,7 +314,7 @@ These are valid but intentionally later:
 
 If we want the highest-value next sprint based on the current repo, do this:
 
-1. Define acceptance criteria for any future approved local OCR pipeline; current policy is external enterprise preprocessing with local diagnostics.
+1. Keep OCR as external enterprise preprocessing; bundled OCR acceptance criteria are now defined in `docs/OCR_POLICY.md` and exported in `ocr_policy.json`.
 2. Expand sanitized real-question regression cases, then compare before/after JSON reports for every retrieval change.
 3. Deepen evidence sufficiency gates for conflict evidence, weak procedural evidence, and high-risk unsupported specifics.
 4. Keep Apple signing/notarization as a separate delivery track when product decides to resume it.

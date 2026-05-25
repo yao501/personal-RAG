@@ -18,7 +18,7 @@ import { buildSupportTriageSummary } from "../lib/modules/support/bundleTriage";
 import { getRecentIpcErrors, getRecentTaskEvents, getRecentVectorIndexEvents } from "./diagnosticsBuffer";
 import type { AppStore } from "./store";
 
-export const SUPPORT_BUNDLE_FORMAT_VERSION = 5;
+export const SUPPORT_BUNDLE_FORMAT_VERSION = 6;
 
 export interface ExportSupportBundleParams {
   store: AppStore;

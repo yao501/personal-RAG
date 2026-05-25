@@ -12,7 +12,7 @@ describe("ocrPolicy", () => {
 
   it("documents the current enterprise OCR policy as external preprocessing", () => {
     expect(getOcrPolicySnapshot()).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       mode: "external_preprocess",
       automaticOcrEnabled: false,
       supportedFileTypes: ["pdf"],
@@ -20,5 +20,18 @@ describe("ocrPolicy", () => {
       possibleTextDensityThreshold: 80,
       textDensityUnit: "non_whitespace_characters_per_page"
     });
+  });
+
+  it("keeps bundled OCR behind explicit enterprise acceptance criteria", () => {
+    const snapshot = getOcrPolicySnapshot();
+    const criteriaById = new Map(snapshot.bundledOcrAcceptanceCriteria.map((criterion) => [criterion.id, criterion]));
+
+    expect(snapshot.automaticOcrEnabled).toBe(false);
+    expect(criteriaById.get("offline_only_execution")).toMatchObject({
+      status: "required_before_enablement",
+      releaseGate: true
+    });
+    expect(criteriaById.get("citation_traceability")?.validation).toContain("product RAG gates");
+    expect(snapshot.bundledOcrAcceptanceCriteria.filter((criterion) => criterion.releaseGate)).toHaveLength(6);
   });
 });
