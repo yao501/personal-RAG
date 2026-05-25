@@ -30,6 +30,7 @@ Migration safety:
 - `src/main/store.ts` now records a `DatabaseMigrationReport` for app diagnostics and support bundles.
 - If an existing non-empty database has an older `PRAGMA user_version`, the app creates a migration-preflight copy under the local `backups/` directory before applying additive migrations.
 - If the database version is newer than the app supports, startup stops instead of writing to an unknown schema.
+- `npm run release:metadata-check` verifies that this document's current `PRAGMA user_version` matches `src/main/store.ts` before a release-quality gate passes.
 
 ### v2 — query-log retrieval debug snapshot
 

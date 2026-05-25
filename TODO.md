@@ -193,7 +193,7 @@ Acceptance:
 
 ### P0.5 Release pipeline baseline
 
-Status (Sprint 4): **foundation in place** — `npm run release:quality` (tests + build + product RAG gate), `npm run release:mac` (alias `dist:mac`), predictable `release/mac-arm64/<productName>.app` output, `docs/INSTALLATION.md`, `docs/RELEASE.md`.
+Status (Sprint 4): **foundation in place** — `npm run release:quality` (release metadata consistency + tests + build + product RAG gate), `npm run release:metadata-check`, `npm run release:mac` (alias `dist:mac`), predictable `release/mac-arm64/<productName>.app` output, `docs/INSTALLATION.md`, `docs/RELEASE.md`.
 
 Why this is P0 but after the items above:
 
@@ -203,6 +203,7 @@ Why this is P0 but after the items above:
 Scope (done in Sprint 4):
 
 - add `npm run release:mac`
+- add release metadata consistency checks for version/schema/macOS release config
 - standardize release output shape (documented; `release/` + `build` config)
 - document install and release steps
 

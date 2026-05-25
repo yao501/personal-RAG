@@ -44,6 +44,7 @@ async function main(): Promise<void> {
   }
 
   const steps: Step[] = [
+    { label: "Release metadata consistency", command: npmCommand(["run", "release:metadata-check"]) },
     { label: "Unit tests", command: npmCommand(["test"]) },
     { label: "Production build", command: npmCommand(["run", "build"]) },
     { label: "Product RAG gate", command: npmCommand(productGateArgs) }

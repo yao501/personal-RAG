@@ -43,6 +43,20 @@ The **`release/`** tree is listed in `.gitignore`; artifacts are **not** committ
 
 The macOS target in `package.json` uses the **`dir`** target: an **unpacked `.app` bundle** suitable for copying to `/Applications` or zipping for internal sharing. **DMG / zip** targets are not configured in this sprint; they can be added later without changing the product direction.
 
+## Release metadata gate
+
+Run this standalone when changing versioning, migration schema, or macOS signing settings:
+
+```bash
+npm run release:metadata-check
+```
+
+It verifies:
+
+- `package.json` has a semver-like `version`
+- `src/main/store.ts` `CURRENT_DATABASE_SCHEMA_VERSION` matches `docs/MIGRATION.md`
+- macOS `hardenedRuntime`, entitlements, `electronDist`, and release helper scripts are still configured
+
 ### Version and naming
 
 - **Application version** is taken from **`package.json` → `version`** (e.g. `0.1.0`). Bump this field before cutting a labeled internal release.
@@ -56,7 +70,7 @@ Use this before sharing a build outside your own machine:
 1. **Branch/commit** is the one you intend to ship (tag optional).
 2. **Bump `version`** in `package.json` if this drop should be distinguishable from previous zips.
 3. **Clean install test (optional but valuable):** fresh `npm ci` or `npm install` on a clean clone.
-4. Run **`npm run release:quality -- --skip-realpdf`** for code-only validation, or **`PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run release:quality -- --require-realpdf`** before a DCS-validated candidate.
+4. Run **`npm run release:quality -- --skip-realpdf`** for code-only validation, or **`PKRAG_REALPDF_DIR="<DCS_MANUAL_DIR>" npm run release:quality -- --require-realpdf`** before a DCS-validated candidate. This starts with `npm run release:metadata-check`, then runs tests, build, and product RAG gates.
 5. Run **`npm run release:mac`** and confirm the `.app` appears under `release/mac-arm64/`.
 6. Run **`npm run release:verify`** to inspect the local signature, Gatekeeper assessment, and stapler status.
    - For current unsigned internal builds, `codesign verify` should pass, while Gatekeeper/stapler warnings are expected until Developer ID signing, notarization, and stapling are configured.
