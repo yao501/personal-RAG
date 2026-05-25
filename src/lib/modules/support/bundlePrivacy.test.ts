@@ -125,11 +125,41 @@ describe("bundlePrivacy", () => {
         message: "missing",
         suggestion: "choose again",
         retryable: false
+      },
+      preflightSummary: {
+        schemaVersion: 1,
+        generatedAt: "2026-05-25T00:00:00.000Z",
+        totalFiles: 1,
+        candidateFiles: 0,
+        skippedFiles: 0,
+        failedFiles: 1,
+        unchangedFiles: 0,
+        duplicateSelections: 0,
+        unsupportedFiles: 0,
+        missingFiles: 1,
+        permissionDeniedFiles: 0,
+        pdfFiles: 0,
+        docxFiles: 0,
+        markdownFiles: 0,
+        textFiles: 0,
+        issues: [
+          {
+            filePath: "/Users/alice/Documents/source.pdf",
+            disposition: "failed",
+            reason: "missing",
+            code: "file_not_found",
+            stage: "preflight",
+            message: "missing",
+            suggestion: "choose again",
+            retryable: false
+          }
+        ]
       }
     }, true);
 
     expect(progress.currentFile).toBe("/Users/[USER]/Documents/source.pdf");
     expect(progress.issue?.filePath).toBe("/Users/[USER]/Documents/source.pdf");
+    expect(progress.preflightSummary?.issues[0]?.filePath).toBe("/Users/[USER]/Documents/source.pdf");
   });
 
   it("omits vector index event details when anonymize is true", () => {

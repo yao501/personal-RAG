@@ -368,6 +368,7 @@ export type AppErrorCode =
   | "file_not_found"
   | "permission_denied"
   | "unsupported_file_type"
+  | "duplicate_selection_skipped"
   | "file_corrupted"
   | "pdf_unreadable"
   | "pdf_ocr_recommended"
@@ -421,10 +422,30 @@ export interface ImportIssueDetail extends AppErrorInfo {
   disposition: "skipped" | "failed" | "warning";
 }
 
+export interface ImportPreflightSummary {
+  schemaVersion: 1;
+  generatedAt: string;
+  totalFiles: number;
+  candidateFiles: number;
+  skippedFiles: number;
+  failedFiles: number;
+  unchangedFiles: number;
+  duplicateSelections: number;
+  unsupportedFiles: number;
+  missingFiles: number;
+  permissionDeniedFiles: number;
+  pdfFiles: number;
+  docxFiles: number;
+  markdownFiles: number;
+  textFiles: number;
+  issues: ImportIssueDetail[];
+}
+
 export interface ImportResult {
   imported: DocumentRecord[];
   skipped: string[];
   skippedDetails: ImportIssueDetail[];
+  preflightSummary: ImportPreflightSummary;
 }
 
 export type LibraryTaskKind = "import" | "reindex";
@@ -453,6 +474,7 @@ export interface LibraryTaskProgress {
   skipped: number;
   done: boolean;
   issue?: ImportIssueDetail | null;
+  preflightSummary?: ImportPreflightSummary | null;
 }
 
 export type LibraryHealthIssueKind =

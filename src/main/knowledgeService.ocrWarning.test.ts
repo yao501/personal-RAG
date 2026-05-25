@@ -23,6 +23,7 @@ vi.mock("../lib/modules/embed/localEmbedder", () => ({
 }));
 
 vi.mock("../lib/modules/parse/parseDocument", () => ({
+  getSupportedFileType: () => "pdf",
   parseDocument: vi.fn(async () => ({
     fileType: "pdf",
     content: "少量文本",

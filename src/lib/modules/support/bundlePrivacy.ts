@@ -158,7 +158,16 @@ export function summarizeTaskProgressForBundle(progress: LibraryTaskProgress, an
           ...progress.issue,
           filePath: redactAbsolutePath(progress.issue.filePath, anonymize)
         }
-      : progress.issue ?? null
+      : progress.issue ?? null,
+    preflightSummary: progress.preflightSummary
+      ? {
+          ...progress.preflightSummary,
+          issues: progress.preflightSummary.issues.map((issue) => ({
+            ...issue,
+            filePath: redactAbsolutePath(issue.filePath, anonymize)
+          }))
+        }
+      : progress.preflightSummary ?? null
   };
 }
 

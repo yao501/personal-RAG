@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import type { Stats } from "node:fs";
 import path from "node:path";
 import { app as electronApp, shell } from "electron";
 import { chunkText } from "../lib/modules/chunk/chunkText";
@@ -7,7 +8,7 @@ import { embedTexts, getEmbeddingStatus } from "../lib/modules/embed/localEmbedd
 import { answerQuestion } from "../lib/modules/answer/answerQuestion";
 import { buildIngestionQualityReport } from "../lib/modules/parse/ingestionQuality";
 import { OCR_REMEDIATION } from "../lib/modules/parse/ocrPolicy";
-import { parseDocument } from "../lib/modules/parse/parseDocument";
+import { getSupportedFileType, parseDocument } from "../lib/modules/parse/parseDocument";
 import { buildRetrievalDebugPayload } from "../lib/modules/retrieve/retrievalDebug";
 import { resolveQueryRetrievalType } from "../lib/modules/retrieve/queryRetrievalType";
 import { applySprint53cRetrievalBias } from "../lib/modules/retrieve/sprint53cBias";
@@ -25,13 +26,15 @@ import type {
   EvalCaseDraft,
   ImportResult,
   ImportIssueDetail,
+  ImportPreflightSummary,
   LibraryHealthReport,
   LibraryTaskKind,
   LibraryTaskPhase,
   LibraryTaskProgress,
   ParsedDocumentContent,
   QueryLogFeedbackStatus,
-  QueryLogRecord
+  QueryLogRecord,
+  SupportedFileType
 } from "../lib/shared/types";
 import { AppStore } from "./store";
 import { LanceChunkRow, LanceIndex, type LanceIndexStatus } from "./lanceIndex";
@@ -94,6 +97,20 @@ function buildOcrRecommendedIssue(filePath: string, quality: DocumentIngestionQu
       retryable: false
     })
   );
+}
+
+type ImportFileStats = Stats;
+
+interface ImportPreflightEntry {
+  filePath: string;
+  originalIndex: number;
+  fileType: SupportedFileType | null;
+  fileStats: ImportFileStats | null;
+  documentId: string | null;
+  existing: DocumentRecord | null;
+  sourceCreatedAt: string | null;
+  sourceUpdatedAt: string | null;
+  issue: ImportIssueDetail | null;
 }
 
 export class KnowledgeService {
@@ -354,6 +371,165 @@ export class KnowledgeService {
     });
   }
 
+  private async buildImportPreflightPlan(
+    filePaths: string[],
+    indexConfigSignature: string
+  ): Promise<{ entries: ImportPreflightEntry[]; summary: ImportPreflightSummary }> {
+    const summary: ImportPreflightSummary = {
+      schemaVersion: 1,
+      generatedAt: new Date().toISOString(),
+      totalFiles: filePaths.length,
+      candidateFiles: 0,
+      skippedFiles: 0,
+      failedFiles: 0,
+      unchangedFiles: 0,
+      duplicateSelections: 0,
+      unsupportedFiles: 0,
+      missingFiles: 0,
+      permissionDeniedFiles: 0,
+      pdfFiles: 0,
+      docxFiles: 0,
+      markdownFiles: 0,
+      textFiles: 0,
+      issues: []
+    };
+    const entries: ImportPreflightEntry[] = [];
+    const seenPaths = new Set<string>();
+
+    const addIssue = (filePath: string, disposition: "skipped" | "failed", error: ReturnType<typeof createImportError>): ImportIssueDetail => {
+      const issue = toImportIssueDetail(filePath, disposition, error);
+      summary.issues.push(issue);
+      if (disposition === "skipped") {
+        summary.skippedFiles += 1;
+      } else {
+        summary.failedFiles += 1;
+      }
+      if (issue.code === "duplicate_selection_skipped") summary.duplicateSelections += 1;
+      if (issue.code === "unchanged_skipped") summary.unchangedFiles += 1;
+      if (issue.code === "unsupported_file_type") summary.unsupportedFiles += 1;
+      if (issue.code === "file_not_found") summary.missingFiles += 1;
+      if (issue.code === "permission_denied") summary.permissionDeniedFiles += 1;
+      return issue;
+    };
+
+    const incrementFileType = (fileType: SupportedFileType): void => {
+      if (fileType === "pdf") summary.pdfFiles += 1;
+      if (fileType === "docx") summary.docxFiles += 1;
+      if (fileType === "md") summary.markdownFiles += 1;
+      if (fileType === "txt") summary.textFiles += 1;
+    };
+
+    for (const [originalIndex, filePath] of filePaths.entries()) {
+      const normalizedPath = path.resolve(filePath);
+      const baseEntry: ImportPreflightEntry = {
+        filePath,
+        originalIndex,
+        fileType: null,
+        fileStats: null,
+        documentId: null,
+        existing: null,
+        sourceCreatedAt: null,
+        sourceUpdatedAt: null,
+        issue: null
+      };
+
+      if (seenPaths.has(normalizedPath)) {
+        const issue = addIssue(
+          filePath,
+          "skipped",
+          createImportError({
+            code: "duplicate_selection_skipped",
+            stage: "preflight",
+            message: `重复选择的文件已跳过：${path.basename(filePath)}`,
+            suggestion: "同一批导入中只会处理第一次出现的文件。",
+            retryable: false
+          })
+        );
+        entries.push({ ...baseEntry, issue });
+        continue;
+      }
+      seenPaths.add(normalizedPath);
+
+      let fileStats: ImportFileStats;
+      try {
+        fileStats = await fs.stat(filePath);
+      } catch (error) {
+        const issue = addIssue(filePath, "failed", normalizeImportError(error, filePath, "preflight"));
+        entries.push({ ...baseEntry, issue });
+        continue;
+      }
+
+      const fileType = getSupportedFileType(filePath);
+      if (!fileType || !fileStats.isFile()) {
+        const issue = addIssue(
+          filePath,
+          "failed",
+          createImportError({
+            code: "unsupported_file_type",
+            stage: "preflight",
+            message: !fileType
+              ? `暂不支持该文件类型：${path.basename(filePath)}`
+              : `导入目标不是普通文件：${path.basename(filePath)}`,
+            suggestion: "请导入 pdf、md、txt 或 docx 文件。",
+            retryable: false
+          })
+        );
+        entries.push({ ...baseEntry, fileStats, issue });
+        continue;
+      }
+      incrementFileType(fileType);
+
+      const documentId = createStableId(filePath);
+      const existing = this.store.getDocument(documentId);
+      const existingChunks = existing ? this.store.listChunks(documentId) : [];
+      const sourceCreatedAt = new Date(fileStats.birthtimeMs).toISOString();
+      const sourceUpdatedAt = new Date(fileStats.mtimeMs).toISOString();
+      const canSkipUnchanged =
+        Boolean(existing) &&
+        existing?.sourceUpdatedAt === sourceUpdatedAt &&
+        existing?.indexConfigSignature === indexConfigSignature &&
+        hasUsableChunkState(existing, existingChunks);
+
+      if (canSkipUnchanged && existing) {
+        const issue = addIssue(
+          filePath,
+          "skipped",
+          createImportError({
+            code: "unchanged_skipped",
+            stage: "preflight",
+            message: "文件未变化，已跳过重复导入。",
+            suggestion: "如果你已经修改过切片或检索配置，请使用重建索引。",
+            retryable: false
+          })
+        );
+        entries.push({
+          ...baseEntry,
+          fileType,
+          fileStats,
+          documentId,
+          existing,
+          sourceCreatedAt,
+          sourceUpdatedAt,
+          issue
+        });
+        continue;
+      }
+
+      summary.candidateFiles += 1;
+      entries.push({
+        ...baseEntry,
+        fileType,
+        fileStats,
+        documentId,
+        existing,
+        sourceCreatedAt,
+        sourceUpdatedAt
+      });
+    }
+
+    return { entries, summary };
+  }
+
   async importFiles(
     filePaths: string[],
     emitProgress?: (progress: LibraryTaskProgress) => void
@@ -365,9 +541,12 @@ export class KnowledgeService {
     let failedCount = 0;
     let skippedCount = 0;
     let warningCount = 0;
+    let preflightSummary: ImportPreflightSummary | null = null;
     const { taskId } = task;
 
     try {
+      const settings = this.store.getSettings();
+      const indexConfigSignature = buildIndexConfigSignature(settings);
       this.emitTaskProgress(emitProgress, {
         taskId,
         kind: "import",
@@ -382,55 +561,51 @@ export class KnowledgeService {
         skipped: 0
       });
 
-      for (const [index, filePath] of filePaths.entries()) {
-        try {
-          const fileStats = await fs.stat(filePath);
-          const now = new Date().toISOString();
-          const documentId = createStableId(filePath);
-          const settings = this.store.getSettings();
-          const indexConfigSignature = buildIndexConfigSignature(settings);
-          const existing = this.store.getDocument(documentId);
-          const existingChunks = existing ? this.store.listChunks(documentId) : [];
-          const sourceUpdatedAt = new Date(fileStats.mtimeMs).toISOString();
-          const canSkipUnchanged =
-            Boolean(existing) &&
-            existing?.sourceUpdatedAt === sourceUpdatedAt &&
-            existing?.indexConfigSignature === indexConfigSignature &&
-            hasUsableChunkState(existing, existingChunks);
+      const preflightPlan = await this.buildImportPreflightPlan(filePaths, indexConfigSignature);
+      preflightSummary = preflightPlan.summary;
+      for (const issue of preflightSummary.issues) {
+        skipped.push(issue.filePath);
+        skippedDetails.push(issue);
+      }
+      failedCount = preflightSummary.failedFiles;
+      skippedCount = preflightSummary.skippedFiles;
 
-          if (canSkipUnchanged && existing) {
-            skipped.push(filePath);
-            skippedCount += 1;
-            const skippedIssue = toImportIssueDetail(
-              filePath,
-              "skipped",
-              createImportError({
-                code: "unchanged_skipped",
-                stage: "preflight",
-                message: "文件未变化，已跳过重复导入。",
-                suggestion: "如果你已经修改过切片或检索配置，请使用重建索引。",
-                retryable: false
-              })
-            );
-            skippedDetails.push(
-              skippedIssue
-            );
-            this.emitTaskProgress(emitProgress, {
-              taskId,
-              kind: "import",
-              phase: "saving",
-              message: `跳过未变化文件：${path.basename(filePath)}`,
-              current: index + 1,
-              total: filePaths.length,
-              currentFile: filePath,
-              processed: imported.length + failedCount + skippedCount,
-              succeeded: imported.length,
-              failed: failedCount,
-              skipped: skippedCount,
-              issue: skippedIssue
+      this.emitTaskProgress(emitProgress, {
+        taskId,
+        kind: "import",
+        phase: "preparing",
+        message: `预检完成：将导入 ${preflightSummary.candidateFiles}，跳过 ${preflightSummary.skippedFiles}，失败 ${preflightSummary.failedFiles}，PDF ${preflightSummary.pdfFiles}`,
+        current: 0,
+        total: filePaths.length,
+        currentFile: null,
+        processed: failedCount + skippedCount,
+        succeeded: 0,
+        failed: failedCount,
+        skipped: skippedCount,
+        preflightSummary
+      });
+
+      for (const entry of preflightPlan.entries) {
+        if (entry.issue) {
+          continue;
+        }
+        const { filePath, originalIndex: index } = entry;
+        try {
+          const fileStats = entry.fileStats;
+          const documentId = entry.documentId;
+          if (!fileStats || !documentId) {
+            throw createImportError({
+              code: "unknown_import_error",
+              stage: "preflight",
+              message: `导入预检状态异常：${path.basename(filePath)}`,
+              suggestion: "请重新选择文件后再试；如果仍失败，请导出诊断包。",
+              retryable: true
             });
-            continue;
           }
+          const now = new Date().toISOString();
+          const existing = entry.existing;
+          const sourceCreatedAt = entry.sourceCreatedAt ?? new Date(fileStats.birthtimeMs).toISOString();
+          const sourceUpdatedAt = entry.sourceUpdatedAt ?? new Date(fileStats.mtimeMs).toISOString();
 
           this.emitTaskProgress(emitProgress, {
             taskId,
@@ -443,7 +618,8 @@ export class KnowledgeService {
             processed: imported.length + failedCount + skippedCount,
             succeeded: imported.length,
             failed: failedCount,
-            skipped: skippedCount
+            skipped: skippedCount,
+            preflightSummary
           });
           const parsed = await parseDocument(filePath);
           if (isEffectivelyEmptyContent(parsed.content)) {
@@ -468,7 +644,8 @@ export class KnowledgeService {
             processed: imported.length + failedCount + skippedCount,
             succeeded: imported.length,
             failed: failedCount,
-            skipped: skippedCount
+            skipped: skippedCount,
+            preflightSummary
           });
           const baseChunks = chunkText(documentId, parsed.content, { ...settings, documentTitle: title, pageSpans: parsed.pageSpans });
           if (baseChunks.length === 0) {
@@ -492,7 +669,8 @@ export class KnowledgeService {
             processed: imported.length + failedCount + skippedCount,
             succeeded: imported.length,
             failed: failedCount,
-            skipped: skippedCount
+            skipped: skippedCount,
+            preflightSummary
           });
           const chunks = await this.attachEmbeddings(baseChunks);
           const ingestionQuality = buildIngestionQualityReport(parsed, chunks);
@@ -507,7 +685,7 @@ export class KnowledgeService {
             content: parsed.content,
             importedAt: existing?.importedAt ?? now,
             updatedAt: now,
-            sourceCreatedAt: existing?.sourceCreatedAt ?? new Date(fileStats.birthtimeMs).toISOString(),
+            sourceCreatedAt: existing?.sourceCreatedAt ?? sourceCreatedAt,
             sourceUpdatedAt,
             indexConfigSignature,
             chunkCount: chunks.length,
@@ -534,7 +712,8 @@ export class KnowledgeService {
             succeeded: imported.length,
             failed: failedCount,
             skipped: skippedCount,
-            issue: qualityIssue
+            issue: qualityIssue,
+            preflightSummary
           });
         } catch (error) {
           const normalizedError = normalizeImportError(error, filePath, "unknown");
@@ -554,7 +733,8 @@ export class KnowledgeService {
             succeeded: imported.length,
             failed: failedCount,
             skipped: skippedCount,
-            issue: failedIssue
+            issue: failedIssue,
+            preflightSummary
           });
         }
       }
@@ -570,7 +750,8 @@ export class KnowledgeService {
         processed: imported.length + failedCount + skippedCount,
         succeeded: imported.length,
         failed: failedCount,
-        skipped: skippedCount
+        skipped: skippedCount,
+        preflightSummary
       });
       await this.rebuildLanceIndex(this.store.listDocuments(), this.store.listChunks());
       this.emitTaskProgress(emitProgress, {
@@ -586,9 +767,10 @@ export class KnowledgeService {
         processed: imported.length + failedCount + skippedCount,
         succeeded: imported.length,
         failed: failedCount,
-        skipped: skippedCount
+        skipped: skippedCount,
+        preflightSummary
       });
-      return { imported, skipped, skippedDetails };
+      return { imported, skipped, skippedDetails, preflightSummary };
     } catch (error) {
       this.emitTaskProgress(emitProgress, {
         taskId,
@@ -601,7 +783,8 @@ export class KnowledgeService {
         processed: imported.length + failedCount + skippedCount,
         succeeded: imported.length,
         failed: failedCount,
-        skipped: skippedCount
+        skipped: skippedCount,
+        preflightSummary
       });
       throw error;
     } finally {

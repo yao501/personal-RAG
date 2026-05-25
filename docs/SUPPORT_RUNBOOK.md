@@ -37,7 +37,7 @@ The support bundle helps triage desktop issues (import/reindex failures, health 
 | `library_health.json` | Full library health report (same shape as in-app health check). |
 | `documents_summary.json` | Per-document metadata: ids, titles, types, chunk counts, import quality summaries including `textDensityPerPage`, `ocrRecommended`, and `ocrConfidence`, paths (paths redacted when anonymize is on). **No document body text.** |
 | `query_logs_meta.json` | Recent query logs as **metadata only** (counts, timestamps, short preview or redacted text). **No answers, citations, retrieval debug snapshots, or retrieval payloads.** |
-| `library_tasks_recent.json` | Recent import/reindex task progress snapshots (ring buffer). Low-text-density PDFs appear as structured `pdf_ocr_recommended` warning issues. `currentFile` and structured issue `filePath` may be redacted. |
+| `library_tasks_recent.json` | Recent import/reindex task progress snapshots (ring buffer). Import tasks include structured `preflightSummary` counts and redacted preflight issues. Low-text-density PDFs appear as structured `pdf_ocr_recommended` warning issues. `currentFile` and structured issue `filePath` may be redacted. |
 | `ipc_errors_recent.json` | Recent structured IPC failures (channel, code, stage, message, suggestion). `details` omitted when anonymize is on. |
 | `chat_sessions_summary.json` | Session counts and titles (titles redacted when anonymize is on). **No chat turns or answers.** |
 
@@ -68,7 +68,7 @@ When anonymize is **off**, more path and preview text is present to speed up int
 2. Check **`library_health.json`** for actionable issues (missing sources, stale files, missing embeddings).
 3. Check **`ocr_policy.json`** to confirm whether OCR is automatic or external preprocessing for this build.
 4. Check **`documents_summary.json`** → `ingestionQuality` for `ocrRecommended`, low text density, possible scanned PDFs, garbled text, or unusual chunk distribution.
-5. Review **`library_tasks_recent.json`** for the last import/reindex timeline and failure phases.
+5. Review **`library_tasks_recent.json`** for the last import/reindex timeline, import `preflightSummary`, and failure phases.
 6. Use **`ipc_errors_recent.json`** if the user reports UI actions failing (settings, import, etc.).
 7. Use **`query_logs_meta.json`** only for **volume and recency** of questions—do not expect answer content here.
 

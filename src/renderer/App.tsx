@@ -236,6 +236,10 @@ function formatImportIssueSummary(item: ImportIssueDetail): string {
   return `[${item.code}] ${item.reason}${suffix}`;
 }
 
+function pathBasename(filePath: string): string {
+  return filePath.split(/[\\/]/).filter(Boolean).at(-1) ?? filePath;
+}
+
 function extractRendererErrorInfo(error: unknown): RendererErrorInfo | null {
   if (typeof error !== "object" || error === null) {
     return null;
@@ -1450,6 +1454,20 @@ export function App() {
                 <div className="task-progress-fill" style={{ width: `${taskProgressPercent}%` }} />
               </div>
               <p className="muted">{libraryTaskProgress.message}</p>
+              {libraryTaskProgress.preflightSummary && (
+                <div className="task-preflight-summary">
+                  <p className="muted">
+                    预检：将导入 {libraryTaskProgress.preflightSummary.candidateFiles} / 跳过 {libraryTaskProgress.preflightSummary.skippedFiles} / 失败 {libraryTaskProgress.preflightSummary.failedFiles}
+                    {" · "}
+                    PDF {libraryTaskProgress.preflightSummary.pdfFiles} / DOCX {libraryTaskProgress.preflightSummary.docxFiles}
+                  </p>
+                  {libraryTaskProgress.preflightSummary.issues.length > 0 && (
+                    <p className={libraryTaskProgress.preflightSummary.failedFiles > 0 ? "error-text" : "warning-text"}>
+                      预检风险：{libraryTaskProgress.preflightSummary.issues.slice(0, 3).map((item) => `${pathBasename(item.filePath)} [${item.code}]`).join("，")}
+                    </p>
+                  )}
+                </div>
+              )}
               {libraryTaskProgress.currentFile && (
                 <p className="muted task-current-file">{libraryTaskProgress.currentFile}</p>
               )}

@@ -644,6 +644,10 @@ select {
   background: linear-gradient(90deg, #125b50 0%, #3b8f7e 100%);
 }
 
+.task-preflight-summary {
+  margin-top: 8px;
+}
+
 .task-current-file {
   word-break: break-all;
 }

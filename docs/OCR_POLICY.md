@@ -7,6 +7,7 @@ Personal Knowledge RAG currently treats OCR as an explicit enterprise preprocess
 - Automatic OCR is disabled in the desktop app.
 - The app does not send PDFs or extracted content to external OCR services.
 - Low-text-density PDFs are imported when text extraction succeeds, but import and reindex surface a structured `pdf_ocr_recommended` warning.
+- Import preflight records PDF candidate counts before parsing; OCR need is still determined after text extraction because it depends on page-level extracted text density.
 - Support bundles include `ocr_policy.json` and content-free document quality summaries so support staff can diagnose scan/image-PDF issues without raw documents.
 
 ## Classification

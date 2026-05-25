@@ -49,6 +49,7 @@ Implemented:
 - recent query log capture for real-user eval feedback loops
 - import and reindex task progress with stage-level feedback plus skipped-file reasons
 - import and reindex task progress can carry structured issue details, so failed files remain visible after the task finishes
+- imports now run a structured preflight summary before parsing/index writes, covering duplicate selections, unsupported files, missing sources, unchanged skips, and candidate file-type counts
 - imported documents carry a content-free ingestion quality report for text density, page count, chunk distribution, OCR recommendation, possible scan/image-PDF needs, and garbled text warnings
 - import and reindex surface low-text-density PDFs as structured `pdf_ocr_recommended` warnings without treating successful imports as failures
 - OCR handling is an explicit enterprise policy: automatic OCR is disabled for now, low-text-density PDFs are diagnosed locally, and approved OCR preprocessing is expected before reimport

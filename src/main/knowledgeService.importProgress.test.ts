@@ -84,6 +84,53 @@ describe("KnowledgeService task progress diagnostics", () => {
     });
   });
 
+  it("emits a structured import preflight summary before parsing candidates", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "pkrag-import-preflight-"));
+    const filePath = path.join(dir, "source.md");
+    const unsupportedPath = path.join(dir, "table.csv");
+    await fs.writeFile(filePath, "# Source\n\nContent to import.", "utf8");
+    await fs.writeFile(unsupportedPath, "a,b\n1,2", "utf8");
+
+    let documents: DocumentRecord[] = [];
+    let chunks: ChunkRecord[] = [];
+    const store: Partial<AppStore> = {
+      getSettings: () => ({ libraryPath: null, chunkSize: 180, chunkOverlap: 40 }),
+      getDocument: () => null,
+      listChunks: () => chunks,
+      listDocuments: () => documents,
+      upsertDocument: (document: DocumentRecord, nextChunks: ChunkRecord[]) => {
+        documents = [document];
+        chunks = nextChunks;
+      }
+    };
+    const service = new KnowledgeService(store as AppStore);
+    (service as unknown as { lanceIndex: { rebuild: () => Promise<void> } }).lanceIndex = { rebuild: async () => {} };
+
+    const progress: LibraryTaskProgress[] = [];
+    const result = await service.importFiles([filePath, filePath, unsupportedPath], (item) => progress.push(item));
+    const preflightEvent = progress.find((item) => item.preflightSummary);
+
+    expect(result.imported).toHaveLength(1);
+    expect(result.preflightSummary).toMatchObject({
+      totalFiles: 3,
+      candidateFiles: 1,
+      skippedFiles: 1,
+      failedFiles: 1,
+      duplicateSelections: 1,
+      unsupportedFiles: 1,
+      markdownFiles: 1
+    });
+    expect(preflightEvent).toMatchObject({
+      phase: "preparing",
+      message: "预检完成：将导入 1，跳过 1，失败 1，PDF 0",
+      preflightSummary: result.preflightSummary
+    });
+    expect(result.skippedDetails.map((item) => item.code)).toEqual([
+      "duplicate_selection_skipped",
+      "unsupported_file_type"
+    ]);
+  });
+
   it("surfaces missing-source reindex failures as structured task issues", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "pkrag-reindex-progress-"));
     const missingPath = path.join(dir, "deleted.md");
