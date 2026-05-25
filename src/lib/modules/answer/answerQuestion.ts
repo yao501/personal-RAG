@@ -174,10 +174,17 @@ const HIGH_RISK_UNSUPPORTED_ANCHORS = [
   "api key",
   "api token",
   "access token",
+  "license key",
+  "activation code",
+  "serial number",
   "密钥",
   "私钥",
   "令牌",
-  "访问令牌"
+  "访问令牌",
+  "许可证密钥",
+  "注册码",
+  "激活码",
+  "序列号"
 ];
 
 function hasUnsupportedSpecificityGap(question: string, results: SearchResult[]): boolean {

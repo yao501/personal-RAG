@@ -316,7 +316,7 @@ If we want the highest-value next sprint based on the current repo, do this:
 
 1. Keep OCR as external enterprise preprocessing; bundled OCR acceptance criteria are now defined in `docs/OCR_POLICY.md` and exported in `ocr_policy.json`.
 2. Continue small sanitized real-question regression expansion; the fixture-first runner and before/after compare command are now available via `npm run eval:rag:real` and `npm run eval:rag:real:compare`.
-3. Deepen evidence sufficiency gates for conflict evidence, weak procedural evidence, and high-risk unsupported specifics.
+3. Continue evidence sufficiency hardening; unsupported private credential gating now covers passwords, API/access tokens, private keys, license keys, activation codes, and serial numbers unless directly cited.
 4. Keep Apple signing/notarization as a separate delivery track when product decides to resume it.
 
 ## Definition Of “Done” For This Phase

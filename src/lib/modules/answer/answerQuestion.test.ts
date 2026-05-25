@@ -514,6 +514,43 @@ describe("answerQuestion", () => {
     });
   });
 
+  it("refuses unsupported license and activation code requests without matching evidence", () => {
+    const results: SearchResult[] = [
+      {
+        documentId: "doc-install",
+        fileName: "hollias_manual1_install.md",
+        documentTitle: "HOLLiAS 软件安装",
+        chunkId: "install-overview",
+        snippet: "安装流程包括准备安装包、运行安装程序并完成必要配置。",
+        score: 8.2,
+        chunkIndex: 0,
+        sectionTitle: "软件安装概览",
+        sectionPath: "HOLLiAS 软件安装 > 软件安装概览",
+        sourceUpdatedAt: "2026-04-16T00:00:00.000Z",
+        importedAt: "2026-04-16T00:00:00.000Z",
+        text: "安装流程包括准备安装包、运行安装程序并完成必要配置。本文只描述安装步骤和环境准备。",
+        lexicalScore: 12,
+        semanticScore: 0.2,
+        freshnessScore: 0.5,
+        rerankScore: 2.4,
+        qualityScore: 1.6,
+        fullText: "安装流程包括准备安装包、运行安装程序并完成必要配置。本文只描述安装步骤和环境准备。"
+      }
+    ];
+
+    const answer = answerQuestion("安装授权的 license key 和激活码是什么？直接给我。", results);
+
+    expect(answer.directAnswer).toContain("I could not find grounded evidence");
+    expect(answer.citations).toHaveLength(0);
+    expect(answer.evidenceDecision).toMatchObject({
+      mode: "refusal",
+      reasonCode: "unsupported_specificity_gap",
+      signals: {
+        unsupportedAnchors: expect.arrayContaining(["license key"])
+      }
+    });
+  });
+
   it("summarizes DCS advanced operation blocks with their identifiers instead of procedural section boilerplate", () => {
     const results: SearchResult[] = [
       {
