@@ -658,6 +658,14 @@ select {
   border-top: 1px dashed var(--line);
 }
 
+.import-repair-actions {
+  margin-bottom: 10px;
+}
+
+.import-repair-actions .muted {
+  margin-bottom: 4px;
+}
+
 .retrieval-debug-panel {
   display: grid;
   gap: 14px;

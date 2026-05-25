@@ -124,7 +124,8 @@ describe("bundlePrivacy", () => {
         stage: "preflight",
         message: "missing",
         suggestion: "choose again",
-        retryable: false
+        retryable: false,
+        repairAction: "reselect_file"
       },
       preflightSummary: {
         schemaVersion: 1,
@@ -151,7 +152,8 @@ describe("bundlePrivacy", () => {
             stage: "preflight",
             message: "missing",
             suggestion: "choose again",
-            retryable: false
+            retryable: false,
+            repairAction: "reselect_file"
           }
         ]
       }
@@ -159,7 +161,9 @@ describe("bundlePrivacy", () => {
 
     expect(progress.currentFile).toBe("/Users/[USER]/Documents/source.pdf");
     expect(progress.issue?.filePath).toBe("/Users/[USER]/Documents/source.pdf");
+    expect(progress.issue?.repairAction).toBe("reselect_file");
     expect(progress.preflightSummary?.issues[0]?.filePath).toBe("/Users/[USER]/Documents/source.pdf");
+    expect(progress.preflightSummary?.issues[0]?.repairAction).toBe("reselect_file");
   });
 
   it("omits vector index event details when anonymize is true", () => {

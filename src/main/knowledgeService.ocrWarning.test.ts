@@ -67,7 +67,8 @@ describe("KnowledgeService OCR diagnostics", () => {
       code: "pdf_ocr_recommended",
       stage: "parsing",
       filePath,
-      retryable: false
+      retryable: false,
+      repairAction: "run_ocr_then_reimport"
     });
     expect(result.imported[0].ingestionQuality).toMatchObject({
       ocrRecommended: true,
@@ -76,7 +77,8 @@ describe("KnowledgeService OCR diagnostics", () => {
     expect(progress.find((item) => item.issue?.code === "pdf_ocr_recommended")).toMatchObject({
       phase: "saving",
       issue: {
-        disposition: "warning"
+        disposition: "warning",
+        repairAction: "run_ocr_then_reimport"
       }
     });
     expect(progress.at(-1)?.message).toContain("提示 1");

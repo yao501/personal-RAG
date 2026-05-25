@@ -108,7 +108,7 @@ Scope:
 - map each import/index failure stage to stable error codes (**foundation in place for preflight/parsing/chunking/embedding/indexing/storage**)
 - unify how errors appear in UI, logs, and diagnostics (**IPC envelope, task issue panel, support bundle recent errors, vector-index fallback diagnostics, corrected import completion counts, ingestion quality summaries, OCR recommendation warnings, migration reports, and missing-source reindex regression coverage are in place**)
 - add stronger pre-import checks (**structured import preflight summary, initial import quality report, low-text-density PDF OCR recommendation warning, and explicit external-preprocess OCR policy are in place; automatic OCR remains explicit follow-up**)
-- improve per-file retry and repair flows
+- improve per-file retry and repair flows (**structured import repair actions and aggregated recent-task UI buttons are in place; continue with deeper automatic repair where safe**)
 - deepen library consistency checks
 
 Target areas:

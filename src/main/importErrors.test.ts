@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createImportError, normalizeImportError, toImportIssueDetail } from "./importErrors";
+import { createImportError, normalizeImportError, resolveImportIssueRepairAction, toImportIssueDetail } from "./importErrors";
 
 describe("importErrors", () => {
   it("normalizes common filesystem errors", () => {
@@ -39,7 +39,8 @@ describe("importErrors", () => {
       code: "chunk_failed",
       stage: "chunking",
       reason: "chunk failed",
-      retryable: true
+      retryable: true,
+      repairAction: "retry_import"
     });
   });
 
@@ -53,5 +54,13 @@ describe("importErrors", () => {
     expect(normalized.code).toBe("file_picker_failed");
     expect(normalized.stage).toBe("preflight");
     expect(normalized.retryable).toBe(true);
+  });
+
+  it("maps import issues to actionable repair hints", () => {
+    expect(resolveImportIssueRepairAction({ code: "file_not_found", retryable: false }, "failed")).toBe("reselect_file");
+    expect(resolveImportIssueRepairAction({ code: "permission_denied", retryable: false }, "failed")).toBe("check_permissions");
+    expect(resolveImportIssueRepairAction({ code: "unsupported_file_type", retryable: false }, "failed")).toBe("convert_to_supported_type");
+    expect(resolveImportIssueRepairAction({ code: "pdf_ocr_recommended", retryable: false }, "warning")).toBe("run_ocr_then_reimport");
+    expect(resolveImportIssueRepairAction({ code: "unchanged_skipped", retryable: false }, "skipped")).toBe("run_reindex");
   });
 });

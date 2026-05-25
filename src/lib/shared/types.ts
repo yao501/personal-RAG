@@ -420,7 +420,18 @@ export interface ImportIssueDetail extends AppErrorInfo {
   filePath: string;
   reason: string;
   disposition: "skipped" | "failed" | "warning";
+  repairAction?: ImportIssueRepairAction;
 }
+
+export type ImportIssueRepairAction =
+  | "retry_import"
+  | "reselect_file"
+  | "convert_to_supported_type"
+  | "run_reindex"
+  | "run_ocr_then_reimport"
+  | "check_permissions"
+  | "export_support_bundle"
+  | "none";
 
 export interface ImportPreflightSummary {
   schemaVersion: 1;

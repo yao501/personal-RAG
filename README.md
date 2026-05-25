@@ -50,6 +50,7 @@ Implemented:
 - import and reindex task progress with stage-level feedback plus skipped-file reasons
 - import and reindex task progress can carry structured issue details, so failed files remain visible after the task finishes
 - imports now run a structured preflight summary before parsing/index writes, covering duplicate selections, unsupported files, missing sources, unchanged skips, and candidate file-type counts
+- import issues now carry structured repair actions that the UI aggregates into next-step buttons such as retry, reselect file, convert format, OCR then reimport, reindex, or export a support bundle
 - imported documents carry a content-free ingestion quality report for text density, page count, chunk distribution, OCR recommendation, possible scan/image-PDF needs, and garbled text warnings
 - import and reindex surface low-text-density PDFs as structured `pdf_ocr_recommended` warnings without treating successful imports as failures
 - OCR handling is an explicit enterprise policy: automatic OCR is disabled for now, low-text-density PDFs are diagnosed locally, and approved OCR preprocessing is expected before reimport
@@ -207,6 +208,7 @@ Notes:
 - Real query logs are persisted locally so future retrieval changes can be compared against both curated eval datasets and actual user questions, then promoted into sanitized benchmark v1 case drafts from the desktop app, including grounded, cautious, and refusal candidates.
 - Recent query logs now persist a local retrieval debug snapshot, making vector shortlist count, candidate count, candidate source mode, primary-rank rejection reasons, top-result score reasons, citation hits, query type, refusal/cautious answer flags, and evidence decision reasons inspectable before tuning retrieval behavior. Individual query debug snapshots can be exported as anonymized JSON without raw chunk text by default.
 - Import and reindex now expose stage-level progress plus structured failure reasons, which makes large-library maintenance much safer for end users.
+- Import issue details include recommended repair actions, so user-facing task records and support diagnostics point to the next safe recovery step instead of only showing an error string.
 - Vector index failures are recorded as diagnostics and surfaced as fallback state, so lexical retrieval can keep working while support can see why semantic vector recall degraded.
 - Busy-task and file-picker failures use stable structured error codes, and reindex failures surface in the same task issue panel as import failures.
 - Reindex is now incremental-aware, so unchanged documents are skipped when their source timestamp and indexing signature still match, which reduces maintenance cost for larger libraries.

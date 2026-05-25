@@ -15,6 +15,7 @@ import type {
   EvalCaseDraft,
   DocumentQuestionMatch,
   ImportIssueDetail,
+  ImportIssueRepairAction,
   LibraryHealthReport,
   QueryLogRecord,
   QueryLogFeedbackStatus,
@@ -234,6 +235,25 @@ function formatQuestionMatchScore(score: number): string {
 function formatImportIssueSummary(item: ImportIssueDetail): string {
   const suffix = item.suggestion ? ` 建议：${item.suggestion}` : "";
   return `[${item.code}] ${item.reason}${suffix}`;
+}
+
+function formatImportRepairAction(action: ImportIssueRepairAction | undefined): string {
+  if (action === "retry_import") return "重试导入";
+  if (action === "reselect_file") return "重新选择文件";
+  if (action === "convert_to_supported_type") return "转换格式后导入";
+  if (action === "run_reindex") return "重建索引";
+  if (action === "run_ocr_then_reimport") return "OCR 后重新导入";
+  if (action === "check_permissions") return "检查权限后重试";
+  if (action === "export_support_bundle") return "导出支持包";
+  return "无需操作";
+}
+
+function formatImportIssueWithRepair(item: ImportIssueDetail): string {
+  if (!item.repairAction || item.repairAction === "none") {
+    return formatImportIssueSummary(item);
+  }
+
+  return `${formatImportIssueSummary(item)} 修复：${formatImportRepairAction(item.repairAction)}`;
 }
 
 function pathBasename(filePath: string): string {
@@ -504,6 +524,30 @@ export function App() {
     () => recentTaskSkippedDetails.filter((item) => item.disposition === "warning"),
     [recentTaskSkippedDetails]
   );
+  const recentRepairActions = useMemo(() => {
+    const actionOrder: ImportIssueRepairAction[] = [
+      "retry_import",
+      "reselect_file",
+      "check_permissions",
+      "convert_to_supported_type",
+      "run_ocr_then_reimport",
+      "run_reindex",
+      "export_support_bundle"
+    ];
+    const counts = new Map<ImportIssueRepairAction, number>();
+
+    for (const item of recentTaskSkippedDetails) {
+      if (!item.repairAction || item.repairAction === "none") {
+        continue;
+      }
+
+      counts.set(item.repairAction, (counts.get(item.repairAction) ?? 0) + 1);
+    }
+
+    return actionOrder
+      .filter((action) => counts.has(action))
+      .map((action) => ({ action, count: counts.get(action) ?? 0 }));
+  }, [recentTaskSkippedDetails]);
   const canRetryRecentFailedImports = recentFailedImports.length > 0 && libraryTaskProgress?.kind !== "reindex";
 
   useEffect(() => {
@@ -852,16 +896,16 @@ export function App() {
     }
   }
 
-  async function handleRetryFailedImports(): Promise<void> {
-    if (libraryTaskBusy || recentFailedImports.length === 0) {
+  async function retryImportIssues(issues: ImportIssueDetail[], statusPrefix: string): Promise<void> {
+    if (libraryTaskBusy || issues.length === 0) {
       return;
     }
 
     try {
       const api = getDesktopApi();
-      const filePaths = recentFailedImports.map((item) => item.filePath);
+      const filePaths = issues.map((item) => item.filePath);
       setErrorMessage("");
-      setStatus(`正在重试 ${filePaths.length} 个失败文件...`);
+      setStatus(`正在${statusPrefix} ${filePaths.length} 个文件...`);
       const result = await api.importFiles(filePaths);
       await refreshSnapshot(currentSessionId);
       setScreen("library");
@@ -879,12 +923,38 @@ export function App() {
         setErrorMessage("");
       }
 
-      setStatus(`重试完成：成功 ${result.imported.length}，提示 ${warningDetails.length}，跳过 ${skippedDetails.length}，失败 ${failedDetails.length}`);
+      setStatus(`${statusPrefix}完成：成功 ${result.imported.length}，提示 ${warningDetails.length}，跳过 ${skippedDetails.length}，失败 ${failedDetails.length}`);
     } catch (error) {
       const info = extractRendererErrorInfo(error);
-      const message = info ? formatRendererError(info) : (error instanceof Error ? error.message : "未知重试错误");
+      const message = info ? formatRendererError(info) : (error instanceof Error ? error.message : `未知${statusPrefix}错误`);
       setErrorMessage(message);
-      setStatus("重试失败");
+      setStatus(`${statusPrefix}失败`);
+    }
+  }
+
+  async function handleRetryFailedImports(): Promise<void> {
+    await retryImportIssues(recentFailedImports, "重试");
+  }
+
+  async function handleImportRepairAction(action: ImportIssueRepairAction): Promise<void> {
+    if (action === "retry_import" || action === "check_permissions") {
+      const issues = recentTaskSkippedDetails.filter((item) => item.repairAction === action);
+      await retryImportIssues(issues, formatImportRepairAction(action));
+      return;
+    }
+
+    if (action === "reselect_file" || action === "convert_to_supported_type" || action === "run_ocr_then_reimport") {
+      await handleImport();
+      return;
+    }
+
+    if (action === "run_reindex") {
+      await handleReindex();
+      return;
+    }
+
+    if (action === "export_support_bundle") {
+      await handleExportSupportBundle();
     }
   }
 
@@ -1493,9 +1563,27 @@ export function App() {
           {(recentFailedImports.length > 0 || recentWarningImports.length > 0 || recentSkippedImports.length > 0) && (
             <div className="task-issues">
               <p className="eyebrow">最近任务记录</p>
+              {recentRepairActions.length > 0 && (
+                <div className="import-repair-actions">
+                  <p className="muted">建议修复动作</p>
+                  <div className="log-actions">
+                    {recentRepairActions.map(({ action, count }) => (
+                      <button
+                        key={action}
+                        type="button"
+                        className="secondary"
+                        disabled={libraryTaskBusy && action !== "export_support_bundle"}
+                        onClick={() => void handleImportRepairAction(action)}
+                      >
+                        {formatImportRepairAction(action)}（{count}）
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {recentFailedImports.length > 0 && (
                 <>
-                  {canRetryRecentFailedImports && (
+                  {canRetryRecentFailedImports && recentRepairActions.length === 0 && (
                     <div className="log-actions">
                       <button type="button" className="secondary" disabled={libraryTaskBusy} onClick={() => void handleRetryFailedImports()}>
                         重试失败文件
@@ -1504,7 +1592,7 @@ export function App() {
                   )}
                   {recentFailedImports.slice(0, 3).map((item) => (
                     <p key={`${item.filePath}-${item.reason}`} className="error-text">
-                      {item.filePath}: {formatImportIssueSummary(item)}
+                      {item.filePath}: {formatImportIssueWithRepair(item)}
                     </p>
                   ))}
                 </>
@@ -1513,7 +1601,7 @@ export function App() {
                 <>
                   {recentWarningImports.slice(0, 3).map((item) => (
                     <p key={`${item.filePath}-${item.reason}`} className="warning-text">
-                      提示：{item.filePath} · {formatImportIssueSummary(item)}
+                      提示：{item.filePath} · {formatImportIssueWithRepair(item)}
                     </p>
                   ))}
                 </>
@@ -1522,7 +1610,7 @@ export function App() {
                 <>
                   {recentSkippedImports.slice(0, 2).map((item) => (
                     <p key={`${item.filePath}-${item.reason}`} className="muted">
-                      已跳过：{item.filePath} · {formatImportIssueSummary(item)}
+                      已跳过：{item.filePath} · {formatImportIssueWithRepair(item)}
                     </p>
                   ))}
                 </>

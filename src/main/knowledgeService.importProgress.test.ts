@@ -75,6 +75,7 @@ describe("KnowledgeService task progress diagnostics", () => {
     const completed = progress.at(-1);
 
     expect(result.skippedDetails.map((item) => item.disposition)).toEqual(["skipped", "failed"]);
+    expect(result.skippedDetails.map((item) => item.repairAction)).toEqual(["run_reindex", "reselect_file"]);
     expect(completed).toMatchObject({
       phase: "completed",
       message: "导入完成：成功 0，跳过 1，失败 1",
@@ -128,6 +129,10 @@ describe("KnowledgeService task progress diagnostics", () => {
     expect(result.skippedDetails.map((item) => item.code)).toEqual([
       "duplicate_selection_skipped",
       "unsupported_file_type"
+    ]);
+    expect(result.skippedDetails.map((item) => item.repairAction)).toEqual([
+      "none",
+      "convert_to_supported_type"
     ]);
   });
 
@@ -263,7 +268,8 @@ describe("KnowledgeService task progress diagnostics", () => {
       disposition: "failed",
       code: "empty_content",
       stage: "parsing",
-      retryable: false
+      retryable: false,
+      repairAction: "run_ocr_then_reimport"
     });
     expect(progress.find((item) => item.issue?.code === "empty_content")).toMatchObject({
       phase: "failed",
@@ -296,7 +302,8 @@ describe("KnowledgeService task progress diagnostics", () => {
       disposition: "failed",
       code: "sqlite_write_failed",
       stage: "storage",
-      retryable: true
+      retryable: true,
+      repairAction: "export_support_bundle"
     });
     expect(progress.at(-1)).toMatchObject({
       phase: "completed",

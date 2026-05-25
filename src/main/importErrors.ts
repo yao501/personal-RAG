@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { AppErrorCode, AppErrorInfo, AppErrorStage, ImportIssueDetail } from "../lib/shared/types";
+import type { AppErrorCode, AppErrorInfo, AppErrorStage, ImportIssueDetail, ImportIssueRepairAction } from "../lib/shared/types";
 
 type AppErrorInput = {
   code: AppErrorCode;
@@ -153,6 +153,41 @@ export function toImportIssueDetail(
     stage: error.stage,
     suggestion: error.suggestion,
     retryable: error.retryable,
-    message: error.message
+    message: error.message,
+    repairAction: resolveImportIssueRepairAction(error, disposition)
   };
+}
+
+export function resolveImportIssueRepairAction(
+  error: Pick<AppErrorInfo, "code" | "retryable">,
+  disposition: "skipped" | "failed" | "warning"
+): ImportIssueRepairAction {
+  if (disposition === "warning" && error.code === "pdf_ocr_recommended") {
+    return "run_ocr_then_reimport";
+  }
+
+  switch (error.code) {
+    case "duplicate_selection_skipped":
+      return "none";
+    case "unchanged_skipped":
+      return "run_reindex";
+    case "file_not_found":
+      return "reselect_file";
+    case "permission_denied":
+      return "check_permissions";
+    case "unsupported_file_type":
+      return "convert_to_supported_type";
+    case "empty_content":
+      return "run_ocr_then_reimport";
+    case "pdf_ocr_recommended":
+      return "run_ocr_then_reimport";
+    case "file_corrupted":
+    case "pdf_unreadable":
+      return "reselect_file";
+    case "sqlite_write_failed":
+    case "vector_index_failed":
+      return "export_support_bundle";
+    default:
+      return error.retryable ? "retry_import" : "export_support_bundle";
+  }
 }
