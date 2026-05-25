@@ -57,7 +57,8 @@
 ## RAG-only Round 17（已启动：debug/export 时代的门控回归）
 
 - **cases 文件**：`evals/cases/rag-only-round17.json`
-- **runner**：`scripts/runRealRegressionRagOnly.ts --spec evals/cases/rag-only-round17.json`
+- **runner**：`npm run eval:rag:real`（等价于 `scripts/runRealRegressionRagOnly.ts --spec evals/cases/rag-only-round17.json`）
+- **before/after 对比**：`npm run eval:rag:real:compare -- <before.json> <after.json>`
 - **数据源**：fixture-first，覆盖手册1/3/7脱敏片段 + `zeta_definition_only_procedure.md`
 - **覆盖范围**：定义型证据的步骤问法谨慎回答、维护模式密码拒答、参数对齐正向控制、非 UserSvr 否定语义。
 - **当前基线**：2026-05-22 跑通 4/4。

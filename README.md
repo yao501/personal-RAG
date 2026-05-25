@@ -138,6 +138,7 @@ Retrieval eval:
 ```bash
 npm run eval:rag
 npm run eval:rag:refusal
+npm run eval:rag:real
 ```
 
 Writes a timestamped Markdown report under `reports/rag-eval/`. Benchmark format, metrics, and limitations: [docs/EVAL_GUIDE.md](docs/EVAL_GUIDE.md).
@@ -174,6 +175,7 @@ Compare two benchmark JSON reports:
 
 ```bash
 npm run eval:rag:compare -- reports/rag-eval/eval-before.json reports/rag-eval/eval-after.json
+npm run eval:rag:real:compare -- evals/results/real-regression-run-before.json evals/results/real-regression-run-after.json
 ```
 
 Included tests cover:

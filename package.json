@@ -25,6 +25,8 @@
     "test": "vitest run",
     "eval:rag": "./node_modules/.bin/vite-node scripts/runRagEval.ts",
     "eval:rag:compare": "./node_modules/.bin/vite-node scripts/compareRagEvalReports.ts",
+    "eval:rag:real": "./node_modules/.bin/vite-node scripts/runRealRegressionRagOnly.ts --spec evals/cases/rag-only-round17.json",
+    "eval:rag:real:compare": "./node_modules/.bin/vite-node scripts/compareRealRegressionReports.ts",
     "eval:rag:refusal": "./node_modules/.bin/vite-node scripts/runRagEval.ts benchmarks/refusal-gate.v1.json",
     "eval:rag:dcs:manual7": "./node_modules/.bin/vite-node scripts/p0bPhaseBOnly.ts --spec evals/cases/p0b-manual7-phaseb.json",
     "eval:rag:product": "./node_modules/.bin/vite-node scripts/productRagGate.ts"

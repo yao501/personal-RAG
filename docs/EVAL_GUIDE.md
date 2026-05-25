@@ -148,6 +148,15 @@ PKRAG_REALPDF_DIR="$HOME/Desktop/和利时DCS操作手册" npm run eval:rag:prod
 
 `eval:rag:product` always runs the default fixture smoke benchmark and `benchmarks/refusal-gate.v1.json` first. The refusal gate covers no-match refusal, DCS-shaped unsupported questions, private-credential questions including passwords, tokens, and keys, thin procedural evidence, definition-only procedural evidence that must be cautious, and one grounded positive control. Product gate summaries are written under `evals/results/product-rag-gate-<date>-<seq>.md`. Files under `evals/results/` are gitignored because real-library runs may include absolute paths and source snippets.
 
+Real-question regression loop (sanitized fixture-first P0-A track):
+
+```bash
+npm run eval:rag:real
+npm run eval:rag:real:compare -- evals/results/real-regression-run-before.json evals/results/real-regression-run-after.json
+```
+
+`eval:rag:real` runs the current RAG-only real-regression spec (`evals/cases/rag-only-round17.json`) through the desktop-aligned retrieval path and writes raw JSON, result JSON, and a Markdown summary under `evals/raw/` and `evals/results/`. `eval:rag:real:compare` compares two result JSON files, reports verdict changes, and exits non-zero when a shared case regresses or disappears from the after report. Generated files stay gitignored because they may include absolute paths or snippets.
+
 Release-quality gate (tests + production build + `dcs-core` product gate):
 
 ```bash
